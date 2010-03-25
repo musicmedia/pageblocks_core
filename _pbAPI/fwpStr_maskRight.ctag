@@ -1,0 +1,38 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_maskRight.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_maskRight }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_maskRight }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag returns the string 'mask' with the string 
+					'overlay' replacing the right characters of 'mask'. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release - replaces fwpUtil_stringMaskRight }
+
+*/
+//.............................................................................
+
+define_tag:'fwpStr_maskRight', -priority='replace',
+	-required='mask',
+	-required='overlay';
+	return:(#mask->(subString: 1, #mask->size - (string:#overlay)->size)) + string:#overlay;
+/define_tag;
+?>

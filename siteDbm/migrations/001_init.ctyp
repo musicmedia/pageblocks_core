@@ -1,0 +1,42 @@
+﻿<?lassoscript
+
+//	file name must be same as the type name + extension
+//	example: 002_dbm_example.ctyp
+//	where 002 = the schema migration version number
+//	and the rest is any name you want to identify what it does
+
+	define_type('001_init', 'fwp_dbmCommands');
+	
+	//------------------------------------------------------------------------------
+	
+		define_tag('update');
+		
+		//	define tblName once for multiple operations,
+		//	or with -table in each operation
+		
+			self->(execute(
+				"CREATE TABLE `_schemaInfo` (
+		  		`id` int(4) unsigned NOT NULL default '0',
+		  		`version` smallint(5) unsigned NOT NULL default '0'
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8;"
+				)
+			);
+			
+			self->(execute(
+				"INSERT into _schemaInfo SET id='1', version=0;"
+				)
+			);
+		
+		/define_tag;
+		
+	//------------------------------------------------------------------------------
+		
+		define_tag('rollback');
+		
+			self->(removeTable('_schemaInfo'));
+		
+		/define_tag;
+		
+	/define_type;
+	
+?>

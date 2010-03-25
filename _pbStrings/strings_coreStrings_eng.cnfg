@@ -1,0 +1,323 @@
+﻿[output_none]
+//............................................................................
+//
+//	pageblocks: (c) 2002-2006 http://www.pageblocks.org/
+//
+//............................................................................
+//
+//	{fileName=		lang_errCoreVal_eng.cnfg }
+//	{rsrcType=		config }
+//	{rsrcName=		lang_errCoreVal }
+//	{rsrcHTTP=		www.pageblocks.org/refc/lang_errCoreVal }
+//	
+//	{lassoVrsnMin=	8.1.0 }
+//	{lassoVrsnMax=	8.5.1 }
+//
+//	{author=		Greg Willits }
+//	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+//	{authorHTTP=	www.pageblocks.org }
+//
+//	{desc=			Language configuration file for core validation codes }
+//
+//	{maintvsrn=		1.0 }
+//	{maintrelease=	5.1.0 }
+//	{maintdate=		2006-01-06 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	initial release }
+//
+//.............................................................................
+//	Preferred Language Codes which will used as the PageBlocks standard
+//	ISO 639 which can be found here:
+//	http://www.oasis-open.org/cover/iso639a.html
+//
+//	The W3C preference appears to be moving to this list
+//	http://www.iana.org/assignments/language-subtag-registry
+//.............................................................................
+
+//=============================================================================
+//	Error Message Language Configuration
+//	- the file name defines the language
+//	- all reusable messages must be defined before they are mentioned by insert___
+//-----------------------------------------------------------------------------
+// 	note that each line will be trimmed,
+//	and all whitespace after ___ will be trimmed,
+//	so use space entity if you want to split the 
+//	msg up into rows of short lengths in source code
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+//
+//	reusable message elements
+//
+//
+
+{{useReusable:
+msg___		some reusable text for strings
+}}
+
+{{plurEnding:
+msg___		s
+}}
+
+
+//=============================================================================
+//
+//	Core Strings
+//
+//
+
+{{somename:
+constant___	app_kSomeName
+msg___		any text that needs to be displayed by the framework on its own
+insert___	useReusable
+}}
+
+{{valFirstWordThe:
+msg___		The
+}}
+
+{{valFirstWordThis:
+msg___		This
+}}
+
+
+
+//	------------------------------
+//:	general use words
+
+{{add:
+msg___	Add
+}}
+
+{{by:
+msg___	by
+}}
+
+{{edit:
+msg___	Edit
+}}
+
+{{lastUpdate:
+msg___	Last update
+}}
+
+{{logout:
+msg___	Logout
+}}
+
+{{new:
+msg___	New
+}}
+
+{{page:
+msg___	page
+}}
+
+{{select:
+msg___	Select
+}}
+
+{{sort:
+msg___	Sort
+}}
+
+{{sorting:
+msg___	Sorting
+}}
+
+{{startpage:
+msg___	Start Page
+}}
+
+{{various:
+msg___	various
+}}
+
+{{webpage:
+msg___	Web Page
+}}
+
+{{welcome:
+msg___	Welcome!
+}}
+
+
+
+
+//	------------------------------
+//:	general use messages and fragments
+
+{{noRecFound1:
+msg___	(no
+}}
+
+{{noRecFound2:
+msg___	found)
+}}
+
+{{disabled:
+msg___	(Disabled or set to not display)
+}}
+
+{{notDisplayed:
+msg___	(Display disabled)
+}}
+
+{{reqFields:
+msg___	indicates that the field cannot be left empty
+}}
+
+{{valAlert:
+msg___	Content in one or more fields caused problems, please see below!
+}}
+
+
+
+//	------------------------------
+//: feedback messages
+
+{{fb_01:
+msg___	Your new record was successfully added
+}}
+
+{{fb_02:
+msg___	Your new record was successfully added, now please do additional edits and click 'Save'
+}}
+
+{{fb_03:
+msg___	Your changes were successfully saved
+}}
+
+{{fb_04:
+msg___	The record was successfully deleted
+}}
+
+
+
+
+//	------------------------------
+//: warning messages
+
+{{delRcrdConf:
+msg___	Are you sure you want to delete this record? It cannot be undone!
+}}
+
+
+
+//	------------------------------
+//:	various strings
+
+{{fileType:
+msg___	File Type
+}}
+
+{{fileSize:
+msg___	File Size
+}}
+
+{{jpgfile:
+msg___	JPEG Image File
+}}
+
+{{giffile:
+msg___	GIF Image File
+}}
+
+{{tiffile:
+msg___	TIFF Image File
+}}
+
+{{pdffile:
+msg___	PDF File
+}}
+
+{{docfile:
+msg___	DOC Text Document
+}}
+
+{{movfile:
+msg___	QuickTime Sound/Movie Clip
+}}
+
+{{undeffile:
+msg___	(Type couldn't be determined)
+}}
+
+{{clickToDownload:
+msg___	Right/Ctrl-click to download
+}}
+
+
+
+//	------------------------------
+//: general labels
+
+{{link:
+msg___	Link
+}}
+
+{{login:
+msg___	Login
+}}
+
+{{passwd:
+msg___	Password
+}}
+
+{{emailAddr:
+msg___	Email Address
+}}
+
+{{showOnSite:
+msg___	Show on Website
+}}
+
+
+//	------------------------------
+//: button values
+
+{{btnAdd:
+msg___	Add
+}}
+
+{{btnSave:
+msg___	Save
+}}
+
+{{btnContinue:
+msg___	Continue
+}}
+
+{{btnBack:
+msg___	Back
+}}
+
+{{btnUpload:
+msg___	Upload
+}}
+{{btnReset:
+msg___	Reset
+}}
+
+{{btnCancel:
+msg___	Cancel
+}}
+
+{{btnSearch:
+msg___	Search
+}}
+
+{{btnDelete:
+msg___	Delete
+}}
+
+{{btnRemove:
+msg___	Remove
+}}
+
+{{btnUpdate:
+msg___	Update
+}}
+
+
+[/output_none]

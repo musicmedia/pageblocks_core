@@ -1,0 +1,37 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpAPI_version.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpAPI_version }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpAPI_version }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag reports the current version of the pageblocks API }
+
+	{maintvsrn=		0.0 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-17 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpAPI_version', -priority='replace';
+	return: '5.3.0';
+/define_tag;
+
+?>
+

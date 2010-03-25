@@ -1,0 +1,62 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_unlock.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_unlock }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpActn_unlock }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine is used to force a record to unlock. It is 
+					typically employed in places where a user is likely to 
+					fail to use the "Cancel" button and jump to another page. 
+					If this routine is placed on that page, it will load the 
+					lockID and unlock the record. (This is most effective 
+					on the List page). This will not catch the case of a user 
+					using the browser back button to return to a page with
+					this tag. }
+
+	{maintvsrn=		2.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated to use multiple lock handling of fwp_recordLockStore }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype,
+					added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpActn_unlock', -priority='replace';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpActn_unlock');
+
+	!(var_defined:'fw_recordLockStore' )
+		?	var:'fw_recordLockStore'= fwp_recordLockStore;
+	$fw_recordLockStore->init;
+	$fw_recordLockStore->unlockAll;
+
+/define_tag;
+?>

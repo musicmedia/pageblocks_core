@@ -1,0 +1,143 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpLog_auth.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpLog_auth }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpLog_auth }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates a log of authentication attempts (successful
+					and failed. }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.2.4 }
+	{maintdate=		2007-07-21 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTacer }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added log_critical }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed db/tbl references to use new vars }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpLog_auth', 
+	-autooutput,
+	-priority='replace',
+	-optional='status',
+	-optional='usrSession',
+	-optional='usrAcct',
+	-optional='usrName',
+	-optional='usrRcrd',
+	-optional='pageInfo',
+	-optional='fwpInfo';
+
+	$fw_debug >= fw_kChatty ? $fw_tagTracer->(add:'fwpLog_auth', -errorMsg=local:'errorMsg');
+
+	local:'fw_logFileNm' = ($fw_sPath->'logs') + 'authlog_' + (date->year);
+	
+	//	backwards compatibility
+	//	doesn`t require the declaration of fw_gLogAuthTarget
+
+	if: !(global_defined:'fw_gLogAuthTarget');
+		$fw_gLogAuthTarget = 'file';
+	/if;
+
+	if: $fw_gLogAuthTarget == 'file';
+
+		inline:
+			-username=$fw_gFilesUser,
+			-password=$fw_gFilesPswd;
+		
+			select: $fw_gLogAuthRoll;
+				case:'M';
+					#fw_logFileNm += '_m' + (date->month);
+				case:'W';
+					#fw_logFileNm += '_w' + (date->week);
+				case:'D';
+					#fw_logFileNm += '_d' + (date->dayofyear);
+			/select;
+		
+			#fw_logFileNm += '.txt';
+		
+			log: #fw_logFileNm; 
+				server_date: -extended;
+				'\t';
+				server_time;
+				'\t';
+				client_IP;
+				'\t';
+				#status;
+				'\t';
+				#usrAcct;
+				'\t';
+				#usrName;
+				'\t';
+				#usrRcrd;
+				'\t';
+				#usrSession;
+				'\t';
+				response_filepath;
+				'\t';
+				#pageInfo;
+				'\n';
+			/log;
+
+			$fw_criticalLog && ((file_currentError: -errorcode)  != 0)
+				? log_critical:('pbError : fwpLog_auth -- ' + file_currentError);
+		
+		/inline;
+
+	else: $fw_gLogAuthTarget == 'database';
+
+		local:'logPairs' = (array:
+			'logDate' 		= server_date: -extended,
+			'logTime' 		= server_time,
+			'logClientIP' 	= client_IP,
+			'logStatus' 	= #status, 
+			'logAccount' 	= #usrAcct, 
+			'logUser' 		= #usrName, 
+			'logUserID' 	= #usrRcrd, 
+			'logSessionID' 	= #usrSession, 
+			'logPageURL' 	= response_filepath,
+			'logPageInfo' 	= #pageInfo);
+
+		fwpLog_asyncSQL:
+			-logPairs	= #logPairs,
+			-user		= $fw_gQueryUser,
+			-pswd		= $fw_gQueryPswd,
+			-db			= $fw_gDatabases->find:'logs',
+			-tbl		= $fw_gTables->find:'logauth',
+			-keyfld		= 'id';
+
+	/if;
+/define_tag;
+?>
+

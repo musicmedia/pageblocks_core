@@ -1,0 +1,32 @@
+﻿<?lassoscript 
+
+	define_tag('nl_lastUpdateShort', 
+		-description= 'short version of last update tag',
+		-optional	= 'mdate', 
+		-optional	= 'mby',
+		-type		= string,
+		-encodenone
+	); 
+
+		if(local('mdate')->size); 
+		
+			#mdate	= date(#mdate); 
+			
+			if(local('mby')->size && var_defined('fw_appStrings')); 
+					
+				return(
+	
+					'<span class="dimmore">' + 
+					#mby + ' @ ' +
+					date_localized(#mdate) + ' ' + 
+					#mdate->(format:'%H:%M:%S') + '</span>'
+					
+				); 
+				
+			/if; 
+			
+		/if; 
+	
+	/define_tag; 
+
+?>

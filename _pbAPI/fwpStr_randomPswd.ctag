@@ -1,0 +1,73 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_randomPswd.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_randomPswd }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_randomPswd }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Generates a random string of characters of a specified 
+					length including one symbol char. Intended to create
+					temporary passwords. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpStr_randomPswd', -priority='replace',
+	-required='pwLen';
+
+	if: #pwLen < 6;
+		#pwLen = 6;
+	/if;
+
+	local:
+		'pwVal'			= (string),
+		'srcUppers'		= 'ABCDEFGHJKLMNPQRSTUVWXYZ',
+		'srcLowers'		= 'abcdefghjklmnpqrstuvwxyz',
+		'srcNumbers'	= '123456789',
+		'srcSymbols'	= '!@#$%^*',
+		'srcMixed'		= 'AaBb9CcDd8EeFf7GgHh6iJj5KkLMm4NnoPp3QqRr2SsTt1UuVv9WwXx8YyZz';
+
+	local:
+		'uprLen'	= #srcUppers->size,
+		'lwrLen'	= #srcLowers->size,
+		'numLen'	= #srcNumbers->size,
+		'symLen'	= #srcSymbols->size,
+		'mixLen'	= #srcMixed->size;
+
+// force 4 of the characters to be consumed by these minimum requirements
+
+	#pwVal += #srcUppers->(substring:(math_random: -min=1, -max=#uprLen),1);
+	#pwVal += #srcLowers->(substring:(math_random: -min=1, -max=#lwrLen),1);
+	#pwVal += #srcNumbers->(substring:(math_random: -min=1, -max=#numLen),1);
+	#pwVal += #srcSymbols->(substring:(math_random: -min=1, -max=#symLen),1);
+
+	loop: #pwLen - 4;
+		#pwVal = (string_insert:
+			#pwVal,
+			-position=(math_random: -min=1, -max=(#pwVal->size) + 1),
+			-text=#srcMixed->(substring:(math_random: -min=1, -max=#mixLen),1));
+	/loop;
+	
+	return: #pwVal;
+
+/define_tag;
+?>

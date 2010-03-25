@@ -1,0 +1,118 @@
+﻿<?LassoScript 
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//.............................................................................
+//	
+//	modConfig
+//
+//	instantiate a custom type for any database records to be used in the module
+//	if there are data types used only on certain pages, use this code within
+//	the case statments of the _pageConfig file or in the pageBlock .lgc file
+//	in this case we have a simple flat table, and any page using the table
+//	would always have the same fwp_rcrdData object initialization code
+//	so we may as well do it once here, and every page will have the object
+//	already defined and ready to use
+//	define db content data type for db driven pageBlock content
+
+	var('pageRcrds'		= fwp_recordData('appstrings'));
+	
+	// languages values
+	var('languagesShortLong'= fwpCnfg_loadBlocks('valueLists_languages_' + $fw_gCoreLanguage + '.cnfg'));
+	$languagesShortLong		= $languagesShortLong->(find('languagesShortLong'));
+	$languagesShortLong		= fwpCnfg_splitBlockLines($languagesShortLong, -intoMap);
+
+	$fw_pageModes->disableAutoErrorDisplay;
+	
+	var('rcrdStatus'	= fwp_valueList(
+		-file		= 'genl',
+		-list		= 'yesno',
+		-attributes	= map(
+			'name'		= 'm_rStat',
+			'id'		= 'rStat'
+			)
+		)
+	);
+
+	//	fw_pgAuth triggers whether the page needs authorization
+	if($fw_requestPage->'path' >> '_admin');
+	
+		$fw_headContent->addCssFile($fw_sPath->'css' + 'styles_admin.css');
+		
+		var('fw_pgAuthRequired'	= true, 
+			'adminPageTitle'	= 'Site Strings', 
+			'fw_pgHeader'		= 'hdr_siteMngr.dsp', 
+			'fw_pgFooter'		= 'ftr_siteMngr.dsp'
+		);
+			
+	else(var('fw_pgAuthRequired'	= false));
+	//	this is redundant, but
+	//	just to make the point that this is
+	//	where vars go for non admin pages
+		
+	/if;
+	
+//	---------------------------------------------------------------------------
+//	pageConfig
+//
+	
+	if($fw_requestPage->'path' >> '_admin');
+	
+		if(var_defined('fw_s'));
+		
+			select($fw_requestPage->'name');
+			
+				case('list');
+					$fw_pgTitle		= 'pageblocks SiteManager : Page Blocks';
+					$fw_pgTemplate	= '1col';
+					$fw_pgPrivilege	= 'fw_user->prvlg.str_view';
+					
+				case('addForm');
+					$fw_pgTitle		= 'pageblocks SiteManager : Page Blocks';
+					$fw_pgTemplate	= '1col';
+					$fw_pgPrivilege	= 'fw_user->prvlg.str_add';
+					
+				case('deleteForm');
+					$fw_pgTitle		= 'pageblocks SiteManager : Page Blocks';
+					$fw_pgTemplate	= '1col';
+					$fw_pgPrivilege	= 'fw_user->prvlg.str_delete';
+					
+				case('updateForm');
+					$fw_pgTitle		= 'pageblocks SiteManager : Page Blocks';
+					$fw_pgTemplate	= '1col';
+					$fw_pgPrivilege	= 'fw_user->prvlg.str_update';
+					
+				case('updateLangForm');
+					$fw_pgTitle		= 'pageblocks SiteManager : Page Blocks';
+					$fw_pgTemplate	= '1col';
+					$fw_pgPrivilege	= 'fw_user->prvlg.str_update';
+					
+				case('manageStringLang');
+					$fw_pgTitle		= 'pageblocks SiteManager : Page Blocks';
+					$fw_pgTemplate	= '1col';
+					$fw_pgPrivilege	= 'fw_user->prvlg.str_update';
+					
+				case;
+					fwpPage_pageNotFound;
+				
+			/select;
+			
+		else;
+			$fw_pgTitle			= 'pageblocks SiteManager';
+			$fw_pgTemplate		= '2colwn';
+			$fw_error->insert('5011'='not logged in');
+			$fw_pgAuthRequired	= false;
+			
+		/if;
+		
+	else;
+		fwpPage_pageNotFound;
+		
+	/if;
+
+?>

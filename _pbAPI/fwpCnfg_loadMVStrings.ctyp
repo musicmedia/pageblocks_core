@@ -1,0 +1,571 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_loadMVStrings.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwp_mvsLoader }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_mvsLoader }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Loads a multi-view strings configuration file into a 
+					specified global caching var. }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-14 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	significant update to fix bug that would prevent some 
+	 				files from being loaded and cached when fw_restAllCaches
+	 				was false. Updated how items were added to caches to 
+	 				prevent files from overwriting data that shuldn't be, 
+	 				and added modulesLoaded to cache to keep track of 
+	 				exactly which modules and languages had already been
+	 				loaded. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_type:'fwp_mvsLoader', -privileged, -prototype;
+
+	local:
+		'language' 			= string,
+		'cacheVar' 			= string,
+		'cacheLock'			= string;
+
+//============================================================================
+//
+//	->load
+//
+//	loads a language config file into the global cache
+//
+//
+//............................................................................
+
+define_tag:'load',
+	-privileged,
+	-required = 'file',			-type = 'string',
+	-required = 'language',		-type = 'string',
+	-required = 'cacheVar',		-type = 'string',
+	-required = 'cacheLock',	-type = 'string';
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_mvsLoader.load', -file=#file, -language=#language);
+
+	(self->'language')			= #language;
+	(self->'cacheVar')			= #cacheVar;
+	(self->'cacheLock')			= #cacheLock;
+	local:
+		'loadedModules' 			= map,
+		'thisModuleLoaded'			= false,
+		'loadedModuleLanguages'		= set,
+		'thisModuleLanguageLoaded'	= false;
+
+//.............................................................................
+//	see if module and language are already loaded
+//
+
+//	::Note::
+//	I suppose for ultimate thread safety this should be inside the locks
+//	but those locks are such performance hits, I don't want to do that with every string lookup
+//	so, I need to optimize the look up process first
+
+	#loadedModules = ((global:(self->'cacheVar'))->find:'modulesLoaded');
+	
+	#loadedModules >> ($fw_requestPage->'module')
+		? #thisModuleLoaded = true
+		| #thisModuleLoaded = false;
+	
+	if: #thisModuleLoaded;
+		#loadedModuleLanguages = #loadedModules->find:($fw_requestPage->'module');
+		#loadedModuleLanguages >> (self->'language')
+			? #thisModuleLanguageLoaded = true
+			| #thisModuleLanguageLoaded = false;
+	/if;
+
+	#thisModuleLoaded && #thisModuleLanguageLoaded
+		? return;
+
+//.............................................................................
+//	load language file for this module
+//
+
+	(global:(self->'cacheLock'))->readUnlock;
+	(global:(self->'cacheLock'))->writeLock;
+
+		!#thisModuleLoaded
+			? ((global:(self->'cacheVar'))->find:'modulesLoaded')->(insert: ($fw_requestPage->'module') = set);
+
+		!#thisModuleLanguageLoaded
+			? (((global:(self->'cacheVar'))->find:'modulesLoaded')->find:($fw_requestPage->'module'))->(insert: (self->'language'));
+
+	(global:(self->'cacheLock'))->writeUnlock;
+	(global:(self->'cacheLock'))->readLock;
+
+//	it is important that the App file be loaded after the Core file
+//	so that App definitions of the same name will override
+//	the default definitions in Core
+//	and that modules ones are able to override site ones
+
+	local:
+		'fw_fileName'			= #file + '_' + (self->'language') + fw_kCnfgExt,
+		'fw_filePaths'			= array,
+		'fw_thisFile'			= string,
+		'fw_fileData'			= string,
+		'fw_cnfgSections' 		= array;
+
+	#fw_filePaths->(insert: $fw_sPath->('apiStrings') + 'strings_core' + #fw_fileName);
+	#fw_filePaths->(insert: ($fw_sPath->'strings') + 'strings_app' + #fw_fileName);
+	#fw_filePaths->(insert: ($fw_mPath->'strings') + 'strings_app' + #fw_fileName);
+
+	iterate: #fw_filePaths, #fw_thisFile;
+
+		($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_mvsLoader : file', 
+			-fileName = #fw_thisFile,
+			-fileExists = (file_exists:#fw_thisFile));
+
+		(file_exists: #fw_thisFile)
+			? #fw_fileData = (file_read: #fw_thisFile)
+			| #fw_fileData = false;
+
+		if: #fw_fileData;
+
+			if: !((global:(self->'cacheVar')) >> (self->'language'));
+				(global:(self->'cacheLock'))->readUnlock;
+				(global:(self->'cacheLock'))->writeLock;
+
+				($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader : adding Language', 
+					-language = (self->'language'));
+
+					(global:(self->'cacheVar'))->(insert: (self->'language') = map);
+
+				(global:(self->'cacheLock'))->writeUnlock;
+				(global:(self->'cacheLock'))->readLock;
+			/if;
+
+			#fw_cnfgSections = (string_findregexp: 
+				#fw_fileData, 
+				-find='{{[-]{0,1}\\w+:[\\s\\S]+?}}',
+				-ignoreCase);
+
+			self->(processSections:#fw_cnfgSections);
+
+		/if;
+	/iterate;
+/define_tag;
+
+
+//: -
+//: Config Processing
+//============================================================================
+//
+//	->processSections
+//
+//	checks sections for media and variant containers
+//	processes first-level config lines like constant and logIt
+//
+//............................................................................
+
+define_tag:'processSections',
+	-required = 'fw_cnfgSections';
+	
+	local:
+ 		'fw_thisSection'		= string,
+		'fw_thisCnfgName'		= string,
+ 		'fw_mediaSectionsAll'	= array,
+ 		'fw_mediaSections'		= array,
+ 		'fw_sectionLines'		= string,
+ 		'fw_thisLine'			= string,
+ 		'fw_cnfgLabel'			= string,
+ 		'fw_cnfgValue'			= string;
+
+//	a section is the whole string definition block per code/label delimited via {{ }}
+
+	iterate: #fw_cnfgSections, #fw_thisSection;
+
+//	replace spaces after ___ here 
+//	because it is faster than doing a trim on every fw_cnfgValue 
+//	in the sub-processors
+
+		#fw_thisSection = (string_replaceRegExp: 
+			#fw_thisSection,
+			-find='(\\w+)___\\s*',
+			-replace='\\1___');
+
+		#fw_thisCnfgName = (string_findRegExp: 
+			#fw_thisSection, 
+			-find='{{([-]{0,1}\\w+):',
+			-ignoreCase)->last;
+
+		($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader : processSections', 
+			-section = #fw_thisCnfgName);
+
+		if: !(((global:(self->'cacheVar'))->find:(self->'language'))->find:#fw_thisCnfgName);
+			(global:(self->'cacheLock'))->readUnlock;
+			(global:(self->'cacheLock'))->writeLock;
+
+				($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader : adding label', 
+					-language = #fw_thisCnfgName);
+
+				((global:(self->'cacheVar'))->find: (self->'language'))->(insert: #fw_thisCnfgName = map);
+
+			(global:(self->'cacheLock'))->writeUnlock;
+			(global:(self->'cacheLock'))->readLock;
+		/if;
+
+		#fw_mediaSectionsAll = (string_findRegExp: 
+			#fw_thisSection, 
+			-find='media_\\w+:[\\s\\S]+?/media;',
+			-ignoreCase);
+
+		#fw_mediaSectionsAll
+			? #fw_mediaSections = @#fw_mediaSectionsAll
+			| #fw_mediaSections = (array:@#fw_thisSection);
+
+//	this processes all the msg and insert lines that can be found at
+//	the section, media, and variant levels
+
+		self->(processMediaMsgs:#fw_mediaSections, #fw_thisCnfgName);
+
+//	there still could be lines that are not msgs
+//	so get rid of the media and variant containers
+//	and what's left over are section level lines
+
+		#fw_thisSection = (string_replaceRegExp: 
+			#fw_thisSection, 
+			-find='media_\\w+:[\\s\\S]+?/media;',
+			-replace='',
+			-ignoreCase);
+
+		#fw_thisSection = (string_replaceRegExp: 
+			#fw_thisSection, 
+			-find='variant_\\w+:[\\s\\S]+?/variant;',
+			-replace='',
+			-ignoreCase);
+
+		#fw_sectionLines	= fwpCnfg_splitLines:#fw_thisSection;
+		#fw_sectionLines	= fwpCnfg_deComment:#fw_sectionLines;
+
+//	there could be msg and insert lines at this level
+//	but we don't process them
+
+//:	::HACK::
+//	clearly this is not the most efficient way to do this
+//	however it comes out of a quick refactoring
+//	after discovery that I had left out the processing of
+//	these non-msg lines in the original code
+//	this doesn't get called very often, 
+//	so, it isn't high on the optimize todo list
+
+		iterate: #fw_sectionLines, #fw_thisLine;
+	
+			#fw_thisLine->trim;
+	
+			if: #fw_thisLine >> '___';
+	
+				#fw_cnfgLabel 	= (#fw_thisLine->split:'___')->get:1;
+				#fw_cnfgValue 	= (#fw_thisLine->split:'___')->last;
+	
+				select: #fw_cnfgLabel;
+				case:'msg';
+				case:'insert';
+				case:'constant';
+					if: !lasso_tagExists:#fw_cnfgValue;
+						define_constant: #fw_cnfgValue, -namespace='_global_', #fw_thisCnfgName;
+					/if;
+				case;
+					(global:(self->'cacheLock'))->readUnlock;
+					(global:(self->'cacheLock'))->writeLock;
+					
+						(((global:(self->'cacheVar'))->find:(self->'language'))->find: #fw_thisCnfgName)->(insert:#fw_cnfgLabel = #fw_cnfgValue);
+
+					(global:(self->'cacheLock'))->writeUnlock;
+					(global:(self->'cacheLock'))->readLock;
+				/select;
+			/if;
+		/iterate;
+	/iterate;
+/define_tag;
+
+
+//============================================================================
+//
+//	->processMediaMsgs
+//
+//
+//............................................................................
+
+define_tag:'processMediaMsgs',
+	-required = 'fw_mediaSections',
+	-required = 'fw_thisCnfgName';
+
+	local:
+		'fw_thisCnfgBlock'		= map,
+ 		'fw_thisSection'		= string,
+ 		'fw_mediaType'			= string,
+ 		'fw_mediaLabel'			= string,
+ 		'fw_variantSectionsAll'	= array,
+ 		'fw_variantSections'	= array,
+ 		'fw_mediaViews'			= map;
+
+	iterate: #fw_mediaSections, #fw_thisSection;
+
+		#fw_mediaType = (string_findRegExp: 
+			#fw_thisSection, 
+			-find='media_(\\w+):',
+			-ignoreCase)->last;
+			
+		!#fw_mediaType 
+			? #fw_mediaType = 'all';
+
+		#fw_mediaLabel	= 'msg_';
+
+		($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader : processMediaMsgs', 
+			-media = #fw_mediaType);
+
+		if: !(((global:(self->'cacheVar'))->find:(self->'language'))->find:#fw_thisCnfgName)->(find: (#fw_mediaLabel + #fw_mediaType));
+			(global:(self->'cacheLock'))->readUnlock;
+			(global:(self->'cacheLock'))->writeLock;
+
+				($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader : adding media', 
+					-language = (#fw_mediaLabel + #fw_mediaType));
+
+				(((global:(self->'cacheVar'))->find:(self->'language'))->find:#fw_thisCnfgName)->(insert: (#fw_mediaLabel + #fw_mediaType) = map);
+
+			(global:(self->'cacheLock'))->writeUnlock;
+			(global:(self->'cacheLock'))->readLock;
+		/if;
+
+		#fw_variantSectionsAll = (string_findRegExp: 
+			#fw_thisSection, 
+			-find='variant_\\w+:[\\s\\S]+?/variant;',
+			-ignoreCase);
+
+		#fw_variantSectionsAll
+			? #fw_variantSections = @#fw_variantSectionsAll
+			| #fw_variantSections = (array:@#fw_thisSection);
+
+		#fw_mediaLabel += #fw_mediaType;
+
+		#fw_mediaViews = self->(processVariantMsgs: #fw_variantSections, #fw_mediaLabel, #fw_thisCnfgName);
+		
+	/iterate;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->processVariantMsgs
+//
+//
+//............................................................................
+
+define_tag:'processVariantMsgs',
+	-required = 'fw_variantSections',
+	-required = 'fw_mediaType',
+	-required = 'fw_thisCnfgName';
+
+	local:
+ 		'fw_msgLines'		= string,
+ 		'fw_mediaViews'		= map,
+ 		'fw_variantType'	= string,
+ 		'fw_msg'			= string;
+
+	iterate: #fw_variantSections, #fw_msgLines;
+	
+		#fw_variantType = (string_findRegExp: 
+			#fw_msgLines, 
+			-find='variant_(\\w+):',
+			-ignoreCase)->last;
+
+		!#fw_variantType 
+			? #fw_variantType = 'default';
+
+		($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader : processVariantMsgs', 
+			-label = #fw_thisCnfgName,
+			-media   = #fw_mediaType,
+			-variant = #fw_variantType);
+
+		#fw_msgLines	= fwpCnfg_splitLines:#fw_msgLines;
+		#fw_msgLines	= fwpCnfg_deComment:#fw_msgLines;
+		#fw_msg 		= self->(processMsgLines:#fw_msgLines, #fw_variantType, #fw_mediaType, #fw_thisCnfgName);
+
+		if: !((((global:(self->'cacheVar'))->find:(self->'language'))->find:#fw_thisCnfgName)->find: #fw_mediaType)->(find:#fw_variantType);
+			(global:(self->'cacheLock'))->readUnlock;
+			(global:(self->'cacheLock'))->writeLock;
+
+			($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader : adding variant', 
+				-variant = #fw_variantType);
+
+				((((global:(self->'cacheVar'))->find:(self->'language'))->find:#fw_thisCnfgName)->find: #fw_mediaType)->
+					(insert: #fw_variantType = #fw_msg);
+
+			(global:(self->'cacheLock'))->writeUnlock;
+			(global:(self->'cacheLock'))->readLock;
+		/if;
+
+	/iterate;
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->processMsgLines
+//
+//
+//............................................................................
+
+define_tag:'processMsgLines',
+	-required = 'fw_msgLines',
+	-required = 'fw_variantType',
+	-required = 'fw_mediaType',
+	-required = 'fw_thisCnfgName';
+
+	local:
+		'fw_thisLine'		= string,
+		'fw_msg' 			= string,
+ 		'fw_cnfgLabel'		= string,
+ 		'fw_cnfgValue'		= string,
+ 		'fw_insertMsg'		= string;
+
+	iterate: #fw_msgLines, #fw_thisLine;
+
+		#fw_thisLine->trim;
+
+		if: #fw_thisLine >> '___';
+
+			#fw_cnfgLabel 	= (#fw_thisLine->split:'___')->get:1;
+			#fw_cnfgValue 	= (#fw_thisLine->split:'___')->last;
+			#fw_insertMsg	= string;
+
+			select: #fw_cnfgLabel;
+
+			case:'msg';
+				#fw_msg += #fw_cnfgValue;
+
+			case:'insert';
+				((global:(self->'cacheVar')) >> (self->'language'))
+
+					? (((global:(self->'cacheVar'))
+							->find:(self->'language')) >> #fw_cnfgValue)
+
+							? ((((global:(self->'cacheVar'))
+									->find:(self->'language'))
+									->find:#fw_cnfgValue) >> (#fw_mediaType))
+
+									? #fw_insertMsg = ((((global:(self->'cacheVar'))
+															->find:(self->'language'))
+															->find:#fw_cnfgValue)
+															->find:(#fw_mediaType))
+															->find:'default';
+
+				#fw_insertMsg
+					? #fw_msg += #fw_insertMsg;
+
+			/select;
+		/if;
+	/iterate;
+
+	return: #fw_msg;
+
+/define_tag;
+
+
+//: -
+//: String Retrieval
+//============================================================================
+//
+//	->getConfigMap
+//
+//	fetches a string config map
+//
+//
+//............................................................................
+
+define_tag:'getConfigMap',
+	-required = 'cacheVar',
+	-required = 'cacheLock',
+	-required = 'file',
+	-required = 'code',
+	-optional = 'language';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader.getConfigMap', -code=#code);
+
+	local:'fw_errCnfg' = map;
+
+	!(local:'language')
+		? local:'language' = ($fw_client->'language');
+
+	self->(load: 
+			-cacheVar	= #cacheVar,
+			-cacheLock	= #cacheLock,
+			-file 		= #file,
+			-language 	= #language);
+
+	((global:#cacheVar) >> #language)
+		? #fw_errCnfg = ((global:#cacheVar)->find:#language)->find:(string:#code);
+
+	(#fw_errCnfg->type != 'map')
+		? return: false
+		| return: #fw_errCnfg;
+	
+/define_tag;
+
+//============================================================================
+//
+//	->addToConfigMap
+//
+//	inserts a string (usually retrieved from a database) into a cache
+//
+//
+//............................................................................
+
+define_tag:'addToConfigMap',
+	-required = 'cacheVar',
+	-required = 'cacheLock',
+	-required = 'code',
+	-required = 'language',
+	-required = 'media',
+	-required = 'variant';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_mvsLoader.addToConfigMap', -code=#code);
+
+	!((global:#cacheVar) >> #language)
+		? (global:#cacheVar)->(insert: #language);
+
+	!(((global:#cacheVar)->find:#language) >> #media)
+		? (((global:#cacheVar)->find:#language)->insert:#media);
+	
+	!((((global:#cacheVar)->find:#language)->find:#media) >> #view)
+		? ((((global:#cacheVar)->find:#language)->find:#media)->insert:#view);
+	
+	(global:#cacheLock)->readUnlock;
+	(global:#cacheLock)->writeLock;
+
+		((((global:#cacheVar)->find:#language)->find:#media)->find:#view)->insert:#code;
+				
+	(global:#cacheLock)->writeUnlock;
+	(global:#cacheLock)->readLock;
+	
+/define_tag;
+
+/define_type;
+?>

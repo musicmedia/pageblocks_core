@@ -1,0 +1,36 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_init.ctag }
+	{rsrcType=		ctag }
+	{rsrcName=		fwpCnfg_init }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpCnfg_init }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes	the page level vars and resources
+					of the fwpCnfg framework. }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+
+define_tag:'fwpCnfg_init';
+
+/define_tag;
+
+?>

@@ -1,0 +1,444 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpEDP_model.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_edpObjectModel }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpEDP_model }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			A multi-faceted event-driven data editing system 
+					primarily for admin of single tables, but capable 
+					of more complex data tasks through overloads. }
+
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-05 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -quiet to actnUpdatePrep,
+	 				added edp_relatedByFKField ivar,
+	 				added keyfld to actnUpdatePrep }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2007-05-14}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed bug in btnFormSave where session data for
+	 				prepvars was being mangled by the convertToFieldNames
+	 				method in fwp_recordData }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 b9 }
+	{maintdate=		2006-03-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_edpFormWasPosted }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_edpModel', -prototype;
+
+//	these are populated by various tags as needed
+
+	local:
+		'submitRcrdID'			= string,
+		'rcrdLockID'			= string;
+
+//	these are populated by the subclass onCreate tag
+
+	local:
+		'edp_rootTable'			= string,
+		'edp_relatedByFKField'	= string,
+		'edp_inputFields'		= string,
+		'edp_deletePrepSelect'	= string,
+		'edp_updatePrepSelect'	= string,
+		'edp_recordData'		= null,
+		'edp_tblFieldNames'		= array,
+		'edp_tblFieldNameMap'	= map,
+		'edp_tblInputNames'		= array,
+		'edp_tblValCodes'		= array;
+
+//=============================================================================
+//
+//	->onCreate
+//
+
+define_tag:'init';
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->init');
+
+	(self->'edp_recordData') 		= fwp_recordData:(self->'edp_rootTable');
+	(self->'edp_tblFieldNames')		= (((self->'edp_recordData')->'fw_tableModel')->find:'fieldNames');
+	(self->'edp_tblFieldNameMap')	= (((self->'edp_recordData')->'fw_tableModel')->find:'fieldNameMap');
+	(self->'edp_tblInputNames')		= (((self->'edp_recordData')->'fw_tableModel')->find:'inputNames');
+	(self->'edp_tblValCodes')		= (((self->'edp_recordData')->'fw_tableModel')->find:'valCodeMap');
+/define_tag;
+
+
+//=============================================================================
+//
+//	->validate
+//
+
+define_tag:'validate';
+/define_tag;
+
+
+//=============================================================================
+//
+//	->postProcess
+//
+
+define_tag:'postProcess';
+/define_tag;
+
+
+//=============================================================================
+//
+//	->postUpdatePrep
+//
+
+define_tag:'postUpdatePrep';
+/define_tag;
+
+
+//=============================================================================
+//
+//	->postAdd
+//
+
+define_tag:'postAdd';
+/define_tag;
+
+
+//=============================================================================
+//
+//	->postUpdate
+//
+
+define_tag:'postUpdate';
+/define_tag;
+
+
+//=============================================================================
+//
+//	->displayPrep
+//
+
+define_tag:'displayPrep';
+/define_tag;
+
+
+//*****************************************************************************
+//
+//	STANDARD ACTION METHODS
+//
+//*****************************************************************************
+
+
+//=============================================================================
+//
+//	->buildSelectFields
+//
+//	internal use, or for overridden ->actnUpdatePrep methods
+//
+//
+
+define_tag:'buildSelectFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->buildSelectFields');
+
+	local:
+		'fw_selectInputs' = array,
+		'fw_selectFields' = array,
+		'fw_thisInput'	  = string;
+
+	if: (params->find:'-update');
+		#fw_selectInputs = fwpCnfg_splitComma:(self->'edp_updatePrepSelect'); 
+	else:  (params->find:'-delete');
+		#fw_selectInputs = fwpCnfg_splitComma:(self->'edp_deletePrepSelect');
+	/if;
+
+	if: ($edpMainController->'edp_commonPrepSelect');
+		#fw_selectInputs += ', ';
+		#fw_selectInputs += ($edpMainController->'edp_commonPrepSelect');
+	/if;
+
+	iterate: #fw_selectInputs, #fw_thisInput;
+		#fw_selectFields->(insert: ((self->'edp_tblFieldNameMap')->find:#fw_thisInput));
+	/iterate;
+	#fw_selectFields = #fw_selectFields->(join:', ');
+
+	return:#fw_selectFields;
+
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->storePrepVars
+//
+//	internal use, or for overloaded ->actnUpdatePrep methods
+//
+//
+
+define_tag:'storePrepVars';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->storePrepVars');
+
+//	-withMakeVars is handy to populate form the first pass,
+//	but we have nothing to re-populate the form 
+//	if there's a validation error
+//	so capture all vars and store them in a map to serialize
+
+	local:
+		'fw_selectInputs' = fwpCnfg_splitComma:(self->'edp_updatePrepSelect'),
+		'fw_thisInput'	  = string;
+
+	var:'edp_formPrepVars' = map;
+
+	iterate: #fw_selectInputs, #fw_thisInput;
+		#fw_thisInput->trim;
+		$edp_formPrepVars->(insert: #fw_thisInput = var:#fw_thisInput);
+	/iterate;
+
+	(var:$fw_userVarName)->(addVars:'edp_formPrepVars');
+
+/define_tag;
+
+
+
+//=============================================================================
+//
+//	->actnAddPrep
+//
+//	Description:
+//
+//		performs generic single table Add record procedure
+//		based on the fw_edpObjectModel table definition
+//
+//	Usage:
+//
+//		automated response for starting a new record
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'actnAddPrep';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->actnAddPrep');
+
+	(var:'edp_keyval')
+		? (self->'submitRcrdID') = $edp_keyval
+		| (self->'submitRcrdID') = fwpStr_randomID:20;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->actnAdd
+//
+//	Description:
+//
+//		performs generic single table Add record procedure
+//		based on the fw_edpObjectModel table definition
+//
+//	Usage:
+//
+//		automated response for saving a record when newFlag is set
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'actnAdd',
+	-required='keyval';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->actnAdd');
+
+	if: $fw_edpFormWasPosted;
+	else;
+		(self->'edp_recordData')->(add: 
+			-inputs = (self->'edp_inputFields'),
+			-keyval = #keyval,
+			-withoutValidate);
+	/if;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->actnUpdatePrep
+//
+//	Description:
+//
+//		performs generic single table Update record procedure
+//		based on the fw_edpObjectModel table definition
+//
+//	Usage:
+//
+//		automated response for updating a record when btnFormSave is clicked
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'actnUpdatePrep',
+	-required='keyval',
+	-optional='lock';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->actnUpdatePrep');
+
+	local:'fw_selectFields' = self->(buildSelectFields: -update);
+
+	// there is an error here which prevents the following from working
+	// until better times the offending lines have been commented out
+	
+	(self->'edp_recordData')->(getRecordUsingLock:
+		-quiet,
+//		-select			= #fw_selectFields,
+//		-keyfld 		= self->'edp_relatedByFKField',
+		-keyval 		= #keyval,
+		-lockval 		= #lock,
+		-withMakeVars 	= true,
+		-withoutValidate);
+
+	(self->'rcrdLockID') = @((self->'edp_recordData')->'lock');
+
+	self->storePrepVars;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->actnUpdate
+//
+//	Description:
+//
+//		performs generic single table Update record procedure
+//		based on the fw_edpObjectModel table definition
+//
+//	Usage:
+//
+//		automated response for updating a record when btnFormSave is clicked
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'actnUpdate',
+	-required='lock';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->actnUpdate');
+
+	if: $fw_edpFormWasPosted;
+	else;
+		(self->'edp_recordData')->(updateUsingLock: 
+			-inputs = (self->'edp_inputFields'),
+			-lockval = #lock,
+			-withoutValidate);
+	
+		(self->'rcrdLockID') = string;
+	/if;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->actnDeletePrep
+//
+//	Description:
+//
+//		performs generic single table Delete record procedure
+//		based on the fw_edpObjectModel table definition
+//
+//	Usage:
+//
+//		automated response for prepping a record when btnListDelete is clicked
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'actnDeletePrep',
+	-required='keyval',
+	-optional='lock';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->actnDeletePrep');
+
+	local:'fw_selectFields' = self->(buildSelectFields: -delete);
+
+	(self->'edp_recordData')->(getRecordUsingLock:
+		-select			= #fw_selectFields,
+		-keyval 		= #keyval, 
+		-lockval 		= local:'lock',
+		-withMakeVars 	= true);
+
+	(self->'rcrdLockID') = @((self->'edp_recordData')->'lock');
+
+	self->storePrepVars;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->actnDelete
+//
+//	Description:
+//
+//		performs generic single table Delete record procedure
+//		based on the fw_edpObjectModel table definition
+//
+//	Usage:
+//
+//		automated response for deleting a record when btnFormDelete is clicked
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'actnDelete',
+	-required='keyval';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModel->actnDelete');
+
+	if: $fw_edpFormWasPosted;
+	else;
+		(self->'edp_recordData')->(deleteUsingLock: -lockval = #keyval);
+		(self->'rcrdLockID') = string;
+	/if;
+
+/define_tag;
+
+/define_type;
+
+?>

@@ -1,0 +1,22 @@
+﻿<?lassoscript
+
+
+if: ($fw_user->(getProfile:'loginValid')) == 'Y';
+
+var:'fw_r' = $fw_user->(getProfile:'userRcrdID');
+
+var:'usrsRcrds' = (fwp_rcrdData:
+	-table		= $fw_tblUserAuth,
+	-keyfld		= 'rcrdNo');
+
+$usrsRcrds->(updatePrep:
+	-reactn		= 'usrsUpdtReactn',
+	-select		= '*',
+	-keyval		= $fw_r);
+
+var:'fw_lock'=$usrsRcrds->'lock';
+
+
+/if;
+
+?>

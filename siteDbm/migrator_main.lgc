@@ -1,0 +1,33 @@
+﻿<?LassoScript 
+
+	if($fw_debugIPFilter >> $fw_client->('ip'));
+
+		local('dbmDatabases'	= array);
+		iterate($fw_gDatabases, local('i'));
+			#dbmDatabases !>> #i->value 
+				? #dbmDatabases->(insert(#i->value));
+		/iterate; 
+		
+		!var('migrateDB') || #dbmDatabases !>> var('migrateDB') 
+			? var('migrateDB'	 = #dbmDatabases->get(#dbmDatabases->size));
+			
+/* 		var('migrateDBs'	= fwp_valueList(
+			-list			= #dbmDatabases, 
+			-currentValue	= var('migrateDB'), 
+			-attributes		= map(
+				'name'		= 'migrateDB', 
+				'id'		= 'migrateDB', 
+				'onChange'	= 'this.form.submit();'
+				)
+			)
+		); 
+*/		
+		$fw_dbMigrator = fwp_dbmController(-db=$migrateDB);
+		$fw_dbMigrator->getCurrentVersion;
+		$fw_dbMigrator->findMigrationLimits;
+		
+		var('migrateTo') > 0 ? $fw_dbmResult = $fw_dbMigrator->(run(-migrateTo = $migrateTo));
+		
+	/if;
+	
+?>

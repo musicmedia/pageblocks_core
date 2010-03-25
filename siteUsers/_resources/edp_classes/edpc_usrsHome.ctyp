@@ -1,0 +1,92 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		edpc_usrsHome.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		 }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			 }
+
+	{maintvsrn=		1.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'edpc_usrsHome', 'fwp_edpController',
+	-namespace = '_global_';
+
+
+//=============================================================================
+//
+//	->onCreate
+//
+//
+//
+
+//	some required inputs are set by declaring the local vars after
+//	instantiating the data type with the main controller`s ->declareMVC tag
+
+define_tag:'onCreate';
+
+	(self->'homeListName')		= 'fwpUserAdmin';
+
+	(self->'formSaveForm')		= 'summary';
+	(self->'formCancelForm')	= 'summary';
+	(self->'listViewForm')		= 'summary';
+	(self->'listEditForm')		= 'begin';
+	(self->'listDeleteForm')	= 'summary';
+
+	//	if the page is a list or otherwise not a form (home, search, prefs) 
+	//	then we do not want to use the default action of updatePrep
+	//	so we set useEDPActions to true
+
+	(self->'useEDPActions')		= false;
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->handleButton
+//
+//	method for EDP system
+//
+//	this method is called to process custom buttons
+//	(use overload methods to customize standard buttons)
+//
+//
+
+define_tag:'handleButton';
+
+//	---------------------------------------------------------------------------
+	if: var:'btnName.x';
+
+	
+//	---------------------------------------------------------------------------
+	else: var:'btnName.x';
+
+
+	/if;
+
+/define_tag;
+
+/define_type;
+?>
+

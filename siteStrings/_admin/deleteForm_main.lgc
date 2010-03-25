@@ -1,0 +1,64 @@
+<?LassoScript 
+
+	if($fw_user->('loginValid') == 'Y');
+	
+		var('tableDataObject'=fwp_recordData('appstrings'));
+		
+//-----------------------------------------------------------------------------
+
+		if(var('btnFormCancel.x') || var('btnContinue.x'));
+		
+			redirect_url('list?fw_s=' + $fw_s);
+			
+		else(var('btnFormDelete.x'));
+		
+			// get string page path for the strings to delete
+			$tableDataObject->(getRecordUsingLock(
+				-select		= 'stringPagePath, stringName', 
+				-keyval		= $fw_r, 
+				-lockval	= var('fw_edvLockID'),
+				-withMakeVars
+			));
+			
+			if(!$tableDataObject->('error'));
+			
+				$tableDataObject->(select(
+					-select	= 'rcrdNo',
+					-where	= "stringPagePath = '" + $m_strPath + "' AND stringName = '" + $m_strName + "'",
+					-limit	= '*',
+					-asRecordsArrays
+				));
+			
+				iterate($tableDataObject->('records'), local('i'));
+					#i->first != $fw_r ? $tableDataObject->(delete(-keyval = #i->first));				/iterate;
+			
+				if(!$tableDataObject->('error'));
+				
+					$tableDataObject->(deleteUsingLock(
+						-lockval		= $fw_edvLockID,
+						-confirmFields	= 'stringPagePath',
+						-withMakeVars
+					));
+						
+					!$tableDataObject->('error') ? $fw_edvShowConfirmation = true;
+				
+				/if;
+						
+			/if;
+
+		else;
+		
+			$tableDataObject->(getRecordUsingLock(
+				-select		= '*', 
+				-keyval		= $fw_r, 
+				-lockval	= var('fw_edvLockID'),
+				-withMakeVars
+			));
+				
+			var('fw_edvLockID'=$tableDataObject->'lock');
+			
+		/if;
+		
+	/if;
+	
+?>

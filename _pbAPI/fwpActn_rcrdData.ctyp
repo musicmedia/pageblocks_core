@@ -1,0 +1,729 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwp_rcrdData.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_rcrdData }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_rcrdData }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates a generic data type for SQL/FMP table data with 
+					member tags equivalent to the root custom tags. }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	removed all old timers, but did not install new
+					timer yet }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+//
+//	Usage:
+//
+//	var:'news'=(fwp_rcrdData: -db='', -tbl='', -conn='', -keyfld='rcrdNo');
+//	--or--
+//	var:'news'=(fwp_rcrdData: -table='', -keyfld='rcrdNo');
+//
+//	if -flds is specified, vars named $fld_nnnn will be created
+//
+//.............................................................................
+
+define_type: 'fwp_rcrdData';
+
+//	declare needed internal locals
+//	declare locals to be used as instance vars (not preceded with fw_)
+
+	local:
+		'fw_table'		= (string),
+		'fw_db'			= (string),
+		'fw_tbl'		= (string),
+		'fw_conn'		= (string),
+		'fw_flds'		= (string),
+		'fw_keyfld'		= (string),
+		'fw_lockFld'	= 'rcrdLockID',
+
+		'table'			= (string),
+		'db'			= (string),
+		'tbl'			= (string),
+		'conn'			= (string),
+		'keyfld'		= (string),
+
+		'foundCount'	= (integer),
+		'showFirst'		= (integer),
+		'showLast'		= (integer),
+		'inlineName'	= (string),
+		'recordsArray'	= (array),
+		'recordMaps'	= (array),
+		'lock'			= (string),
+		'query'			= (string),
+		'error'			= (array),
+		'actn'			= (string);
+
+//============================================================================
+//
+//	->onCreate
+//
+//	Description:
+//
+//	instantiates the object`s default data set
+//
+//	Usage:
+//
+//	automatic; the developer should not call this tag
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (11/25/04) -- initial release
+//
+//............................................................................
+
+define_tag:'onCreate';
+
+//	acquire inputs
+
+//	convert incoming params to local vars of the same name
+//	table, db, tbl, flds, keyfld, conn
+
+	local:'thisParam' = (string);
+	iterate: (params), #thisParam;
+		if: #thisParam->type == 'pair';
+			local: (#thisParam->first) = (#thisParam->second);
+		else;
+			local: (#thisParam) = true;
+		/if;
+	/iterate;
+
+	self->'fw_table'	= @local:'table';
+	self->'fw_db'		= @local:'db';
+	self->'fw_tbl'		= @local:'tbl';
+	self->'fw_conn'		= @local:'conn';
+	self->'fw_flds'		= local:'flds';
+	self->'fw_keyfld'	= @local:'keyfld';
+
+//	backwards compatibility -- need to try to consolidate and determine the impact
+
+	self->'table'	= @local:'table';
+	self->'db'		= @local:'db';
+	self->'tbl'		= @local:'tbl';
+	self->'conn'	= @local:'conn';
+	self->'keyfld'	= @local:'keyfld';
+
+
+
+	//	define db, tbl, conn manually
+	//	or use the fw_table map
+	if: (self->'fw_table')->type == 'map';
+		self->'fw_db'	= (self->'fw_table')->find:'db';
+		self->'fw_tbl'	= (self->'fw_table')->find:'tbl';
+		self->'fw_conn'	= (self->'fw_table')->find:'conn';
+		!(self->'fw_keyfld') 
+			? self->'fw_keyfld' = (self->'fw_table')->find:'keyfld';
+	/if;
+
+//	set default connector to mysql
+//	for backwards compatibility
+//	when not used with the new -table map
+//	but still allow for direct definition of
+//	-db, -tbl, -conn
+
+	if: !(self->'fw_conn');
+		self->'fw_conn' = 'mysql';
+	/if;
+
+//	convert the list of flds so the array can be used to create vars
+//	in the ->select and ->getrcrd tags
+
+	if: self->'fw_flds';
+		self->'fw_flds' = (fwpCnfg_splitComma: self->'fw_flds');
+	/if;
+
+/define_tag;
+
+
+//............................................................................
+//
+//	fwp_rcrdData->select
+//
+//	Selects records from the database table
+//
+//............................................................................
+
+	define_tag:'select', 
+		-optional='inputs',
+		-optional='select',
+		-optional='from',
+		-optional='where',
+		-optional='keyval',
+		-optional='orderby',
+		-optional='sort',
+		-optional='skip',
+		-optional='limit',
+		-optional='aliases',
+		-optional='makevars';
+
+		local:'fw_thisFld' = (string);
+
+		if: !(local_defined:'makevars');
+			local:'makevars'=false;
+		/if;
+
+		//	for now, we`ll use a manual list of aliases that MUST
+		//	be listed in the exact same order that the fields will
+		//	be retrieved in by the mysql query
+		//	convert the list of field aliases so the array can be used
+		//	to create the recordsMaps
+	
+		if: local_defined:'aliases';
+			local:'fw_aliases' = (fwpCnfg_splitComma: #aliases);
+		/if;
+
+		local:'setName'=(fwpStr_randomID:8);
+		(self->'inlineName')=#setName;
+
+		(self->'actn')='select';
+
+		select: (self->'fw_conn');
+		case:'mysql';
+			fwpActn_select:
+				-inlineName	= #setName,
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-keyfld		= (self->'fw_keyfld'),
+				-inputs		= local:'inputs',
+				-select		= local:'select',
+				-from		= local:'from',
+				-where		= local:'where',
+				-orderby	= local:'orderby',
+				-keyval		= local:'keyval',
+				-sort		= local:'sort',
+				-skip		= local:'skip',
+				-limit		= local:'limit',
+				-makevars	= #makevars;
+
+			(self->'query') = $fwpActn_selectObj->(find:'sqlActn');
+
+		case:'fmp';
+			fwpActn_fmpSelect:
+				-inlineName	= #setName,
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-keyfld		= (self->'fw_keyfld'),
+				-inputs		= local:'inputs',
+				-select		= local:'select',
+				-where		= local:'where',
+				-orderby	= local:'orderby',
+				-keyval		= local:'keyval',
+				-sort		= local:'sort',
+				-skip		= local:'skip',
+				-limit		= local:'limit',
+				-makevars	= #makevars;
+
+		/select;
+
+		(self->'error') 		= $fw_error;
+		(self->'showFirst')		= ($fwpActn_selectObj->find:'showFirst');
+		(self->'showLast') 		= ($fwpActn_selectObj->find:'showLast');
+		(self->'foundCount')	= ($fwpActn_selectObj->find:'foundCount');
+		(self->'recordsArray')	= @$recordsArray;
+
+
+//	creates variables of fields
+//	would prefer to create local instance vars 
+//	but LP7 does not support self-> using variables
+
+//	AH, but LP8 DOES! How can all this be rewritten to leverage that ??
+
+		if: (self->'fw_flds')->type == 'array';
+			records: -inlineName = #setName;
+				iterate: (self->'fw_flds'), local:'fw_thisFld';
+					var:('fld_' + #fw_thisFld) = (field:#fw_thisFld);
+				/iterate;
+			/records;
+		/if;
+
+//	creates a map out of records_array
+//	so fields can be extracted by name, not index
+
+//		if: (self->'fw_flds')->type == 'array';
+//			local:
+//				'_thisRcrd'	= (array),
+//				'_thisField'= (string),
+//				'_tempMap'	= (fwp_map),
+//				'_indx'		= 0,
+//				'_indxR'	= 0,
+//				'_indxF'	= 0;
+//		
+//			iterate: (self->'recordsArray'), #_thisRcrd;
+//				#_indxR += 1;
+//				#_tempMap = (fwp_map);
+//				#_indxF = 0;
+//				iterate: #_thisRcrd, #_thisField;
+//					#_indxF += 1;
+//					#_tempMap->(insert:(#fw_aliases->get:#_indxF) = (((self->'recordsArray')->get:#_indxR)->get:#_indxF));
+//				/iterate;
+//				(self->'recordMaps')->(insert: #_tempMap);
+//			/iterate;
+//		/if;
+	/define_tag;
+
+
+//............................................................................
+//
+//	fwp_rcrdData->getRcrd
+//
+//	Selects a single record from a database table
+//
+//............................................................................
+
+	define_tag:'getRcrd',
+		-optional='keyval',
+		-optional='select',
+		-optional='makevars';
+
+		local:'fw_thisFld' = (string);
+
+		if: !(local_defined:'makevars');
+			local:'makevars'=false;
+		/if;
+		if: !(local_defined:'select');
+			local:'select'='*';
+		/if;
+
+		local:'setName'=(fwpStr_randomID:8);
+		(self->'inlineName')=#setName;
+
+		(self->'actn')='getRcrd';
+
+		select: (self->'fw_conn');
+		case:'mysql';
+			fwpActn_select:
+				-inlineName	= #setName,
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-select		= #select,
+				-keyfld		= (self->'fw_keyfld'),
+				-keyval		= #keyval,
+				-limit		= 1,
+				-makevars	= #makevars;
+
+			(self->'query') = $fwpActn_selectObj->(find:'sqlActn');
+
+		case:'fmp';
+			fwpActn_fmpSelect:
+				-inlineName	= #setName,
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-select		= #select,
+				-keyfld		= (self->'fw_keyfld'),
+				-keyval		= #keyval,
+				-limit		= 1,
+				-makevars	= #makevars;
+			
+			(self->'query') = (var:'api_fwpActn_fmpselect_pairs');
+		
+		/select;
+
+		(self->'error') 	= $fw_error;
+		(self->'foundCount') = ($fwpActn_selectObj->find:'foundCount');
+
+//	creates variables of fields
+//	would prefer to create local instance vars 
+//	but LP7 does not support self-> using variables
+
+		if: (self->'fw_flds')->type == 'array';
+			records: -inlineName = #setName;
+				iterate: (self->'fw_flds'), local:'fw_thisFld';
+					var:('fld_' + #fw_thisFld) = (field:#fw_thisFld);
+				/iterate;
+			/records;
+		/if;
+	/define_tag;
+
+
+//............................................................................
+//
+//	fwp_rcrdData->addPrep
+//
+//	Selects a single record from a database table
+//
+//............................................................................
+
+	define_tag:'addPrep';
+
+		(self->'actn')='addPrep';
+
+		return: (fwpStr_randomID:(params->get:1));
+
+	/define_tag;
+
+
+//............................................................................
+//
+//	fwp_rcrdData->add
+//
+//	Adds a single record to a database table
+//
+//............................................................................
+
+	define_tag:'add',
+		-optional='reactn',
+		-required='keyval',
+		-optional='confirm',
+		-optional='continue',
+		-optional='inputs';
+
+		if: !(local_defined:'reactn');
+			local:'reactn'='fw_reactn';
+		/if;
+
+		local:'setName'=(fwpStr_randomID:8);
+		(self->'inlineName')=#setName;
+
+		(self->'actn')='add';
+
+		select: (self->'fw_conn');
+
+		case:'mysql';
+
+			(var:#reactn)=(fwpActn_add:
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-inputs		= (local:'inputs'),
+				-keyfld		= (self->'fw_keyfld'),
+				-keyval		= #keyval,
+				-reactn		= true,
+				-inlineName	= #setName,
+				-continue	= (local:'continue'),
+				-confirm	= (local:'confirm'));
+	
+			(self->'query') = @(var:'api_fwpActn_add_sqlActn', -encodenone);
+
+		case:'fmp';
+			(var:#reactn)=(fwpActn_fmpAdd:
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-inputs		= local:'inputs',
+				-keyfld		= (self->'fw_keyfld'),
+				-keyval		= #keyval,
+				-reactn		= true,
+				-inlineName	= #setName,
+				-continue	= local:'continue',
+				-confirm	= local:'confirm');
+
+			(self->'query') = (var:'api_fwpActn_fmpAdd_pairs');
+			
+		/select;
+
+		(self->'error') = $fw_error;
+
+	/define_tag;
+
+
+//............................................................................
+//
+//	fwp_rcrdData->deletePrep
+//
+//	locks a record prior to allowing a user the option to delete it
+//	fetches data from the record to display in a verification page
+//
+//............................................................................
+
+	define_tag:'deletePrep',
+		-required='keyval',
+		-optional='select',
+		-optional='reactn',
+		-optional='makevars';
+
+		if: !(local_defined:'makevars');
+			local:'makevars'=false;
+		/if;
+		if: !(local_defined:'select');
+			local:'select'='*';
+		/if;
+		if: !(local_defined:'reactn');
+			local:'reactn'='fw_reactn';
+		/if;
+
+		local:'setName'=(fwpStr_randomID:8);
+		(self->'inlineName')=#setName;
+
+		(self->'actn')='deletePrep';
+
+		select: (self->'fw_conn');
+		case:'mysql';
+			(var:#reactn)=(fwpActn_deletePrep:
+				-reactn		= true,
+				-inlineName	= #setName,
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-select		= #select,
+				-keyfld		= (self->'fw_keyfld'),
+				-keyval		= #keyval,
+				-makevars	= #makevars);
+
+			(self->'query') = (var:'api_fwpActn_deletePrep_sqlActn', -encodenone);
+
+		case:'fmp';
+			(var:#reactn)=(fwpActn_fmpDeletePrep:
+				-reactn		= true,
+				-inlineName	= #setName,
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-select		= #select,
+				-keyfld		= (self->'fw_keyfld'),
+				-keyval		= #keyval,
+				-makevars	= #makevars);
+
+			(self->'query') = (var:'api_fwpActn_fmpDeletePrep_pairs');
+
+		/select;
+		
+		(self->'error') = $fw_error;
+		(self->'lock') = (var:#reactn)->'lock';
+
+	/define_tag;
+
+
+//............................................................................
+//
+//	fwp_rcrdData->delete
+//
+//	Deletes a single record from a database table. -reactn requires the name of
+//	a variable to be created to contain the response from fwpActn_deletePrep.
+//	This contains multiple properties in response to the delete record action.
+//
+//	-Continue is only used if the repsonse page will be an automated one using
+//	the fwpActn_response tag.
+//
+//............................................................................
+
+	define_tag:'delete',
+		-optional='reactn',
+		-optional='keyval',
+		-optional='lock',
+		-optional='select',
+		-optional='confirm',
+		-optional='continue',
+		-optional='makevars';
+
+		if: !(local_defined:'makevars');
+			local:'makevars'=false;
+		/if;
+		if: !(local_defined:'reactn');
+			local:'reactn'='fw_reactn';
+		/if;
+		if: !(local_defined:'keyval');
+			local:'keyval'=local:'lock';
+		/if;
+
+		local:'setName'=(fwpStr_randomID:8);
+		(self->'inlineName')=#setName;
+
+		(self->'actn')='delete';
+
+		select: (self->'fw_conn');
+		case:'mysql';
+			(var:#reactn) = (fwpActn_delete:
+				-reactn		= true,
+				-inlineName	= #setName,
+				-continue	= local:'continue',
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-select		= local:'select',
+				-keyfld		= (self->'fw_lockFld'),
+				-keyval		= #keyval,
+				-confirm	= local:'confirm',
+				-makevars	= #makevars);
+
+			(self->'query') = (var:'api_fwpActn_delete_sqlActn', -encodenone);
+
+		case:'fmp';
+			(var:#reactn) = (fwpActn_fmpDelete:
+				-reactn		= true,
+				-inlineName	= #setName,
+				-continue	= local:'continue',
+				-db			= (self->'fw_db'),
+				-tbl		= (self->'fw_tbl'),
+				-select		= local:'select',
+				-keyfld		= (self->'fw_lockFld'),
+				-keyval		= #keyval,
+				-confirm	= local:'confirm',
+				-makevars	= #makevars);
+
+			(self->'query') = (var:'api_fwpActn_fmpDelete_pairs');
+
+		/select;
+
+		(self->'error') = $fw_error;
+
+	/define_tag;
+
+
+//............................................................................
+//
+//	fwp_rcrdData->updatePrep
+//
+//	locks a record prior to allowing a user the option to update it
+//	fetches data from the record to display in the form page
+//
+//............................................................................
+
+	define_tag:'updatePrep',
+		-required='keyval',
+		-optional='reactn',
+		-optional='select',
+		-optional='lock',
+		-optional='makevars';
+
+		if: !(local_defined:'makevars');
+			local:'makevars'=false;
+		/if;
+		if: !(local_defined:'reactn');
+			local:'reactn'='fw_reactn';
+		/if;
+		if: !(local_defined:'select');
+			local:'select'='*';
+		/if;
+		if: !(local_defined:'lock');
+			local:'lock'='';
+		/if;
+
+		local:'setName'=(fwpStr_randomID:8);
+		(self->'inlineName')=#setName;
+
+		(self->'actn')='updatePrep';
+
+		select: (self->'fw_conn');
+		case:'mysql';
+		(var:#reactn)=(fwpActn_updatePrep:
+			-reactn		= true,
+			-inlineName	= #setName,
+			-db			= (self->'fw_db'),
+			-tbl		= (self->'fw_tbl'),
+			-select		= #select,
+			-keyfld		= (self->'fw_keyfld'),
+			-keyval		= #keyval,
+			-lock		= #lock,
+			-makevars	= #makevars);
+
+			(self->'query') = (var:'api_fwpActn_updatePrep_sqlActn', -encodenone);
+
+		case:'fmp';
+		(var:#reactn)=(fwpActn_fmpUpdatePrep:
+			-reactn		= true,
+			-inlineName	= #setName,
+			-db			= (self->'fw_db'),
+			-tbl		= (self->'fw_tbl'),
+			-select		= #select,
+			-keyfld		= (self->'fw_keyfld'),
+			-keyval		= #keyval,
+			-lock		= #lock,
+			-makevars	= #makevars);
+			
+			(self->'query') = (var:'api_fwpActn_fmpUpdatePrep_pairs');
+
+		/select;
+
+		(self->'error') = $fw_error;
+		(self->'lock') = (var:#reactn)->'lock';
+
+	/define_tag;
+
+
+//............................................................................
+//
+//	fwp_rcrdData->update
+//
+//	Updates a single record in a database table. -reactn requires the name of
+//	a variable to be created to contain the response from fwpActn_updatePrep.
+//	This contains multiple properties in response to the delete record action.
+//
+//............................................................................
+
+	define_tag:'update',
+		-optional='reactn',
+		-optional='keyval',
+		-optional='lock',
+		-optional='select',
+		-optional='confirm',
+		-optional='continue',
+		-optional='inputs',
+		-optional='makevars';
+
+		if: !(local_defined:'makevars');
+			local:'makevars'=false;
+		/if;
+		if: !(local_defined:'reactn');
+			local:'reactn'='fw_reactn';
+		/if;
+		if: !(local_defined:'keyval');
+			local:'keyval'=local:'lock';
+		/if;
+
+		local:'setName'=(fwpStr_randomID:8);
+		(self->'inlineName')=#setName;
+
+		(self->'actn')='update';
+
+		select: (self->'fw_conn');
+		case:'mysql';
+
+		(var:#reactn) = (fwpActn_update:
+			-reactn		= true,
+			-inlineName	= #setName,
+			-continue	= local:'continue',
+			-db			= (self->'fw_db'),
+			-tbl		= (self->'fw_tbl'),
+			-select		= local:'select',
+			-keyfld		= (self->'fw_lockFld'),
+			-keyval		= #keyval,
+			-confirm	= local:'confirm',
+			-inputs		= local:'inputs',
+			-makevars	= #makevars);
+
+			(self->'query') = (var:'api_fwpActn_update_sqlActn', -encodenone);
+
+		case:'fmp';
+
+		(var:#reactn) = (fwpActn_fmpUpdate:
+			-reactn		= true,
+			-inlineName	= #setName,
+			-continue	= local:'continue',
+			-db			= (self->'fw_db'),
+			-tbl		= (self->'fw_tbl'),
+			-select		= local:'select',
+			-keyfld		= (self->'fw_lockFld'),
+			-keyval		= #keyval,
+			-confirm	= local:'confirm',
+			-inputs		= local:'inputs',
+			-makevars	= #makevars);
+
+			(self->'query') = (var:'api_fwpActn_fmpUpdate_pairs');
+
+		/select;
+
+		(self->'error') = $fw_error;
+
+	/define_tag;
+
+/define_type;
+?>

@@ -1,0 +1,13 @@
+﻿# this is an intranet site
+# no robots should proceed
+User-agent: *
+
+Disallow: /_pbAPI/
+Disallow: /_pbInit/
+Disallow: /_pbLibs/
+Disallow: /_pbStrings/
+Disallow: /site/
+Disallow: /siteDbm/
+Disallow: /siteMngr/
+Disallow: /siteStrings/
+Disallow: /siteUsers/

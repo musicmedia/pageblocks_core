@@ -1,0 +1,259 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_tableConfig.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_tableConfig }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_tableConfig }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine reads a table definition file and creates
+					individual ordered arrays of form paramater names and 
+					database field names in corresponding order. This is an 
+					outdated system, but is still in use for fwp_rcrdData 
+					which is still available for FMP databases. }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype, added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_tableConfig', -prototype;
+
+//	_fw_tableDefn stores the full unparsed contents of the text file
+//	inputNames stores the array of form param names corresponding to the fieldNames
+//	fieldNames stores the array of field names corresponding to the inputNames
+//	fieldTypes stores the array of field types corresponding to the inputNames
+//	valCodes stores the array of key codes corresponding to the inputNames
+//	fieldNameMap stores a map with (inputName = fieldName)
+//	fieldTypeMap stores a map with (inputName = fieldType)
+//	valCodeMap stores a map with (inputName = valCodes)
+
+local:
+	'_fw_table'				= string,
+	'_fw_cnfgCache'			= string,
+	'_fw_cnfgFile'			= string,
+	'_fw_tableDefn'			= string,
+	'version'				= string,
+
+	'inputNames'			= string,
+	'fieldNames'			= string,
+	'fieldTypes'			= string,
+	'valCodes'				= string,
+	'fieldNameMap'			= map,
+	'fieldTypeMap'			= map,
+	'valCodeMap'			= map;
+
+//	===========================================================================
+//	onCreate
+//
+
+define_tag:'onCreate';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_tableConfig->onCreate');
+
+	$fw_debugTimers ? $fw_timer->(start:'fmpXtraCreate');
+
+//	the config file may be in the local module, or a specified module, or in global configs
+// 	we don`t know if the module requested is the current local module
+//	or another module as part of services request
+//	so we pull the module name from fw_mPath->configs, and insert 
+//	the module name passed via the tag
+//	the global configs path is easier
+
+	(self->'_fw_table')	= (params->get:1);
+
+	if: (self->'_fw_table') >> '/';
+		//	use supplied file name as complete pathname
+		(self->'_fw_cnfgFile') = (self->'_fw_table');
+	else;
+		//	convert file name to a FWPro dbTbl config file 
+		(self->'_fw_cnfgFile') = 'tableModel_' + (self->'_fw_table') + fw_kCnfgExt;
+	/if;
+
+
+//	----------------------------------------------------------
+//	pull from cache if available
+//	else pull from disk (and store to cache)
+
+	if: global:('fw_ggtableModel_' + (self->'_fw_table'))->type == 'fwp_tableConfig5';
+	
+		(self->'inputNames')	= (@global:(('fw_ggtableModel_' + (self->'_fw_table'))))->'inputNames';
+		(self->'fieldNames')	= (@global:(('fw_ggtableModel_' + (self->'_fw_table'))))->'fieldNames';
+		(self->'fieldTypes')	= (@global:(('fw_ggtableModel_' + (self->'_fw_table'))))->'fieldTypes';
+		(self->'valCodes')		= (@global:(('fw_ggtableModel_' + (self->'_fw_table'))))->'valCodes';
+		
+		(self->'fieldNameMap')	= (@global:(('fw_ggtableModel_' + (self->'_fw_table'))))->'fieldNameMap';
+		(self->'fieldTypeMap')	= (@global:(('fw_ggtableModel_' + (self->'_fw_table'))))->'fieldTypeMap';
+		(self->'valCodeMap')	= (@global:(('fw_ggtableModel_' + (self->'_fw_table'))))->'valCodeMap';
+	
+	else;
+
+//	---------------------------------------------------------------------------
+//	load file data
+//	this is required even when cached to test for file format version
+//	in order to preserve backwards compatibility
+
+		(self->'_fw_tableDefn') = fwpCnfg_loadFile:(self->'_fw_cnfgFile');
+
+		if: ((self->'_fw_tableDefn') >> '#! dbTbl5')
+			|| ((self->'_fw_tableDefn') >> '#! dbTbl4');
+			self->initDbTbl4;
+		else;
+			self->initDbTbl2;
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'fmpXtraCreate');
+
+/define_tag;
+
+
+//	===========================================================================
+//	initDbTbl4 for FWPro 4.x
+//
+	
+define_tag:'initDbTbl4';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_tableConfig->initDbTbl4');
+
+	$fw_debugTimers ? $fw_timer->(start:'fmpInitDB');
+
+	local:
+		'_fw_fieldDefn'	= string,
+		'_fw_thisItem'	= string;
+
+	(self->'version')	= 'dbTbl4';
+
+//	the attempt to restore the 
+
+	(self->'inputNames')	= array;
+	(self->'fieldNames')	= array;
+	(self->'fieldTypes')	= array;
+	(self->'valCodes')		= array;
+	(self->'fieldNameMap')	= map;
+	(self->'fieldTypeMap')	= map;
+	(self->'valCodeMap')	= map;
+
+//	we have to ensure that every line has the minimum 
+//	reqd number of tabs (columns)
+//	as there is risk that trailing tabs are left off
+//	rather than iterate through the whole table and check formatting
+//	just add columns by changing \r to \t\t\t\r
+//	this will create filler columns where needed
+//	it will also create extra column in places, but we don`t care
+//	as it doesn`t add much bulk, and won`t harm the rest of the code, 
+//	and in the end, it is faster to process
+	
+	(self->'_fw_tableDefn')->(replace:'\r\n', '\r');
+	(self->'_fw_tableDefn')->(replace:'\n', '\r');
+	(self->'_fw_tableDefn')->trim;
+	(self->'_fw_tableDefn') += '\r';
+
+	(self->'_fw_tableDefn') = (string_replaceregexp: 
+		(self->'_fw_tableDefn'), 
+		-find='\t+',
+		-replace='\t');
+
+	(self->'_fw_tableDefn') = (string_replaceregexp: 
+		(self->'_fw_tableDefn'), 
+		-find='\r',
+		-replace='\t\t\t\r');
+
+	(self->'_fw_tableDefn') = (self->'_fw_tableDefn')->(split:'\r');
+	(self->'_fw_tableDefn') = (fwpCnfg_deComment: (self->'_fw_tableDefn'));
+
+	iterate: (self->'_fw_tableDefn'), #_fw_fieldDefn;
+		// interim v4 to v5 compatibility hack
+		if: (#_fw_fieldDefn->beginswith:'{') || (#_fw_fieldDefn->beginswith:'}');
+		else;
+		// end hack
+			#_fw_fieldDefn = #_fw_fieldDefn->(split:'\t');
+			(self->'inputNames')->(insert:(#_fw_fieldDefn->(get:1)));
+			(self->'fieldNames')->(insert:(#_fw_fieldDefn->(get:2)));
+			(self->'fieldTypes')->(insert:(#_fw_fieldDefn->(get:3)));
+			(self->'valCodes')->(insert:(#_fw_fieldDefn->(get:4)));
+		/if;
+	/iterate;
+
+//	create maps so we can pull any parameter based on the inputName
+
+	iterate: (self->'inputNames'), #_fw_thisItem;
+		(self->'fieldNameMap')->(insert:#_fw_thisItem = ((self->'fieldNames')->get:loop_count));
+		(self->'fieldTypeMap')->(insert:#_fw_thisItem = ((self->'fieldTypes')->get:loop_count));
+		(self->'valCodeMap')->(insert:#_fw_thisItem = fwpCnfg_splitComma:((self->'valCodes')->get:loop_count));
+	/iterate;
+
+//	store config data to global cache
+
+	global:('fw_ggtableModel_' + (self->'_fw_table')) = (self);
+
+	$fw_debugTimers ? $fw_timer->(stop:'fmpInitDB');
+
+/define_tag;
+
+
+//	===========================================================================
+//	initDbTbl2 for FWPro 3.x
+//
+
+define_tag:'initDbTbl2';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_tableConfig->initDbTbl2');
+
+	$fw_debugTimers ? $fw_timer->(start:'fmpInitDB');
+
+	local:'_fw_fieldDefn'	= string;
+
+	(self->'version')	= 'dbTbl2';
+
+	(self->'inputNames')	= array;
+	(self->'fieldNames')	= array;
+	(self->'fieldTypes')	= array;
+	(self->'valCodes')		= array;
+	(self->'fieldNameMap')	= map;
+	(self->'fieldTypeMap')	= map;
+	(self->'valCodeMap')	= map;
+
+	(self->'_fw_tableDefn')->(replace:' ', '');
+	(self->'_fw_tableDefn')->(replace:'\t', '');
+	(self->'_fw_tableDefn') = (fwpCnfg_splitLines: (self->'_fw_tableDefn'));
+	(self->'_fw_tableDefn') = (fwpCnfg_deComment: (self->'_fw_tableDefn'));
+
+	iterate: (self->'_fw_tableDefn'), #_fw_fieldDefn;
+		(self->'inputNames')->(insert:(#_fw_fieldDefn->(split:'=')->(get:1)));
+		(self->'fieldNames')->(insert:(#_fw_fieldDefn->(split:'=')->(get:2)));
+	/iterate;
+
+//	store config data to global cache
+
+	global:('fw_ggtableModel_' + (self->'_fw_table')) = (self);
+	
+	$fw_debugTimers ? $fw_timer->(stop:'fmpInitDB');
+
+/define_tag;
+
+
+/define_type;
+?>

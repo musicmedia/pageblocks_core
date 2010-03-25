@@ -1,0 +1,14 @@
+﻿<?lassoscript 
+	if($fw_user->('loginValid') == 'Y');
+	
+		var('usrsEDPModule' = fwp_edpModule(
+			-mainController = 'edpc_usrsMain',
+			-defaultPage	= 'home',
+			-rcrdsListName	= 'fwpUserAdmin'
+		));
+		
+		
+		
+	/if;
+	
+?>

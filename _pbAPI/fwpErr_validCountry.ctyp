@@ -1,0 +1,575 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpErr_validCountry.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_countryValidator }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_countryValidator }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			tests a string for a recognized country name or
+					abbreviation }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-11 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_countryValidator', -prototype;
+
+	local:'countriesShortLong' = map;
+	local:'countriesLongShort' = map;
+
+define_tag:'onCreate';
+
+	if: !(self->'countriesShortLong');
+		(self->'countriesShortLong')->(insert: 'AF' = 'Afghanistan');
+		(self->'countriesShortLong')->(insert: 'AL' = 'Albania');
+		(self->'countriesShortLong')->(insert: 'DZ' = 'Algeria');
+		(self->'countriesShortLong')->(insert: 'AS' = 'American Samoa');
+		(self->'countriesShortLong')->(insert: 'AD' = 'Andorra');
+		(self->'countriesShortLong')->(insert: 'AO' = 'Angola');
+		(self->'countriesShortLong')->(insert: 'AI' = 'Anguilla');
+		(self->'countriesShortLong')->(insert: 'AQ' = 'Antarctica');
+		(self->'countriesShortLong')->(insert: 'AG' = 'Antigua/Barbuda');
+		(self->'countriesShortLong')->(insert: 'AR' = 'Argentina');
+		(self->'countriesShortLong')->(insert: 'AM' = 'Armenia');
+		(self->'countriesShortLong')->(insert: 'AW' = 'Aruba');
+		(self->'countriesShortLong')->(insert: 'AU' = 'Australia');
+		(self->'countriesShortLong')->(insert: 'AT' = 'Austria');
+		(self->'countriesShortLong')->(insert: 'AZ' = 'Azerbaijan');
+		(self->'countriesShortLong')->(insert: 'BS' = 'Bahamas');
+		(self->'countriesShortLong')->(insert: 'BH' = 'Bahrain');
+		(self->'countriesShortLong')->(insert: 'BD' = 'Bangladesh');
+		(self->'countriesShortLong')->(insert: 'BB' = 'Barbados');
+		(self->'countriesShortLong')->(insert: 'BY' = 'Belarus');
+		(self->'countriesShortLong')->(insert: 'BE' = 'Belgium');
+		(self->'countriesShortLong')->(insert: 'BZ' = 'Belize');
+		(self->'countriesShortLong')->(insert: 'BJ' = 'Benin');
+		(self->'countriesShortLong')->(insert: 'BM' = 'Bermuda');
+		(self->'countriesShortLong')->(insert: 'BT' = 'Bhutan');
+		(self->'countriesShortLong')->(insert: 'BO' = 'Bolivia');
+		(self->'countriesShortLong')->(insert: 'BA' = 'Bosnia/Herzegovinia');
+		(self->'countriesShortLong')->(insert: 'BW' = 'Botswana');
+		(self->'countriesShortLong')->(insert: 'BV' = 'Bouvet Island');
+		(self->'countriesShortLong')->(insert: 'BR' = 'Brazil');
+		(self->'countriesShortLong')->(insert: 'IO' = 'British Indian Ocean Territory');
+		(self->'countriesShortLong')->(insert: 'BN' = 'Brunei Darussalam');
+		(self->'countriesShortLong')->(insert: 'BG' = 'Bulgaria');
+		(self->'countriesShortLong')->(insert: 'BF' = 'Burkina Faso');
+		(self->'countriesShortLong')->(insert: 'BI' = 'Burundi');
+		(self->'countriesShortLong')->(insert: 'KH' = 'Cambodia');
+		(self->'countriesShortLong')->(insert: 'CM' = 'Cameroon');
+		(self->'countriesShortLong')->(insert: 'CA' = 'Canada');
+		(self->'countriesShortLong')->(insert: 'CV' = 'Cape Verde');
+		(self->'countriesShortLong')->(insert: 'KY' = 'Cayman Islands');
+		(self->'countriesShortLong')->(insert: 'CF' = 'Central African Republic');
+		(self->'countriesShortLong')->(insert: 'TD' = 'Chad');
+		(self->'countriesShortLong')->(insert: 'CL' = 'Chile');
+		(self->'countriesShortLong')->(insert: 'CN' = 'China');
+		(self->'countriesShortLong')->(insert: 'CX' = 'Christmas Island');
+		(self->'countriesShortLong')->(insert: 'CC' = 'Cocos (Keeling) Islands');
+		(self->'countriesShortLong')->(insert: 'CO' = 'Colombia');
+		(self->'countriesShortLong')->(insert: 'KM' = 'Comoros');
+		(self->'countriesShortLong')->(insert: 'CG' = 'Congo');
+		(self->'countriesShortLong')->(insert: 'RC' = 'Congo, Republic of');
+		(self->'countriesShortLong')->(insert: 'CK' = 'Cook Islands');
+		(self->'countriesShortLong')->(insert: 'CR' = 'Costa Rica');
+		(self->'countriesShortLong')->(insert: 'CI' = 'Cote D\'ivoire');
+		(self->'countriesShortLong')->(insert: 'HR' = 'Croatia');
+		(self->'countriesShortLong')->(insert: 'CU' = 'Cuba');
+		(self->'countriesShortLong')->(insert: 'CY' = 'Cyprus');
+		(self->'countriesShortLong')->(insert: 'CZ' = 'Czech Republic');
+		(self->'countriesShortLong')->(insert: 'DK' = 'Denmark');
+		(self->'countriesShortLong')->(insert: 'DJ' = 'Djibouti');
+		(self->'countriesShortLong')->(insert: 'DM' = 'Dominica');
+		(self->'countriesShortLong')->(insert: 'DO' = 'Dominican Republic');
+		(self->'countriesShortLong')->(insert: 'TP' = 'East Timor');
+		(self->'countriesShortLong')->(insert: 'EC' = 'Ecuador');
+		(self->'countriesShortLong')->(insert: 'EG' = 'Egypt');
+		(self->'countriesShortLong')->(insert: 'SV' = 'El Salvador');
+		(self->'countriesShortLong')->(insert: 'GQ' = 'Equatorial Guinea');
+		(self->'countriesShortLong')->(insert: 'ER' = 'Eritrea');
+		(self->'countriesShortLong')->(insert: 'EE' = 'Estonia');
+		(self->'countriesShortLong')->(insert: 'ET' = 'Ethiopia');
+		(self->'countriesShortLong')->(insert: 'FK' = 'Falkland Islands');
+		(self->'countriesShortLong')->(insert: 'FO' = 'Faroe Islands');
+		(self->'countriesShortLong')->(insert: 'FJ' = 'Fiji');
+		(self->'countriesShortLong')->(insert: 'FI' = 'Finland');
+		(self->'countriesShortLong')->(insert: 'FR' = 'France');
+		(self->'countriesShortLong')->(insert: 'FX' = 'France');
+		(self->'countriesShortLong')->(insert: 'GF' = 'French Guiana');
+		(self->'countriesShortLong')->(insert: 'PF' = 'French Polynesia');
+		(self->'countriesShortLong')->(insert: 'TF' = 'French Southern Territories');
+		(self->'countriesShortLong')->(insert: 'GA' = 'Gabon');
+		(self->'countriesShortLong')->(insert: 'GM' = 'Gambia');
+		(self->'countriesShortLong')->(insert: 'GE' = 'Georgia');
+		(self->'countriesShortLong')->(insert: 'DE' = 'Germany');
+		(self->'countriesShortLong')->(insert: 'GH' = 'Ghana');
+		(self->'countriesShortLong')->(insert: 'GI' = 'Gibraltar');
+		(self->'countriesShortLong')->(insert: 'GR' = 'Greece');
+		(self->'countriesShortLong')->(insert: 'GL' = 'Greenland');
+		(self->'countriesShortLong')->(insert: 'GD' = 'Grenada');
+		(self->'countriesShortLong')->(insert: 'GP' = 'Guadeloupe');
+		(self->'countriesShortLong')->(insert: 'GU' = 'Guam');
+		(self->'countriesShortLong')->(insert: 'GT' = 'Guatemala');
+		(self->'countriesShortLong')->(insert: 'GN' = 'Guinea');
+		(self->'countriesShortLong')->(insert: 'GW' = 'Guinea-Bissau');
+		(self->'countriesShortLong')->(insert: 'GY' = 'Guyana');
+		(self->'countriesShortLong')->(insert: 'HT' = 'Haiti');
+		(self->'countriesShortLong')->(insert: 'HM' = 'Heard And Mcdonald Islands');
+		(self->'countriesShortLong')->(insert: 'HN' = 'Honduras');
+		(self->'countriesShortLong')->(insert: 'HK' = 'Hong Kong');
+		(self->'countriesShortLong')->(insert: 'HU' = 'Hungary');
+		(self->'countriesShortLong')->(insert: 'IS' = 'Iceland');
+		(self->'countriesShortLong')->(insert: 'IN' = 'India');
+		(self->'countriesShortLong')->(insert: 'ID' = 'Indonesia');
+		(self->'countriesShortLong')->(insert: 'IR' = 'Iran');
+		(self->'countriesShortLong')->(insert: 'IQ' = 'Iraq');
+		(self->'countriesShortLong')->(insert: 'IE' = 'Ireland');
+		(self->'countriesShortLong')->(insert: 'IL' = 'Israel');
+		(self->'countriesShortLong')->(insert: 'IT' = 'Italy');
+		(self->'countriesShortLong')->(insert: 'JM' = 'Jamaica');
+		(self->'countriesShortLong')->(insert: 'JP' = 'Japan');
+		(self->'countriesShortLong')->(insert: 'JO' = 'Jordan');
+		(self->'countriesShortLong')->(insert: 'KZ' = 'Kazakhstan');
+		(self->'countriesShortLong')->(insert: 'KE' = 'Kenya');
+		(self->'countriesShortLong')->(insert: 'KI' = 'Kiribati');
+		(self->'countriesShortLong')->(insert: 'KP' = 'Korea, Democratic People');
+		(self->'countriesShortLong')->(insert: 'KR' = 'Korea, Republic People');
+		(self->'countriesShortLong')->(insert: 'KW' = 'Kuwait');
+		(self->'countriesShortLong')->(insert: 'KG' = 'Kyrgyzstan');
+		(self->'countriesShortLong')->(insert: 'LA' = 'Laos');
+		(self->'countriesShortLong')->(insert: 'LV' = 'Latvia');
+		(self->'countriesShortLong')->(insert: 'LB' = 'Lebanon');
+		(self->'countriesShortLong')->(insert: 'LS' = 'Lesotho');
+		(self->'countriesShortLong')->(insert: 'LR' = 'Liberia');
+		(self->'countriesShortLong')->(insert: 'LY' = 'Libyan Arab Jamahiriya');
+		(self->'countriesShortLong')->(insert: 'LI' = 'Liechtenstein');
+		(self->'countriesShortLong')->(insert: 'LT' = 'Lithuania');
+		(self->'countriesShortLong')->(insert: 'LU' = 'Luxembourg');
+		(self->'countriesShortLong')->(insert: 'MO' = 'Macau');
+		(self->'countriesShortLong')->(insert: 'MK' = 'Macedonia');
+		(self->'countriesShortLong')->(insert: 'MG' = 'Madagascar');
+		(self->'countriesShortLong')->(insert: 'MW' = 'Malawi');
+		(self->'countriesShortLong')->(insert: 'MY' = 'Malaysia');
+		(self->'countriesShortLong')->(insert: 'MV' = 'Maldives');
+		(self->'countriesShortLong')->(insert: 'ML' = 'Mali');
+		(self->'countriesShortLong')->(insert: 'MT' = 'Malta');
+		(self->'countriesShortLong')->(insert: 'MH' = 'Marshall Islands');
+		(self->'countriesShortLong')->(insert: 'MQ' = 'Martinique');
+		(self->'countriesShortLong')->(insert: 'MR' = 'Mauritania');
+		(self->'countriesShortLong')->(insert: 'MU' = 'Mauritius');
+		(self->'countriesShortLong')->(insert: 'YT' = 'Mayotte');
+		(self->'countriesShortLong')->(insert: 'MX' = 'Mexico');
+		(self->'countriesShortLong')->(insert: 'FM' = 'Micronesia');
+		(self->'countriesShortLong')->(insert: 'MD' = 'Moldova');
+		(self->'countriesShortLong')->(insert: 'MC' = 'Monaco');
+		(self->'countriesShortLong')->(insert: 'MN' = 'Mongolia');
+		(self->'countriesShortLong')->(insert: 'MS' = 'Montserrat');
+		(self->'countriesShortLong')->(insert: 'MA' = 'Morocco');
+		(self->'countriesShortLong')->(insert: 'MZ' = 'Mozambique');
+		(self->'countriesShortLong')->(insert: 'MM' = 'Myanmar');
+		(self->'countriesShortLong')->(insert: 'NA' = 'Namibia');
+		(self->'countriesShortLong')->(insert: 'NR' = 'Nauru');
+		(self->'countriesShortLong')->(insert: 'NP' = 'Nepal');
+		(self->'countriesShortLong')->(insert: 'NL' = 'Netherlands');
+		(self->'countriesShortLong')->(insert: 'AN' = 'Netherlands Antilles');
+		(self->'countriesShortLong')->(insert: 'NC' = 'New Caledonia');
+		(self->'countriesShortLong')->(insert: 'NZ' = 'New Zealand');
+		(self->'countriesShortLong')->(insert: 'NI' = 'Nicaragua');
+		(self->'countriesShortLong')->(insert: 'NE' = 'Niger');
+		(self->'countriesShortLong')->(insert: 'NG' = 'Nigeria');
+		(self->'countriesShortLong')->(insert: 'NU' = 'Niue');
+		(self->'countriesShortLong')->(insert: 'NF' = 'Norfolk Island');
+		(self->'countriesShortLong')->(insert: 'MP' = 'Northern Mariana Islands');
+		(self->'countriesShortLong')->(insert: 'NO' = 'Norway');
+		(self->'countriesShortLong')->(insert: 'OM' = 'Oman');
+		(self->'countriesShortLong')->(insert: 'PK' = 'Pakistan');
+		(self->'countriesShortLong')->(insert: 'PW' = 'Palau');
+		(self->'countriesShortLong')->(insert: 'PA' = 'Panama');
+		(self->'countriesShortLong')->(insert: 'PG' = 'Papua New Guinea');
+		(self->'countriesShortLong')->(insert: 'PY' = 'Paraguay');
+		(self->'countriesShortLong')->(insert: 'PE' = 'Peru');
+		(self->'countriesShortLong')->(insert: 'PH' = 'Philippines');
+		(self->'countriesShortLong')->(insert: 'PN' = 'Pitcairn');
+		(self->'countriesShortLong')->(insert: 'PL' = 'Poland');
+		(self->'countriesShortLong')->(insert: 'PT' = 'Portugal');
+		(self->'countriesShortLong')->(insert: 'PR' = 'Puerto Rico');
+		(self->'countriesShortLong')->(insert: 'QA' = 'Qatar');
+		(self->'countriesShortLong')->(insert: 'RE' = 'Reunion');
+		(self->'countriesShortLong')->(insert: 'RO' = 'Romania');
+		(self->'countriesShortLong')->(insert: 'RU' = 'Russian Federation');
+		(self->'countriesShortLong')->(insert: 'RW' = 'Rwanda');
+		(self->'countriesShortLong')->(insert: 'KN' = 'Saint Kitts And Nevis');
+		(self->'countriesShortLong')->(insert: 'LC' = 'Saint Lucia');
+		(self->'countriesShortLong')->(insert: 'WS' = 'Samoa');
+		(self->'countriesShortLong')->(insert: 'SM' = 'San Marino');
+		(self->'countriesShortLong')->(insert: 'ST' = 'Sao Tome And Principe');
+		(self->'countriesShortLong')->(insert: 'SA' = 'Saudi Arabia');
+		(self->'countriesShortLong')->(insert: 'SN' = 'Senegal');
+		(self->'countriesShortLong')->(insert: 'SC' = 'Seychelles');
+		(self->'countriesShortLong')->(insert: 'SL' = 'Sierra Leone');
+		(self->'countriesShortLong')->(insert: 'SG' = 'Singapore');
+		(self->'countriesShortLong')->(insert: 'SK' = 'Slovakia (Slovak Republic)');
+		(self->'countriesShortLong')->(insert: 'SI' = 'Slovenia');
+		(self->'countriesShortLong')->(insert: 'SB' = 'Solomon Islands');
+		(self->'countriesShortLong')->(insert: 'SO' = 'Somalia');
+		(self->'countriesShortLong')->(insert: 'ZA' = 'South Africa');
+		(self->'countriesShortLong')->(insert: 'GS' = 'South Georgia');
+		(self->'countriesShortLong')->(insert: 'ES' = 'Spain');
+		(self->'countriesShortLong')->(insert: 'LK' = 'Sri Lanka');
+		(self->'countriesShortLong')->(insert: 'VC' = 'St Vincent And The Grenadines');
+		(self->'countriesShortLong')->(insert: 'SH' = 'St. Helena');
+		(self->'countriesShortLong')->(insert: 'PM' = 'St. Pierre And Miquelon');
+		(self->'countriesShortLong')->(insert: 'SD' = 'Sudan');
+		(self->'countriesShortLong')->(insert: 'SR' = 'Suriname');
+		(self->'countriesShortLong')->(insert: 'SJ' = 'Svalbard And Jan Mayen Islands');
+		(self->'countriesShortLong')->(insert: 'SZ' = 'Swaziland');
+		(self->'countriesShortLong')->(insert: 'SE' = 'Sweden');
+		(self->'countriesShortLong')->(insert: 'CH' = 'Switzerland');
+		(self->'countriesShortLong')->(insert: 'SY' = 'Syrian Arab Republic');
+		(self->'countriesShortLong')->(insert: 'TW' = 'Taiwan');
+		(self->'countriesShortLong')->(insert: 'TJ' = 'Tajikistan');
+		(self->'countriesShortLong')->(insert: 'TZ' = 'Tanzania');
+		(self->'countriesShortLong')->(insert: 'TH' = 'Thailand');
+		(self->'countriesShortLong')->(insert: 'TG' = 'Togo');
+		(self->'countriesShortLong')->(insert: 'TK' = 'Tokelau');
+		(self->'countriesShortLong')->(insert: 'TO' = 'Tonga');
+		(self->'countriesShortLong')->(insert: 'TT' = 'Trinidad And Tobago');
+		(self->'countriesShortLong')->(insert: 'TN' = 'Tunisia');
+		(self->'countriesShortLong')->(insert: 'TR' = 'Turkey');
+		(self->'countriesShortLong')->(insert: 'TM' = 'Turkmenistan');
+		(self->'countriesShortLong')->(insert: 'TC' = 'Turks And Caicos Islands');
+		(self->'countriesShortLong')->(insert: 'TV' = 'Tuvalu');
+		(self->'countriesShortLong')->(insert: 'UG' = 'Uganda');
+		(self->'countriesShortLong')->(insert: 'UA' = 'Ukraine');
+		(self->'countriesShortLong')->(insert: 'AE' = 'United Arab Emirates');
+		(self->'countriesShortLong')->(insert: 'GB' = 'United Kingdom');
+		(self->'countriesShortLong')->(insert: 'US' = 'United States');
+		(self->'countriesShortLong')->(insert: 'UY' = 'Uruguay');
+		(self->'countriesShortLong')->(insert: 'UM' = 'US Minor Outlying Islands');
+		(self->'countriesShortLong')->(insert: 'UZ' = 'Uzbekistan');
+		(self->'countriesShortLong')->(insert: 'VU' = 'Vanuatu');
+		(self->'countriesShortLong')->(insert: 'VA' = 'Vatican City State');
+		(self->'countriesShortLong')->(insert: 'VE' = 'Venezuela');
+		(self->'countriesShortLong')->(insert: 'VN' = 'Viet Nam');
+		(self->'countriesShortLong')->(insert: 'VG' = 'Virgin Islands, British');
+		(self->'countriesShortLong')->(insert: 'VI' = 'Virgin Islands, U.S.');
+		(self->'countriesShortLong')->(insert: 'WF' = 'Wallis And Futuna Islands');
+		(self->'countriesShortLong')->(insert: 'EH' = 'Western Sahara');
+		(self->'countriesShortLong')->(insert: 'YE' = 'Yemen');
+		(self->'countriesShortLong')->(insert: 'YU' = 'Yugoslavia');
+		(self->'countriesShortLong')->(insert: 'ZM' = 'Zambia');
+		(self->'countriesShortLong')->(insert: 'ZW' = 'Zimbabwe');
+	/if;
+
+//	-------------------------
+
+	if: !(self->'countriesLongShort');
+		(self->'countriesLongShort')->(insert: 'Afghanistan___AF');
+		(self->'countriesLongShort')->(insert: 'Albania' = 'AL');
+		(self->'countriesLongShort')->(insert: 'Algeria' = 'DZ');
+		(self->'countriesLongShort')->(insert: 'American Samoa' = 'AS');
+		(self->'countriesLongShort')->(insert: 'Andorra' = 'AD');
+		(self->'countriesLongShort')->(insert: 'Angola' = 'AO');
+		(self->'countriesLongShort')->(insert: 'Anguilla' = 'AI');
+		(self->'countriesLongShort')->(insert: 'Antarctica' = 'AQ');
+		(self->'countriesLongShort')->(insert: 'Antigua/Barbuda' = 'AG');
+		(self->'countriesLongShort')->(insert: 'Argentina' = 'AR');
+		(self->'countriesLongShort')->(insert: 'Armenia' = 'AM');
+		(self->'countriesLongShort')->(insert: 'Aruba' = 'AW');
+		(self->'countriesLongShort')->(insert: 'Australia' = 'AU');
+		(self->'countriesLongShort')->(insert: 'Austria' = 'AT');
+		(self->'countriesLongShort')->(insert: 'Azerbaijan' = 'AZ');
+		(self->'countriesLongShort')->(insert: 'Bahamas' = 'BS');
+		(self->'countriesLongShort')->(insert: 'Bahrain' = 'BH');
+		(self->'countriesLongShort')->(insert: 'Bangladesh' = 'BD');
+		(self->'countriesLongShort')->(insert: 'Barbados' = 'BB');
+		(self->'countriesLongShort')->(insert: 'Belarus' = 'BY');
+		(self->'countriesLongShort')->(insert: 'Belgium' = 'BE');
+		(self->'countriesLongShort')->(insert: 'Belize' = 'BZ');
+		(self->'countriesLongShort')->(insert: 'Benin' = 'BJ');
+		(self->'countriesLongShort')->(insert: 'Bermuda' = 'BM');
+		(self->'countriesLongShort')->(insert: 'Bhutan' = 'BT');
+		(self->'countriesLongShort')->(insert: 'Bolivia' = 'BO');
+		(self->'countriesLongShort')->(insert: 'Bosnia/Herzegovinia' = 'BA');
+		(self->'countriesLongShort')->(insert: 'Botswana' = 'BW');
+		(self->'countriesLongShort')->(insert: 'Bouvet Island' = 'BV');
+		(self->'countriesLongShort')->(insert: 'Brazil' = 'BR');
+		(self->'countriesLongShort')->(insert: 'British Indian Ocean Territory' = 'IO');
+		(self->'countriesLongShort')->(insert: 'Brunei Darussalam' = 'BN');
+		(self->'countriesLongShort')->(insert: 'Bulgaria' = 'BG');
+		(self->'countriesLongShort')->(insert: 'Burkina Faso' = 'BF');
+		(self->'countriesLongShort')->(insert: 'Burundi' = 'BI');
+		(self->'countriesLongShort')->(insert: 'Cambodia' = 'KH');
+		(self->'countriesLongShort')->(insert: 'Cameroon' = 'CM');
+		(self->'countriesLongShort')->(insert: 'Canada' = 'CA');
+		(self->'countriesLongShort')->(insert: 'Cape Verde' = 'CV');
+		(self->'countriesLongShort')->(insert: 'Cayman Islands' = 'KY');
+		(self->'countriesLongShort')->(insert: 'Central African Republifw' = 'CF');
+		(self->'countriesLongShort')->(insert: 'Chad' = 'TD');
+		(self->'countriesLongShort')->(insert: 'Chile' = 'CL');
+		(self->'countriesLongShort')->(insert: 'China' = 'CN');
+		(self->'countriesLongShort')->(insert: 'Christmas Island' = 'CX');
+		(self->'countriesLongShort')->(insert: 'Cocos (Keeling) Islands' = 'CC');
+		(self->'countriesLongShort')->(insert: 'Colombia' = 'CO');
+		(self->'countriesLongShort')->(insert: 'Comoros' = 'KM');
+		(self->'countriesLongShort')->(insert: 'Congo' = 'CG');
+		(self->'countriesLongShort')->(insert: 'Congo, Republic of' = 'RC');
+		(self->'countriesLongShort')->(insert: 'Cook Islands' = 'CK');
+		(self->'countriesLongShort')->(insert: 'Costa Rica' = 'CR');
+		(self->'countriesLongShort')->(insert: 'Cote D\'ivoire' = 'CI');
+		(self->'countriesLongShort')->(insert: 'Croatia' = 'HR');
+		(self->'countriesLongShort')->(insert: 'Cuba' = 'CU');
+		(self->'countriesLongShort')->(insert: 'Cyprus' = 'CY');
+		(self->'countriesLongShort')->(insert: 'Czech Republifw' = 'CZ');
+		(self->'countriesLongShort')->(insert: 'Denmark' = 'DK');
+		(self->'countriesLongShort')->(insert: 'Djibouti' = 'DJ');
+		(self->'countriesLongShort')->(insert: 'Dominica' = 'DM');
+		(self->'countriesLongShort')->(insert: 'Dominican Republifw' = 'DO');
+		(self->'countriesLongShort')->(insert: 'East Timor' = 'TP');
+		(self->'countriesLongShort')->(insert: 'Ecuador' = 'EC');
+		(self->'countriesLongShort')->(insert: 'Egypt' = 'EG');
+		(self->'countriesLongShort')->(insert: 'El Salvador' = 'SV');
+		(self->'countriesLongShort')->(insert: 'Equatorial Guinea' = 'GQ');
+		(self->'countriesLongShort')->(insert: 'Eritrea' = 'ER');
+		(self->'countriesLongShort')->(insert: 'Estonia' = 'EE');
+		(self->'countriesLongShort')->(insert: 'Ethiopia' = 'ET');
+		(self->'countriesLongShort')->(insert: 'Falkland Islands' = 'FK');
+		(self->'countriesLongShort')->(insert: 'Faroe Islands' = 'FO');
+		(self->'countriesLongShort')->(insert: 'Fiji' = 'FJ');
+		(self->'countriesLongShort')->(insert: 'Finland' = 'FI');
+		(self->'countriesLongShort')->(insert: 'France' = 'FR');
+		(self->'countriesLongShort')->(insert: 'France' = 'FX');
+		(self->'countriesLongShort')->(insert: 'French Guiana' = 'GF');
+		(self->'countriesLongShort')->(insert: 'French Polynesia' = 'PF');
+		(self->'countriesLongShort')->(insert: 'French Southern Territories' = 'TF');
+		(self->'countriesLongShort')->(insert: 'Gabon' = 'GA');
+		(self->'countriesLongShort')->(insert: 'Gambia' = 'GM');
+		(self->'countriesLongShort')->(insert: 'Georgia' = 'GE');
+		(self->'countriesLongShort')->(insert: 'Germany' = 'DE');
+		(self->'countriesLongShort')->(insert: 'Ghana' = 'GH');
+		(self->'countriesLongShort')->(insert: 'Gibraltar' = 'GI');
+		(self->'countriesLongShort')->(insert: 'Greece' = 'GR');
+		(self->'countriesLongShort')->(insert: 'Greenland' = 'GL');
+		(self->'countriesLongShort')->(insert: 'Grenada' = 'GD');
+		(self->'countriesLongShort')->(insert: 'Guadeloupe' = 'GP');
+		(self->'countriesLongShort')->(insert: 'Guam' = 'GU');
+		(self->'countriesLongShort')->(insert: 'Guatemala' = 'GT');
+		(self->'countriesLongShort')->(insert: 'Guinea' = 'GN');
+		(self->'countriesLongShort')->(insert: 'Guinea-Bissau' = 'GW');
+		(self->'countriesLongShort')->(insert: 'Guyana' = 'GY');
+		(self->'countriesLongShort')->(insert: 'Haiti' = 'HT');
+		(self->'countriesLongShort')->(insert: 'Heard And Mcdonald Islands' = 'HM');
+		(self->'countriesLongShort')->(insert: 'Honduras' = 'HN');
+		(self->'countriesLongShort')->(insert: 'Hong Kong' = 'HK');
+		(self->'countriesLongShort')->(insert: 'Hungary' = 'HU');
+		(self->'countriesLongShort')->(insert: 'Iceland' = 'IS');
+		(self->'countriesLongShort')->(insert: 'India' = 'IN');
+		(self->'countriesLongShort')->(insert: 'Indonesia' = 'ID');
+		(self->'countriesLongShort')->(insert: 'Iran' = 'IR');
+		(self->'countriesLongShort')->(insert: 'Iraq' = 'IQ');
+		(self->'countriesLongShort')->(insert: 'Ireland' = 'IE');
+		(self->'countriesLongShort')->(insert: 'Israel' = 'IL');
+		(self->'countriesLongShort')->(insert: 'Italy' = 'IT');
+		(self->'countriesLongShort')->(insert: 'Jamaica' = 'JM');
+		(self->'countriesLongShort')->(insert: 'Japan' = 'JP');
+		(self->'countriesLongShort')->(insert: 'Jordan' = 'JO');
+		(self->'countriesLongShort')->(insert: 'Kazakhstan' = 'KZ');
+		(self->'countriesLongShort')->(insert: 'Kenya' = 'KE');
+		(self->'countriesLongShort')->(insert: 'Kiribati' = 'KI');
+		(self->'countriesLongShort')->(insert: 'Korea, Democratic People' = 'KP');
+		(self->'countriesLongShort')->(insert: 'Korea, Republic People' = 'KR');
+		(self->'countriesLongShort')->(insert: 'Kuwait' = 'KW');
+		(self->'countriesLongShort')->(insert: 'Kyrgyzstan' = 'KG');
+		(self->'countriesLongShort')->(insert: 'Laos' = 'LA');
+		(self->'countriesLongShort')->(insert: 'Latvia' = 'LV');
+		(self->'countriesLongShort')->(insert: 'Lebanon' = 'LB');
+		(self->'countriesLongShort')->(insert: 'Lesotho' = 'LS');
+		(self->'countriesLongShort')->(insert: 'Liberia' = 'LR');
+		(self->'countriesLongShort')->(insert: 'Libyan Arab Jamahiriya' = 'LY');
+		(self->'countriesLongShort')->(insert: 'Liechtenstein' = 'LI');
+		(self->'countriesLongShort')->(insert: 'Lithuania' = 'LT');
+		(self->'countriesLongShort')->(insert: 'Luxembourg' = 'LU');
+		(self->'countriesLongShort')->(insert: 'Macau' = 'MO');
+		(self->'countriesLongShort')->(insert: 'Macedonia' = 'MK');
+		(self->'countriesLongShort')->(insert: 'Madagascar' = 'MG');
+		(self->'countriesLongShort')->(insert: 'Malawi' = 'MW');
+		(self->'countriesLongShort')->(insert: 'Malaysia' = 'MY');
+		(self->'countriesLongShort')->(insert: 'Maldives' = 'MV');
+		(self->'countriesLongShort')->(insert: 'Mali' = 'ML');
+		(self->'countriesLongShort')->(insert: 'Malta' = 'MT');
+		(self->'countriesLongShort')->(insert: 'Marshall Islands' = 'MH');
+		(self->'countriesLongShort')->(insert: 'Martinique' = 'MQ');
+		(self->'countriesLongShort')->(insert: 'Mauritania' = 'MR');
+		(self->'countriesLongShort')->(insert: 'Mauritius' = 'MU');
+		(self->'countriesLongShort')->(insert: 'Mayotte' = 'YT');
+		(self->'countriesLongShort')->(insert: 'Mexico' = 'MX');
+		(self->'countriesLongShort')->(insert: 'Micronesia' = 'FM');
+		(self->'countriesLongShort')->(insert: 'Moldova' = 'MD');
+		(self->'countriesLongShort')->(insert: 'Monaco' = 'MC');
+		(self->'countriesLongShort')->(insert: 'Mongolia' = 'MN');
+		(self->'countriesLongShort')->(insert: 'Montserrat' = 'MS');
+		(self->'countriesLongShort')->(insert: 'Morocco' = 'MA');
+		(self->'countriesLongShort')->(insert: 'Mozambique' = 'MZ');
+		(self->'countriesLongShort')->(insert: 'Myanmar' = 'MM');
+		(self->'countriesLongShort')->(insert: 'Namibia' = 'NA');
+		(self->'countriesLongShort')->(insert: 'Nauru' = 'NR');
+		(self->'countriesLongShort')->(insert: 'Nepal' = 'NP');
+		(self->'countriesLongShort')->(insert: 'Netherlands' = 'NL');
+		(self->'countriesLongShort')->(insert: 'Netherlands Antilles' = 'AN');
+		(self->'countriesLongShort')->(insert: 'New Caledonia' = 'NC');
+		(self->'countriesLongShort')->(insert: 'New Zealand' = 'NZ');
+		(self->'countriesLongShort')->(insert: 'Nicaragua' = 'NI');
+		(self->'countriesLongShort')->(insert: 'Niger' = 'NE');
+		(self->'countriesLongShort')->(insert: 'Nigeria' = 'NG');
+		(self->'countriesLongShort')->(insert: 'Niue' = 'NU');
+		(self->'countriesLongShort')->(insert: 'Norfolk Island' = 'NF');
+		(self->'countriesLongShort')->(insert: 'Northern Mariana Islands' = 'MP');
+		(self->'countriesLongShort')->(insert: 'Norway' = 'NO');
+		(self->'countriesLongShort')->(insert: 'Oman' = 'OM');
+		(self->'countriesLongShort')->(insert: 'Pakistan' = 'PK');
+		(self->'countriesLongShort')->(insert: 'Palau' = 'PW');
+		(self->'countriesLongShort')->(insert: 'Panama' = 'PA');
+		(self->'countriesLongShort')->(insert: 'Papua New Guinea' = 'PG');
+		(self->'countriesLongShort')->(insert: 'Paraguay' = 'PY');
+		(self->'countriesLongShort')->(insert: 'Peru' = 'PE');
+		(self->'countriesLongShort')->(insert: 'Philippines' = 'PH');
+		(self->'countriesLongShort')->(insert: 'Pitcairn' = 'PN');
+		(self->'countriesLongShort')->(insert: 'Poland' = 'PL');
+		(self->'countriesLongShort')->(insert: 'Portugal' = 'PT');
+		(self->'countriesLongShort')->(insert: 'Puerto Rico' = 'PR');
+		(self->'countriesLongShort')->(insert: 'Qatar' = 'QA');
+		(self->'countriesLongShort')->(insert: 'Reunion' = 'RE');
+		(self->'countriesLongShort')->(insert: 'Romania' = 'RO');
+		(self->'countriesLongShort')->(insert: 'Russian Federation' = 'RU');
+		(self->'countriesLongShort')->(insert: 'Rwanda' = 'RW');
+		(self->'countriesLongShort')->(insert: 'Saint Kitts And Nevis' = 'KN');
+		(self->'countriesLongShort')->(insert: 'Saint Lucia' = 'LC');
+		(self->'countriesLongShort')->(insert: 'Samoa' = 'WS');
+		(self->'countriesLongShort')->(insert: 'San Marino' = 'SM');
+		(self->'countriesLongShort')->(insert: 'Sao Tome And Principe' = 'ST');
+		(self->'countriesLongShort')->(insert: 'Saudi Arabia' = 'SA');
+		(self->'countriesLongShort')->(insert: 'Senegal' = 'SN');
+		(self->'countriesLongShort')->(insert: 'Seychelles' = 'SC');
+		(self->'countriesLongShort')->(insert: 'Sierra Leone' = 'SL');
+		(self->'countriesLongShort')->(insert: 'Singapore' = 'SG');
+		(self->'countriesLongShort')->(insert: 'Slovakia (Slovak Republic)' = 'SK');
+		(self->'countriesLongShort')->(insert: 'Slovenia' = 'SI');
+		(self->'countriesLongShort')->(insert: 'Solomon Islands' = 'SB');
+		(self->'countriesLongShort')->(insert: 'Somalia' = 'SO');
+		(self->'countriesLongShort')->(insert: 'South Africa' = 'ZA');
+		(self->'countriesLongShort')->(insert: 'South Georgia' = 'GS');
+		(self->'countriesLongShort')->(insert: 'Spain' = 'ES');
+		(self->'countriesLongShort')->(insert: 'Sri Lanka' = 'LK');
+		(self->'countriesLongShort')->(insert: 'St Vincent And The Grenadines' = 'VC');
+		(self->'countriesLongShort')->(insert: 'St. Helena' = 'SH');
+		(self->'countriesLongShort')->(insert: 'St. Pierre And Miquelon' = 'PM');
+		(self->'countriesLongShort')->(insert: 'Sudan' = 'SD');
+		(self->'countriesLongShort')->(insert: 'Suriname' = 'SR');
+		(self->'countriesLongShort')->(insert: 'Svalbard And Jan Mayen Islands' = 'SJ');
+		(self->'countriesLongShort')->(insert: 'Swaziland' = 'SZ');
+		(self->'countriesLongShort')->(insert: 'Sweden' = 'SE');
+		(self->'countriesLongShort')->(insert: 'Switzerland' = 'CH');
+		(self->'countriesLongShort')->(insert: 'Syrian Arab Republifw' = 'SY');
+		(self->'countriesLongShort')->(insert: 'Taiwan' = 'TW');
+		(self->'countriesLongShort')->(insert: 'Tajikistan' = 'TJ');
+		(self->'countriesLongShort')->(insert: 'Tanzania' = 'TZ');
+		(self->'countriesLongShort')->(insert: 'Thailand' = 'TH');
+		(self->'countriesLongShort')->(insert: 'Togo' = 'TG');
+		(self->'countriesLongShort')->(insert: 'Tokelau' = 'TK');
+		(self->'countriesLongShort')->(insert: 'Tonga' = 'TO');
+		(self->'countriesLongShort')->(insert: 'Trinidad And Tobago' = 'TT');
+		(self->'countriesLongShort')->(insert: 'Tunisia' = 'TN');
+		(self->'countriesLongShort')->(insert: 'Turkey' = 'TR');
+		(self->'countriesLongShort')->(insert: 'Turkmenistan' = 'TM');
+		(self->'countriesLongShort')->(insert: 'Turks And Caicos Islands' = 'TC');
+		(self->'countriesLongShort')->(insert: 'Tuvalu' = 'TV');
+		(self->'countriesLongShort')->(insert: 'Uganda' = 'UG');
+		(self->'countriesLongShort')->(insert: 'Ukraine' = 'UA');
+		(self->'countriesLongShort')->(insert: 'United Arab Emirates' = 'AE');
+		(self->'countriesLongShort')->(insert: 'United Kingdom' = 'GB');
+		(self->'countriesLongShort')->(insert: 'United States' = 'US');
+		(self->'countriesLongShort')->(insert: 'Uruguay' = 'UY');
+		(self->'countriesLongShort')->(insert: 'US Minor Outlying Islands' = 'UM');
+		(self->'countriesLongShort')->(insert: 'Uzbekistan' = 'UZ');
+		(self->'countriesLongShort')->(insert: 'Vanuatu' = 'VU');
+		(self->'countriesLongShort')->(insert: 'Vatican City State' = 'VA');
+		(self->'countriesLongShort')->(insert: 'Venezuela' = 'VE');
+		(self->'countriesLongShort')->(insert: 'Viet Nam' = 'VN');
+		(self->'countriesLongShort')->(insert: 'Virgin Islands, British' = 'VG');
+		(self->'countriesLongShort')->(insert: 'Virgin Islands, U.S.' = 'VI');
+		(self->'countriesLongShort')->(insert: 'Wallis And Futuna Islands' = 'WF');
+		(self->'countriesLongShort')->(insert: 'Western Sahara' = 'EH');
+		(self->'countriesLongShort')->(insert: 'Yemen' = 'YE');
+		(self->'countriesLongShort')->(insert: 'Yugoslavia' = 'YU');
+		(self->'countriesLongShort')->(insert: 'Zambia' = 'ZM');
+		(self->'countriesLongShort')->(insert: 'Zimbabwe' = 'ZW');
+	/if;
+
+/define_tag;
+
+//-------------------------------
+define_tag:'isCountryAbbreviation',
+	-required='str';
+
+	#str->trim;
+
+	(self->'countriesShortLong')->find:#str
+		? return: true
+		| return: false;
+
+/define_tag;
+
+//-------------------------------
+define_tag:'isCountryFull',
+	-required='str';
+
+	#str->trim;
+
+	(self->'countriesLongShort')->find:#str
+		? return: true
+		| return: false;
+
+/define_tag;
+
+//-------------------------------
+define_tag:'getCountryAbbreviation',
+	-required='str';
+
+	#str->trim;
+
+	return: (self->'countriesLongShort')->find:#str;
+
+/define_tag;
+
+//-------------------------------
+define_tag:'getCountryFull',
+	-required='str';
+
+	#str->trim;
+
+	return: (self->'countriesShortLong')->find:#str;
+
+/define_tag;
+
+/define_type;
+
+?>
+

@@ -1,0 +1,210 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpAPI_vrsnScan.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpAPI_vrsnScan }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpAPI_vrsnScan }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag scans all files in a  folder and acquires names, 
+					versions, authors, histories and more based on using this 
+					FWPro document header style.}
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+?>
+
+[define_tag:'fwpAPI_vrsnScan', -autooutput, -priority='replace']
+
+	[local:
+		'folder'=(params)->get:1,
+		'fileList'=(array),
+		'fileName'=(string),
+		'fileText'=(string),
+		'fileName'=(string),
+		'comments'=(array),
+		'thiscomment'=(string),
+		'rsrcType'=(string),
+		'rsrcName'=(string),
+		'rsrcHTTP'=(string),
+		'fileVersion'=(string),
+		'fileDate'=(string),
+		'author'=(string),
+		'authorEmail'=(string),
+		'authorHTTP'=(string),
+		'desc'=(string),
+		'maintVrsnArray'=(array),
+		'maintDateArray'=(array),
+		'maintAuthorArray'=(array),
+		'maintNotesArray'=(array),
+		'maintVrsn'=(string),
+		'maintDate'=(string),
+		'maintAuthor'=(string),
+		'maintNotes'=(string)]
+
+
+[output_none]
+//	scan API folder for all file names
+//	load them one by one
+
+	[#fileList = file_listDirectory: #folder]
+
+[/output_none]
+
+	[iterate: #fileList, #fileName]
+		[if: (file_isdirectory:#fileName)==false && (#fileName->beginswith:'.')==false]
+
+			[#fileText=include_raw: #folder + #fileName]
+			[#comments=(string_findRegExp: #fileText, -find='/\\*.+?\\*/', -ignorecase)]
+
+			[if: #comments->size == 0]
+				<h3>File: [#filename]</h3>
+				<p><strong>Description:</strong> unidentified resource</p>
+				<hr>
+			[/if]
+
+			[iterate: #comments, #thisComment]
+[output_none]
+//	pull documentation tags from file
+
+				[#rsrcType=(string_findRegExp: #thisComment, -find='\\{rsrcType=(.+?)\\}', -ignorecase)]
+				[if: #rsrcType->size > 0]
+					[#rsrcType=#rsrcType->get:2]
+					[#rsrcType->trim]
+					[#rsrcType= '(' + #rsrcType + ')']
+				[else]
+					[#rsrcType='']
+				[/if]
+
+				[#rsrcName=(string_findRegExp: #thisComment, -find='\\{rsrcName=(.+?)\\}', -ignorecase)]
+				[if: #rsrcName->size > 0]
+					[#rsrcName=#rsrcName->get:2]
+					[#rsrcName->trim]
+				[else]
+					[#rsrcName='unknown']
+				[/if]
+
+				[#rsrcHTTP=(string_findRegExp: #thisComment, -find='\\{rsrcHTTP=(.+?)\\}', -ignorecase)]
+				[if: #rsrcHTTP->size > 0]
+					[#rsrcHTTP=#rsrcHTTP->get:2]
+					[#rsrcHTTP->trim]
+				[else]
+					[#rsrcHTTP='']
+				[/if]
+
+				[#author=(string_findRegExp: #thisComment, -find='\\{author=(.+?)\\}', -ignorecase)]
+				[if: #author->size > 0]
+					[#author=#author->get:2]
+					[#author->trim]
+				[else]
+					[#author='']
+				[/if]
+
+				[#authorEmail=(string_findRegExp: #thisComment, -find='\\{authorEmail=(.+?)\\}', -ignorecase)]
+				[if: #authorEmail->size > 0]
+					[#authorEmail=#authorEmail->get:2]
+					[#authorEmail->trim]
+				[else]
+					[#authorEmail='']
+				[/if]
+
+				[#authorHTTP=(string_findRegExp: #thisComment, -find='\\{authorHTTP=(.+?)\\}', -ignorecase)]
+				[if: #authorHTTP->size > 0]
+					[#authorHTTP=#authorHTTP->get:2]
+					[#authorHTTP->trim]
+				[else]
+					[#authorHTTP='']
+				[/if]
+
+				[#desc=(string_findRegExp: #thisComment, -find='\\{desc=(.+?)\\}', -ignorecase)]
+				[if: #desc->size > 0]
+					[#desc=#desc->get:2]
+					[#desc->trim]
+				[else]
+					[#desc='']
+				[/if]
+
+				[#maintVrsnArray=(string_findRegExp: #thisComment, -find='\\{maintvsrn=(.+?)\\}', -ignorecase)]
+				[#maintDateArray=(string_findRegExp: #thisComment, -find='\\{maintdate=(.+?)\\}', -ignorecase)]
+				[#maintAuthorArray=(string_findRegExp: #thisComment, -find='\\{maintauthor=(.+?)\\}', -ignorecase)]
+				[#maintNotesArray=(string_findRegExp: #thisComment, -find='\\{maintnotes=(.+?)\\}', -ignorecase)]
+
+				[if: #maintVrsnArray->size > 0]
+					[#maintVrsn=(#maintVrsnArray->get:2)]
+					[#maintVrsn->trim]
+				[/if]
+
+				[if: #maintDateArray->size > 0]
+					[#maintDate=(#maintDateArray->get:2)]
+					[#maintDate->trim]
+				[/if]
+
+				//	draw info acquired from above per file
+				[/output_none]
+
+				<h3>[#rsrcName] [#rsrcType]</h3>
+				<p>Filename: [#fileName]<br />
+				Version: [#maintVrsn]&nbsp;([#maintDate])<br />
+				More info at: <a href="http:rcHTTP]">[#rsrcHTTP]</a></p>
+
+				<dl>
+					<dt><strong>Description:</strong>
+					<dd><br />[#desc]
+				</dl>
+
+				<dl><strong>Maintenance:</strong>
+					[loop: #maintVrsnArray->size, -loopfrom=2, -loopincrement=2]
+					[output_none]
+
+					[if: #maintVrsnArray->size > 0]
+						[#maintVrsn=(#maintVrsnArray->get:loop_count)]
+						[#maintVrsn->trim]
+					[/if]
+
+					[if: #maintDateArray->size > 0]
+						[#maintDate=(#maintDateArray->get:loop_count)]
+						[#maintDate->trim]
+					[/if]
+
+					[if: #maintAuthorArray->size > 0]
+						[#maintAuthor=(#maintAuthorArray->get:loop_count)]
+						[#maintAuthor->trim]
+					[/if]
+
+					[if: #maintNotesArray->size > 0]
+						[#maintNotes=(#maintNotesArray->get:loop_count)]
+						[#maintNotes->trim]
+					[/if]
+
+					[/output_none]
+					<dt><br />[#maintVrsn]&nbsp;&nbsp;&nbsp;[#maintDate]&nbsp;&nbsp;&nbsp;[#maintAuthor]
+					<dd>[#maintNotes]
+					[/loop]
+				</dl>
+
+				<p>[#author]&nbsp;&nbsp;&nbsp;<a href="mailto:[#authorEmail]">[#authorEmail]</a>&nbsp;&nbsp;&nbsp;<a href="http:#aurHTTP]">[#authorHTTP]</a></p>
+				<hr>
+
+			[/iterate]
+		[/if]
+	[/iterate]
+
+[/define_tag]

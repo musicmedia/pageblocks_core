@@ -1,0 +1,632 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpErr_manager.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_errorManager }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_errorManager }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This file determines the type of the error and causes 
+					the appopriate error handling include file. PB maintains 
+					its own error stack in $fw_error. If this var has data, 
+					then a routine to decode that stack is called, otherwise 
+					the error is assumed to be a native Lasso error, and a 
+					routine designed to respond to that is called. This mngr 
+					routine also includes a number of common routines for 
+					user feedback and logging. }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.2.4 }
+	{maintdate=		2007-07-21}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added ->insert } 
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems, 
+	 				fixed bug in fw_getUnknownConfig that could fail 
+	 				to return a value if _strings folder was not available }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-10-10 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	bug fix in handleAllErrors which did not define pgBlock 
+					if a parameter was not passed }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_errorManager', 'array';
+
+	local:
+		'configFileName'	= 'Errors',
+		'globalCacheVar'	= 'fw_gErrorMVSConfigs',
+		'globalCacheLock'	= 'fw_gErrorMVSConfigs_rwlock',
+		'stringsLoader'		= string,
+		'messages'			= string,
+		'blockErrorCodes'	= map,
+		'blockErrorMsgs'	= map;
+
+	local:
+		'message'				= @#messages,
+		'errorMsgs'				= @#messages,
+		'errorMsg'				= @#messages,
+		'fw_unknownCodeConfig'	= map;
+	
+
+//============================================================================
+//
+//	->onCreate
+//
+//
+//
+//............................................................................
+
+define_tag:'onCreate',
+	-optional = 'mvsloader';
+
+	(local_defined:'mvsloader')
+		? (self->'stringsLoader') = #mvsloader;
+
+	// 	needed to counteract bug in Lasso 
+	//	that puts params from onCreate into the data store of the base array
+	self->removeall;
+
+	!(global_defined:(self->'globalCacheVar'))
+		? self->cacheReset;
+
+	(self->'fw_unknownCodeConfig')->(insert:'errLevel' = '0');
+	(self->'fw_unknownCodeConfig')->(insert:'msg_all' = map);
+	((self->'fw_unknownCodeConfig')->find:'msg_all')->(insert:'default' = '<h3>Error [#thisErrCode] Occurred (no description available)</h3>');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->cacheReset
+//
+//	builds an error message based on a single error code
+//
+//
+//............................................................................
+
+define_tag:'cacheReset';
+
+	$fw_gErrorMVSConfigs_rwlock->readUnlock;
+	$fw_gErrorMVSConfigs_rwlock->writeLock;
+	
+	(global:(self->'globalCacheVar')) = map;
+	(global:(self->'globalCacheVar'))->(insert:'modulesLoaded' = map);
+	
+	$fw_gErrorMVSConfigs_rwlock->writeUnlock;
+	$fw_gErrorMVSConfigs_rwlock->readLock;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->insert
+//
+//	extends the built-in insert functionality
+//	so we can add a trace statement at the moment of the insert
+//
+//............................................................................
+
+define_tag:'insert';
+
+    self->parent->\insert->(run: -params=params, -owner=self);
+    $fw_debug ? $fw_tagTracer->(add:'fwp_errorManager : insert', -error=params->first);
+    
+/define_tag;
+
+
+//============================================================================
+//
+//	->handleAllErrors
+//
+//	builds an error message for both an "unexpected error" and app errors
+//
+//
+//............................................................................
+
+define_tag:'handleAllErrors',
+	-optional = 'pgBlock',
+	-optional = 'code',
+	-optional = 'data',
+	-optional = 'language',
+	-optional = 'media',
+	-optional = 'view';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_errmanager: handleAllErrors');
+
+	!(local:'language')
+		? local:'language' = ($fw_client->'language');
+
+	!(local:'media')
+		? local:'media' = ($fw_client->'media');
+
+	!(local:'view')
+		? local:'view' = ($fw_client->'variant');
+
+	!(local:'data')
+		? local:'data' = string;
+
+	!(local:'pgBlock')
+		? local:'pgBlock' = string;
+
+//	must be reset for each pageblock, so clear this now
+
+	(self->'messages') = string;
+
+//	code & msg are used to pass a Lasso error from error.lasso
+//	an internal Lasso error takes precedence over app errors
+//	and there's no point in trying to track down app errors 
+//	if a low level Lasso error occurred
+
+	if: local:'code';
+
+		self->(handleUnexpectedError: 
+			-code 		= #code, 
+			-msg		= #data, 
+			-language	= #language,
+			-media		= #media,
+			-view		= #view);
+	
+	else: (self->size > 0);
+
+		self->(handleCurrentErrors: 
+			-pgBlock	= #pgBlock, 
+			-language	= #language,
+			-media		= #media,
+			-view		= #view);
+	
+	/if;
+
+// 	if this is used on a block by block basis,
+//	each block needs to be empty, so at this
+//	we're all done with the original array data
+//	so we clean it out
+
+	self->removeall;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->handleUnexpectedError
+//
+//	builds an error message specifically for catching an "unexpected error"
+//	which is a Lasso error not an application error
+//
+//
+//............................................................................
+
+define_tag:'handleUnexpectedError',
+	-required = 'code',
+	-required = 'data',
+	-optional = 'language',
+	-optional = 'media',
+	-optional = 'view';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_errmanager: handleUnexpectedError');
+
+//	data is an arbitrary value passed by the app
+//	for use in the message string
+
+//	must be reset for each pageblock, so clear this now
+
+	(self->'messages') = string;
+
+	local:
+		'thisErrCode'	= string:#code,
+		'thisErrData'	= local:'data',
+		'fw_language'	= @(local:'language'),
+		'fw_media'		= @(local:'media'),
+		'fw_variant'		= @(local:'view');
+
+	!#fw_language
+		? #fw_language = ($fw_client->'language');
+
+	!#fw_media
+		? #fw_media = ($fw_client->'media');
+
+	!#fw_variant
+		? #fw_variant = ($fw_client->'variant');
+
+	local:
+		'errMailMsg' 	= self->(handleError: -code='5002', -language=#fw_language),
+		'thisErrMsg' 	= #thisErrData,
+		'thisErrLogID'	= (fwpStr_randomID:9),
+		'fw_errCnfg' 	= (var:(self->'stringsLoader'))->(getConfigMap: 
+							-cachevar	= (self->'globalCacheVar'),
+							-cachelock	= (self->'globalCacheLock'),
+							-file		= (self->'configFileName'),
+							-code		= '5001', 
+							-language	= #fw_language);
+
+	!#fw_errCnfg
+		? #fw_errCnfg = (self->fw_getUnknownConfig: -language=#fw_language);
+
+	(#fw_errCnfg->contains:'logIt')
+		? self->(logit:
+			-errCnfgLogIt	= (#fw_errCnfg->find:'logIt'),
+			-thisErrLogID	= #thisErrLogID,
+			-thisErrCode	= #code,
+			-thisErrData	= #thisErrMsg);
+
+	(#fw_errCnfg->contains:'errLevel')
+		? self->(sendAlert: 
+			-errCnfgErrLevel 	= integer:(#fw_errCnfg->find:'errLevel'),
+			-thisErrLogID		= #thisErrLogID);
+
+	!(#fw_errCnfg->contains:('msg_' + #fw_media))
+		? #fw_media = 'all';
+
+	!(#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant
+		? #fw_variant = 'default';
+
+	(self->'messages') += (process:((#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant));
+		
+/define_tag;
+
+
+//============================================================================
+//
+//	->handleCurrentErrors
+//
+//	builds an error message based on framework and application error codes
+//
+//
+//............................................................................
+
+define_tag:'handleCurrentErrors',
+	-optional = 'pgBlock',
+	-optional = 'language',
+	-optional = 'media',
+	-optional = 'view';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_errmanager: handleCurrentErrors');
+
+//	must be reset for each pageblock, so clear this now
+
+	(self->'messages') = string;
+
+	!((self->'blockErrorCodes')->find:#pgBlock)
+		? (self->'blockErrorCodes')->(insert: #pgBlock = array);
+
+	local:
+		'fw_errPair'	= pair,
+		'fw_errCnfg'	= map,
+		'thisErrCode'	= string,
+		'thisErrData'	= null,
+		'thisErrLogID'	= string,
+		'fw_language'	= @(local:'language'),
+		'fw_media'		= @(local:'media'),
+		'fw_variant'	= @(local:'view');
+
+	!#fw_language
+		? #fw_language = ($fw_client->'language');
+
+	!#fw_media
+		? #fw_media = ($fw_client->'media');
+
+	!#fw_variant
+		? #fw_variant = ($fw_client->'variant');
+
+	iterate: self, #fw_errPair;
+
+		($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_errmanager: handleCurrentErrors', -fw_errPair = #fw_errPair);
+
+		if:(#fw_errPair->first)->type != null;
+
+			((self->'blockErrorCodes')->find:#pgBlock)->insert:#fw_errPair; 
+	
+//	do not refactor these locals out,
+//	they are created so as to be available to the msg strings
+	
+			#thisErrCode	= #fw_errPair->first;
+			#thisErrData	= #fw_errPair->second;
+	
+//	have to hard code a response to 5200 which
+//	tells us the core strings files are not available
+//	so obviuosly we can't use the strings to fetch a message
+
+			if: #thisErrCode != '5200';
+
+				#thisErrLogID	= (fwpStr_randomID:9);
+				#fw_errCnfg 	= (var:(self->'stringsLoader'))->(getConfigMap: 
+									-cachevar	= (self->'globalCacheVar'),
+									-cachelock	= (self->'globalCacheLock'),
+									-file		= (self->'configFileName'),
+									-code		= (#fw_errPair->first), 
+									-language	= #fw_language);
+	
+				!#fw_errCnfg
+					? #fw_errCnfg = (self->fw_getUnknownConfig: -language=#fw_language);
+	
+				(#fw_errCnfg->contains:'logIt')
+					? self->(logit:
+						-errCnfgLogIt	= (#fw_errCnfg->find:'logIt'),
+						-thisErrLogID	= #thisErrLogID,
+						-thisErrCode	= #thisErrCode,
+						-thisErrData	= #thisErrData);
+			
+				(#fw_errCnfg->contains:'errLevel')
+					? self->(sendAlert: 
+						-errCnfgErrLevel 	= integer:(#fw_errCnfg->find:'errLevel'),
+						-thisErrLogID		= #thisErrLogID);
+			
+				!(#fw_errCnfg->contains:('msg_' + #fw_media))
+					? #fw_media = 'all';
+	
+				!(#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant
+					? #fw_variant = 'default';
+	
+				(self->'messages') += (process:((#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant));
+			else;
+				(self->'messages') += '<p style="text-size: 14px; text-alignment: left; padding: 10px; background-color: yellow;">Setup error : PageBlocks cannot access /_pbStrings/. Consult installation and setup documentation.</p>';
+			/if;
+		/if;
+	/iterate;
+/define_tag;
+
+
+//============================================================================
+//
+//	->handleError
+//
+//	builds an error message based on a single error code
+//
+//
+//............................................................................
+
+define_tag:'handleError',
+	-required = 'code',
+	-optional = 'language',
+	-optional = 'media',
+	-optional = 'view';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_errmanager: handleError');
+
+//	data is an arbitrary value passed by the app
+//	for use in the message string
+
+	local:
+		'fw_errCnfg'	= map,
+		'thisErrCode'	= string:#code,
+		'thisErrData'	= local:'data',
+		'fw_language'	= @(local:'language'),
+		'fw_media'		= @(local:'media'),
+		'fw_variant'		= @(local:'view');
+
+	!#fw_language
+		? #fw_language = ($fw_client->'language');
+
+	!#fw_media
+		? #fw_media = ($fw_client->'media');
+
+	!#fw_variant
+		? #fw_variant = ($fw_client->'variant');
+		
+	#fw_errCnfg 	= (var:(self->'stringsLoader'))->(getConfigMap: 
+						-cachevar	= (self->'globalCacheVar'),
+						-cachelock	= (self->'globalCacheLock'),
+						-file		= (self->'configFileName'),
+						-code 		= #thisErrCode, 
+						-language 	= #fw_language);
+
+	!#fw_errCnfg
+		? #fw_errCnfg = (self->fw_getUnknownConfig: -language=#fw_language);
+
+	(#fw_errCnfg->contains:'logIt')
+		? self->(logit:
+			-errCnfgLogIt	= (#fw_errCnfg->find:'logIt'),
+			-thisErrLogID	= #thisErrLogID,
+			-thisErrCode	= #thisErrCode,
+			-thisErrData	= #thisErrData);
+
+	(#fw_errCnfg->contains:'errLevel')
+		? self->(sendAlert: 
+			-errCnfgErrLevel = integer:(#fw_errCnfg->find:'errLevel'),
+			-thisErrLogID	 = #thisErrLogID);
+
+	!(#fw_errCnfg->contains:('msg_' + #fw_media))
+		? #fw_media = 'all';
+
+	!(#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant
+		? #fw_variant = 'default';
+
+	return: (process:((#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant));
+		
+/define_tag;
+
+
+//============================================================================
+//
+//	->fw_getUnknownConfig
+//
+//	builds an error message for a code thath had no strings definition
+//	by substituting error code 5002
+//
+//............................................................................
+
+define_tag:'fw_getUnknownConfig',
+	-required = 'language';
+
+	if: ((global:(self->'globalCacheVar'))->contains:#language);
+		((((global:(self->'globalCacheVar'))->find:#language)->find:'5002')->type == map)
+			? return: (((global:(self->'globalCacheVar'))->find:#language)->find:'5002')
+			| return: (self->'fw_unknownCodeConfig');
+	else;
+		return: (self->'fw_unknownCodeConfig');
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->getErrorMsg
+//
+//	builds an error message based on a single error code
+//
+//
+//............................................................................
+
+define_tag:'getErrorMsg',
+	-required = 'code',
+	-optional = 'data',
+	-optional = 'language',
+	-optional = 'media',
+	-optional = 'view';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_errmanager: getErrorMsg');
+
+//	data is an arbitrary value passed by the app
+//	for use in the message string
+
+	local:
+		'fw_errCnfg'	= map,
+		'thisErrCode'	= string:#code,
+		'thisErrData'	= local:'data',
+		'fw_language'	= @(local:'language'),
+		'fw_media'		= @(local:'media'),
+		'fw_variant'		= @(local:'view');
+
+	!#fw_language
+		? #fw_language = ($fw_client->'language');
+
+	!#fw_media
+		? #fw_media = ($fw_client->'media');
+
+	!#fw_variant
+		? #fw_variant = ($fw_client->'variant');
+
+		
+	#fw_errCnfg = (var:(self->'stringsLoader'))->(getConfigMap: 
+						-cachevar	= (self->'globalCacheVar'),
+						-cachelock	= (self->'globalCacheLock'),
+						-file		= (self->'configFileName'),
+						-code 		= #thisErrCode,
+						-language	= #fw_language);
+
+	!#fw_errCnfg
+		? #fw_errCnfg = (self->fw_getUnknownConfig: -language=#fw_language);
+
+	!(#fw_errCnfg->contains:('msg_' + #fw_media))
+		? #fw_media = 'all';
+
+	!(#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant
+		? #fw_variant = 'default';
+
+	return: (process:((#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant));
+		
+/define_tag;
+
+
+//============================================================================
+//
+//	->removeCode
+//
+//	removes an error code from the internal array
+//
+//
+//............................................................................
+
+define_tag:'removeCode',
+	-required = 'code', -type = 'string';
+
+	local:'thisError'	= integer;
+
+	iterate: self->(findindex:#code), #thisError;
+		$fw_error->(remove:#thisError);
+	/iterate;
+	
+/define_tag;
+
+
+//============================================================================
+//
+//	->logIt
+//
+//	builds an error message based on framework and application error codes
+//
+//
+//............................................................................
+
+define_tag:'logIt',
+	-required = 'errCnfgLogIt',		-type = 'string',
+	-required = 'thisErrLogID',		-type = 'string',
+	-required = 'thisErrCode',		-type = 'string',
+	-required = 'thisErrData',		-type = 'string';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_errmanager: logit');
+
+	if: $fw_gLogErr && (#errCnfgLogIt == 'Y');
+
+		fwpLog_err: 
+			-id			= #thisErrLogID,
+			-code		= #thisErrCode,
+			-errormsg	= #thisErrData,
+			-pageInfo	= $fw_logPageInfo,
+			-fwpInfo	= $fw_logFWPInfo;
+
+	/if;
+			
+/define_tag;
+
+
+//============================================================================
+//
+//	->sendAlert
+//
+//	builds an error message based on framework and application error codes
+//
+//
+//............................................................................
+
+define_tag:'sendAlert',
+	-required = 'errCnfgErrLevel',
+	-required = 'thisErrLogID';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_errmanager: sendAlert');
+
+	if: $fw_gErrorAlertLevel && (#errCnfgErrLevel >= $fw_gErrorAlertLevel);
+	
+		email_send:
+			-host		= $fw_SMTPServer,
+			-to			= $fw_gErrorAlertEmail,
+			-from		= $fw_gErrorAlertFrom,
+			-subject	= ($fw_requestPage->'host') + ' : Web Site Alert',
+			-body		= 'An error above the Alert Level has been recorded. See log entry ' + #thisErrLogID + '\r\r';
+	
+	/if;
+	
+/define_tag;
+
+/define_type;
+?>

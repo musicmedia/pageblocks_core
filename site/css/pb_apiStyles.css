@@ -1,0 +1,1102 @@
+/*	.................................................. 
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//	.................................................. 
+
+	{fileName=		pb_apiStyles.css }
+	{rsrcType=		css }
+	{rsrcName=		pb_apiStyles.css }
+	{rsrcHTTP=		}
+
+	{author=		Greg Willits }
+	{authorEmail=	}
+	{authorHTTP=	}
+
+	{desc=			styles integral to PageBlocks
+					HTML generators }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-06 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added color specs to Validation
+					msgs, added div#stdadminfilterbar,
+					removed background-color from
+					valuelist specs }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+//	.................................................. 
+*/
+
+
+/* @group Standard Template Layouts 
+// ========================================================
+//
+//:	Standard Template Layouts
+//
+//
+*/
+
+#pagewrapper {
+	width: 740px;
+	padding: 0;
+	margin: 20px auto 20px auto;
+	text-align: left;
+	clear: both;
+	}
+
+#pgblockbody {
+	width: 700px;
+	padding: 15px 20px 0 20px;
+	margin: 0 0 0 0;
+	text-align: left;
+	clear: both;
+	}
+
+#pgblock1colmain {
+	float: left;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	text-align: left;
+	}
+
+#pgblock2colwnmain {
+	float: left;
+	width: 450px;
+	padding: 0 14px 0 0;
+	margin: 0;
+	text-align: left;
+	}
+
+#pgblock2colwnright {
+	float: left;
+	width: 220px;
+	margin: 0;
+	padding: 0 0 0 15px;
+	text-align: left;
+	}
+
+#pgblock2colnwmain {
+	float: left;
+	width: 510px;
+	padding: 0 10px 0 20px;
+	margin: 0;
+	text-align: left;
+	}
+
+#pgblock2colnwleft {
+	float: left;
+	width: 200px;
+	padding: 0;
+	margin: 0;
+	text-align: left;
+	}
+
+#pgblock3colleft {
+	float: left;
+	width: 120px;
+	padding: 0;
+	margin: 0;
+	text-align: left;
+	}
+
+#pgblock3colmain {
+	float: left;
+	width: 390px;
+	padding: 0 20px 0 20px;
+	margin: 0;
+	text-align: left;
+	}
+
+#pgblock3colright {
+	float: left;
+	width: 150px;
+	padding: 0;
+	margin: 0;
+	text-align: left;
+	overflow: hidden;
+	}
+
+#pgblockrefcsource {
+	clear: both;
+	width: 720px;
+	padding: 15px 0 0 20px;
+	margin: 0 0 0 0;
+	text-align: left;
+	}
+
+#pgblockhdr {
+	clear: both;
+	width: 710px;
+	padding: 20px 10px 0px 20px;
+	margin: 0 0 0 0;
+	text-align: left;
+	}
+
+#pgblockftr {
+	clear: both;
+	width: 720px;
+	padding: 15px 0px 15px 20px;
+	margin: 0 0 0 0;
+	text-align: left;
+	}
+
+/* @end */
+
+
+
+/* @group Stylize Text Elements 
+// ========================================================
+//
+//:	Stylize Text Elements
+//
+//
+*/
+
+small {
+	font-size: 10px;
+	line-height: 130%;
+	font-family: Verdana, Arial, "Luxi Sans", sans-serif;
+	font-style: normal;
+	word-spacing: normal;
+	letter-spacing: normal;
+	}
+
+em {
+	font-style: normal;
+	font-weight: bold;
+	}
+
+strong {
+	font-weight: bold;
+	}
+
+.bold {
+	font-weight: bold;
+	}
+
+.super {
+	font-size: 8px;
+	vertical-align: super;
+	}
+
+.sub {
+	font-size: 8px;
+	vertical-align: sub;
+	}
+
+.strikethru	{
+	text-decoration: line-through;
+	}
+
+.caption {
+	margin-top: 4px;
+	padding-top: 0px;
+	color: #7f7f7f;
+	font-size: 10px;
+	}
+
+.pub {
+	border-bottom: 1px dotted black;
+	}
+
+.artcl {
+	font-style: italic;
+	}
+
+.filename {
+	font-family: Verdana, Arial, "Luxi Sans", sans-serif;
+	}
+	
+.mono {
+	line-height: 130%;
+	font-size: 10px;
+	font-family: Monaco, "Andale Mono", "Luxi Mono", monospace;
+	font-size: 12px;
+	color: #663300;
+	}
+
+.altmono {
+	line-height: 130%;
+	font-size: 10px;
+	font-family: Monaco, "Andale Mono", "Luxi Mono", monospace;
+	font-size: 12px;
+	color: #cc0000;
+	}
+
+pre.code {
+	width: 97%;
+	padding: 4px;
+	border: 1px solid #dddddd;
+	overflow: auto;
+	font-size: 10px;
+	font-family: Monaco, "Andale Mono", "Luxi Mono", monospace;
+	font-size: 12px;
+	white-space: pre;
+	color: #996633;
+	}
+
+div.sourcecode {
+	width: 99%;
+	margin: 10px 0 20px 0;
+	padding: 4px;
+	border: 1px solid #808080;
+	background-color: #eeeeee;
+	overflow: scroll;
+	font-size: 10px;
+	font-family: Monaco, "Andale Mono", "Luxi Mono", monospace;
+	font-size: 12px;
+	white-space: pre;
+	color: #996633;
+	}
+
+pre.sourcecode {
+	width: 97%;
+	height: 300px;
+	margin: 0 0 20px 0;
+	padding: 4px;
+	border: 1px solid #dddddd;
+	overflow: auto;
+	font-size: 10px;
+	font-family: Monaco, "Andale Mono", "Luxi Mono", monospace;
+	font-size: 12px;
+	white-space: pre;
+	color: #996633;
+	}
+
+pre.terminal {
+	font-size: 10px;
+	font-family: Monaco, "Andale Mono", "Luxi Mono", monospace;
+	font-size: 12px;
+	line-height: 130%;
+	padding: 0px 0px 10px 0px;
+	white-space: pre;
+	background-color: black;
+	color: #16f922;
+	}
+
+/* @end */
+
+
+/* @group Misc Elements 
+// ========================================================
+//
+//:	Misc Elements
+//
+//
+*/
+
+.highlight {
+	background-color: #ff9;
+	}
+
+/* @end */
+
+
+
+
+/* @group stdlist Elements */
+
+div.listnavbar {
+	padding: 6px 10px 6px 0;
+	text-align: right;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	font-size: 11px;
+	}
+
+.stdlist table {
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	font-size: 11px;
+	background-color: white;
+	color: black;
+	}
+
+.stdlist table tr.hdr {
+	font-weight: bold;
+	background-color: #cc9;
+	color: #000;
+	}
+
+.stdlist table tr.hdr td.sorted {
+	background-color: #c96;
+	}
+
+.stdlist table tr.altrowA {
+	background-color: #f5f5dc;
+	}
+
+.stdlist table tr.altrowB {
+	background-color: #fff8dc;
+	}
+
+.stdlist table td {
+	padding: 2px 4px 2px 4px;
+	vertical-align: middle;
+	line-height: 120%;
+	}
+
+.stdlist table td.sorted {
+	background-color: #f5deb3;
+	}
+
+.stdlist table td.left {
+	text-align: left;
+	}
+
+.stdlist table td.cntr {
+	text-align: center;
+	}
+
+.stdlist table td.right {
+	text-align: right;
+	}
+
+/* @end */
+
+
+/* @group stdtable Elements
+// ========================================================
+//
+//: stdtable Elements
+//
+//
+*/
+
+.stdtable table {
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	font-size: 11px;
+	background-color: white;
+	color: black;
+	}
+
+.stdtable tr {
+	text-align: left;
+	vertical-align: top;
+	}
+
+.stdtable td {
+	padding: 0px;
+	}
+
+.stdtable td.cntr {
+	text-align: center;
+	}
+
+.stdtable td.right {
+	text-align: right;
+	}
+
+/* @end */
+
+
+/* @group stdform Elements
+// ========================================================
+//
+//: stdform Elements
+//
+//
+*/
+
+.stdform table {
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	font-size: 11px;
+	background-color: white;
+	color: black;
+	}
+
+.stdform tr {
+	background-color: #f5f5dc;
+	}
+
+.stdform td {
+	text-align: left;
+	vertical-align: middle;
+	padding: 2px 4px 2px 4px;
+	}
+
+.stdform td.label {
+	font-weight: bold;
+	background-color: #cc9;
+	color: black;
+	}
+
+.stdform td span.labeltip {
+	font-weight: normal;
+	font-size: 10px;
+	}
+
+.stdform td.reqd {
+	color: black;
+	}
+
+.stdform td.empty {
+	background-color: white;
+	}
+
+.stdform td.cntr {
+	text-align: center;
+	}
+
+.stdform td.right {
+	text-align: right;
+	}
+
+.stdform td.top {
+	vertical-align: top;
+	}
+
+/* @end */
+
+
+/* @group Inputs and Value Lists 
+// ========================================================
+//
+//:	Inputs and Value Lists
+//
+//
+*/
+
+.nobr {
+	white-space: nowrap;
+	}
+
+input {
+	vertical-align: middle;
+	}
+
+.txtinput {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, Arial, "Luxi Sans", sans-serif;
+	color: black;
+	border-width: 1px;
+	background-color: white;
+	border-color: black;
+	}
+
+.fwppopup {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	color: black;
+	border-width: 1px;
+	background-color: white;
+	border-color: black;
+	}
+	
+.width130 {
+	width: 130px;
+}
+
+.fwpcheckbox {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	color: black;
+	border-width: 1px;
+	border-color: black;
+	}
+
+.fwpradiobtns {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	color: black;
+	border-width: 1px;
+	border-color: black;
+	}
+
+.fwplistbox {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	color: black;
+	border-width: 1px;
+	border-color: black;
+	}
+
+.fwpuploads {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	color: black;
+	border-width: 1px;
+	border-color: black;
+	}
+
+/* @end */
+
+
+/* @group Validation Msgs
+// ========================================================
+//
+//:	Vaidation Msgs
+//
+//
+*/
+
+span.inputerrmsg {
+	margin:  0px;
+	padding: 2px;
+	font-size: 10px;
+	line-height: 110%;
+	font-weight: bold;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	text-align: left;
+	color: #b40000;
+	}
+
+span.inputerrfldnm {
+	font-size: 10px;
+	line-height: 110%;
+	font-weight: bold;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	text-align: left;
+	color: #808080;
+	}
+
+div#validerror {
+	width: 100%;
+	padding: 6px 0px 6px 0px;
+	margin-top: 4px;
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 110%;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	word-spacing: normal;
+	letter-spacing: normal;
+	text-align: center;
+	background-color: #b40000;
+	color: #ffffff;
+	}
+	
+/* @end */
+
+
+/* @group Text Menus
+// ========================================================
+//
+//:	Text Menus
+//
+//
+*/
+
+.fwptextmenu {
+	font-size: 11px;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	font-weight: normal;
+	line-height: 150%;
+	text-align: left;
+	padding: 10px 0 12px 0px;
+	}
+
+.fwptxtmenuhilite {
+	font-weight: bold;
+	}
+
+/* @end */
+
+
+/* @group autoPerms Styles 
+// ========================================================
+//
+//:	autoPerms Styles
+//
+//
+*/
+
+.permsMatrix td, .permsMatrix th {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+.permsMatrix td.modLabel, .permsMatrix th.modLabel {
+	font-size: 11px;
+	font-weight: bold;
+	text-align: center;
+	background-color: #cc9;
+	color: black;
+	}
+
+.permsMatrix td.permLabel, .permsMatrix th.permLabel {
+	width: 120px;
+	font-size: 11px;
+	font-weight: bold;
+	background-color: #cc9;
+	color: black;
+	}
+
+.permsMatrix td.permCellA {
+	font-size: 11px;
+	text-align: center;
+	background-color: #f5f5dc;
+	color: black;
+	}
+
+.permsMatrix td.permCellB {
+	font-size: 11px;
+	text-align: center;
+	background-color: #fff8dc;
+	color: black;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar
+// ========================================================
+//
+//:	EDP Cntlbar
+//
+//
+*/
+
+#edpcntlbarmain {
+	margin: 0px 0px 20px 0px;
+	}
+
+#edpcntlbarmain table {
+	width: 700px;
+	padding: 4px 5px 4px 5px;
+	background-color: #E0E0C0;
+	}
+
+#edpcntlbarmain table td.btncell {
+	width: 120px;
+	text-align: right;
+	padding: 0 5px 0 0px;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar Filter
+// ========================================================
+//
+//:	EDP Cntlbar Filter
+//
+//
+*/
+
+#edpcntlbarfltr {
+	margin: 0px 0px 6px 0px;
+	}
+
+#edpcntlbarfltr table {
+	width: 700px;
+	padding: 4px 10px 4px 10px;
+	font-size: 11px;
+	line-height: 100%;
+	font-weight: normal;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	text-align: left;
+	background-color: #E0E0C0;
+	}
+
+#edpcntlbarfltr tr {
+	vertical-align: middle;
+	}
+
+#edpcntlbarfltr td.cntr {
+	text-align: center;
+	}
+
+#edpcntlbarfltr td.right {
+	text-align: right;
+	}
+
+#edpcntlbarfltr td.left {
+	text-align: left;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar Nav
+// ========================================================
+//
+//:	EDP Cntlbar Nav
+//
+//
+*/
+
+#edpcntlbarnav {
+	margin: 20px 0px 0px 0px;
+	}
+
+#edpcntlbarnav table {
+	width: 700px;
+	padding: 0px 0px 0px 0px;
+	}
+
+/* @end */
+
+
+/* @group EDP Status Panel
+// ========================================================
+//
+//:	EDP Status Panel
+//
+//
+*/
+
+#edpstatuspanel {
+	margin: 0px 0px 6px 0px;
+	}
+
+#edpstatuspanel table {
+	width: 700px;
+	padding: 4px 0px 4px 0px;
+	font-size: 11px;
+	line-height: 100%;
+	font-weight: normal;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	text-align: center;
+	background-color: #CCCCCC;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar Form
+// ========================================================
+//
+//:	EDP Cntlbar Form
+//
+//
+*/
+
+#edpcntlbarform {
+	width: 700px;
+	margin: 0px 0px 6px 0px;
+	}
+
+#edpcntlbarform table {
+	width: 700px;
+	margin: 1px 0px 1px 0px;
+	padding: 4px 10px 4px 10px;
+	font-size: 11px;
+	line-height: 100%;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	background-color: #E0E0C0;
+	}
+
+#edpcntlbarform table td.right {
+	text-align: right;
+	}
+
+#edpcntlbarform input.formbtnsave {
+	}
+
+#edpcntlbarform input.formbtncancel {
+	padding-left: 5px;
+	}
+
+#edpcntlbarform input.formbtndelete {
+	padding-left: 5px;
+	}
+
+/* @end */
+
+
+/* @group EDP Panes 
+// ========================================================
+//
+//:	EDP Panes
+//
+//
+*/
+
+#edppanehelp table {
+	width: 725px;
+	padding: 0px 0px 0px 0px;
+	}
+
+#edppanehelp td.top {
+	vertical-align: top;
+	}
+
+#edppanehelp p {
+	font-size: 11px;
+	line-height: 100%;
+	font-weight: normal;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	text-align: left;
+	vertical-align: text-top;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar List 
+// ========================================================
+//
+//:	EDP Cntlbar List
+//
+//
+*/
+
+#edpcntlbarlist {
+	margin: 0px 0px 0px 0px;
+	}
+
+#edpcntlbarlist table {
+	width: 700px;
+	margin: 0px 0px 1px 0px;
+	padding: 0px 10px 4px 0px;
+	font-size: 11px;
+	line-height: 100%;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	}
+
+#edpcntlbarlist table td.right {
+	text-align: right;
+	}
+
+/* @end */
+
+
+
+
+/* @group StdAdmin UI Elements 
+// ========================================================
+//
+//:	StdAdmin UI Elements
+//
+//
+*/
+
+form#stdadminmainbar {
+	margin: 0 0 10px 0;
+	padding: 6px 7px 6px 10px;
+	text-align: right;
+	background-color: #E0E0C0;
+	}
+
+div.stdadminformbar {
+	margin: 10px 0 10px 0;
+	padding: 6px 7px 6px 10px;
+	text-align: right;
+	background-color: #E0E0C0;
+	}
+
+div#stdadminfilterbar {
+	margin: 10px 0 10px 0;
+	padding: 6px 7px 6px 10px;
+	text-align: right;
+	background-color: #f5f5dc;
+	font-size: 11px;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	}
+
+span.btnbarbutton {
+	padding: 0 3px 0 3px;
+	}
+
+div#stdadminfilter {
+	margin: 10px 0 10px 0;
+	padding: 6px 7px 6px 10px;
+	text-align: right;
+	background-color: #E0E0C0;
+	}
+
+/* @end */
+
+
+
+
+
+/* @group debug 
+// ========================================================
+//
+//:	debug
+//
+//
+*/
+
+div#debug {
+	clear: both;
+	width: auto;
+	margin: 0;
+	padding: 10px 30px 10px 30px;
+	text-align: left;
+	background-color: #eeeeee;
+	border-top: 1px dashed black;
+	border-bottom: 1px dashed black;
+	}
+
+div#debug h1, 
+div#debug h2, 
+div#debug h3 {
+	padding: 8px;
+	font-size: 24px;
+	line-height: 100%;
+	text-align: left;
+	font-family: Arial, "Luxi Sans", sans-serif, Verdana;
+	color: white;
+	background-color: black;	
+	}
+
+div#debug h2 {
+	margin-top: 20px;
+	font-size: 20px;
+	}
+
+div#debug h3.errorTitle {
+	margin-top: 20px;
+	padding: 0;
+	font-size: 18px;
+	color: black;
+	background-color: #eeeeee;	
+	}
+
+div#debug p {
+	margin: 0;
+	padding: 10px 0px 0px 0px;
+	font-size: 11px;
+	line-height: 130%;
+	text-align: left;
+	font-family: Verdana, Arial, "Luxi Sans", sans-serif;
+	font-style: normal;
+	word-spacing: normal;
+	letter-spacing: normal;
+	}
+
+div#debugTimers {
+	clear: both;
+	width: auto;
+	margin: 0;
+	padding: 10px 30px 10px 30px;
+	text-align: left;
+	border-top: 1px dashed black;
+	background-color: #eeeeee;
+	}
+
+div.timerSet {
+	clear: both;
+	width: auto;
+	margin: 0;
+	padding: 0;
+	font-size: 11px;
+	line-height: 150%;
+	color: #666666;
+	font-family: Verdana, Arial, "Luxi Sans", sans-serif, sans-serif;
+	text-align: left;
+	}
+
+/* @end */
+
+
+
+/* @group dbm Module 
+// ========================================================
+//
+//:	dbm Module
+//
+//
+*/
+
+div#dbmButtonBar{
+	margin: 0;
+	padding: 10px 0 10px 0;
+	}
+
+span.minoremphasis {
+	color: #986631;
+	}
+
+span.sqlstatement {
+	color: #c0c0c0;
+	}
+
+h3.dbmResults {
+	margin: 0;
+	padding: 20px 0 10px 0;
+	}
+
+.dbmFieldSpecs table {
+	font-size: 11px;
+	color: black;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	background-color: white;
+	page-break-after: always;
+	}
+
+.dbmFieldSpecs table tr.hdr {
+	font-weight: bold;
+	background-color: #cc9;
+	color: #000;
+	}
+
+.dbmFieldSpecs table tr.altrowA {
+	background-color: #f5f5dc;
+	}
+
+.dbmFieldSpecs table tr.altrowB {
+	background-color: #E9E9D1;
+	}
+
+.dbmFieldSpecs table td {
+	padding: 2px 4px 2px 4px;
+	vertical-align: middle;
+	line-height: 130%;
+	}
+
+.dbmFieldSpecs table td.left {
+	text-align: left;
+	}
+
+.dbmFieldSpecs table td.cntr {
+	text-align: center;
+	}
+
+.dbmFieldSpecs table td.right {
+	text-align: right;
+	}
+
+.dbmFieldSpecs .subtext {
+	color: #808080;
+	font-size: 10px;
+	padding-top: 3px;
+	}
+
+.dbmTableSpecs table {
+	font-size: 11px;
+	color: black;
+	font-family: Verdana, "Luxi Sans", sans-serif, Arial;
+	padding-top: 0px;
+	padding-bottom: 10px;
+	}
+
+.dbmTableSpecs tr {
+	text-align: left;
+	vertical-align: top;
+	}
+
+.dbmTableSpecs td {
+	padding: 0px;
+	}
+
+.dbmTableSpecs td.label {
+	font-weight: bold;
+	}
+
+.dbmTableSpecs td.cntr {
+	text-align: center;
+	}
+
+.dbmTableSpecs td.right {
+	text-align: right;
+	}
+
+.dbmTableSpecs td.top {
+	vertical-align: top;
+	}
+
+/* @end */

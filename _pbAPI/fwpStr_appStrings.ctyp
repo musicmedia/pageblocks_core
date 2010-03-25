@@ -1,0 +1,354 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_appStrings.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_appStrings }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_appStrings }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Provides storage and retrieval interface to
+					localized strings for application interfaces. Strings
+					may be stored in config files or data table. }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-15 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added useAppStringsDataTables }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-30 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_appStrings', 'array', -prototype;
+
+//	the language cache rwlock var name is defined 
+//	inside fwpAPI_initVars, they need to be kept consistent
+//	and obviously I need a way to eliminate the redundancy
+
+	local:
+		'configFileName'			= 'Strings',
+		'globalCacheVar'			= 'fw_gAppStringsMVSConfigs',
+		'globalCacheLock'			= 'fw_gAppStringsMVSConfigs_rwlock',
+		'stringsLoader'				= string,
+		'fw_unknownStringConfig'	= map;
+	
+
+//============================================================================
+//
+//	->onCreate
+//
+//
+//
+//............................................................................
+
+define_tag:'onCreate',
+	-optional = 'mvsLoader';
+
+	(local_defined:'mvsLoader')
+		? (self->'stringsLoader') = #mvsLoader;
+
+// 	needed to counteract bug in Lasso 
+//	that puts params from onCreate into the data store of the base array
+	self->removeall;
+
+	!(global_defined:(self->'globalCacheVar'))
+		? self->cacheReset;
+
+	(self->'fw_unknownStringConfig')->(insert:'msg_all' = 
+		(map: 'default' = '<span class="bold">UNKNOWN STRING REQUESTED</span>'));
+
+// make sure we have access to the core strings
+
+	local('coreStringsPath' = $fw_sPath->('apiStrings') + 'strings_coreStrings_' + $fw_gCoreLanguage + fw_kCnfgExt);
+
+	inline:
+		-username = $fw_gFilesUser,
+		-password = $fw_gFilesPswd;
+	
+		if: !(file_exists: #coreStringsPath);
+			$fw_error->(insert: '5200' = 'fwp_appStrings');
+			$fw_debug ? $fw_tagTracer->(add:'fwp_appStrings', -ERROR = #coreStringsPath + ' not accessible. Check ServerAdmin setup and SiteAdmin permissions.');
+			$fw_criticalLog ? log_critical:('pbError : ' + #coreStringsPath + ' not accessible to fwpStr_appStrings. Check ServerAdmin setup and SiteAdmin permissions.');
+		/if;	
+	/inline;
+/define_tag;
+
+
+//============================================================================
+//
+//	->cacheReset
+//
+//	builds an error message based on a single error code
+//
+//
+//............................................................................
+
+define_tag:'cacheReset';
+
+	$fw_gAppStringsMVSConfigs_rwlock->readUnlock;
+	$fw_gAppStringsMVSConfigs_rwlock->writeLock;
+	
+	(global:(self->'globalCacheVar')) = map;
+	(global:(self->'globalCacheVar'))->(insert:'modulesLoaded' = map);
+	
+	$fw_gAppStringsMVSConfigs_rwlock->writeUnlock;
+	$fw_gAppStringsMVSConfigs_rwlock->readLock;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->unknownTag
+//
+//	allows cleaner syntax and passes the params on to getString
+//
+//
+//............................................................................
+
+define_tag:'_unknowntag';
+
+	$fw_debugTimers ? $fw_timer->(start:'appStrings');
+
+//	::HACK::
+//	this is a bandaid to correct the behavior of Lasso
+//	calling _unknownTag before checking for an instance var 
+//	when the ivar is called unquoted
+	if: self->properties->first >> tag_name;
+		return: self->properties->first->find:tag_name;
+	/if;
+
+	local:
+		'fw_stringCnfg'				= map,
+		'thisStringName'			= tag_name,
+		'fw_language'				= string,
+		'fw_media'					= string,
+		'fw_variant'				= string,
+		'fw_allowProcess' 			= false;
+
+	params && (params >> '-language')
+		? #fw_language = ((params->find:'-language')->get:1)->second
+		| #fw_language = ($fw_client->'language');
+	
+	params && (params >> '-media')
+		? #fw_media = ((params->find:'-media')->get:1)->second
+		| #fw_media = ($fw_client->'media');
+	
+	params && (params >> '-variant')
+		? #fw_variant = ((params->find:'-variant')->get:1)->second
+		| #fw_variant = ($fw_client->'variant');
+
+	params && (params >> '-withProcess')
+		? #fw_allowProcess = true;
+
+// look for string in RAM cache
+
+	#fw_stringCnfg = (var:(self->'stringsLoader'))->(getConfigMap: 
+						-cachevar	= (self->'globalCacheVar'),
+						-cachelock	= (self->'globalCacheLock'),
+						-file		= (self->'configFileName'),
+						-code 		= #thisStringName,
+						-language	= #fw_language);
+
+
+//	if not available from RAM cache, try appString data table
+		
+	if: !#fw_stringCnfg && fw_kUseAppStringsAutoDegrade;
+
+		local(
+			'stringFromTable' 	= fwp_recordData($fw_gTables->(find('appStrings'))),
+			'tempLanguage' 		= #fw_language,
+			'tempMedia' 		= #fw_media,
+			'tempVariant' 		= #fw_variant,
+			'thisStringValue'	= string
+		);
+		
+		#stringFromTable->(select:
+			-quiet,
+			-withRecordsArrays,
+			-select = 'stringValue',
+			-where 	= self->(fw_qryWhere:
+						-code = #thisStringName,
+						-tempLanguage = #tempLanguage,
+						-tempMedia = #tempMedia,
+						-tempVariant = #tempVariant));
+
+		if: !found_count;
+			#tempVariant 	= 'default';
+			#stringFromTable->(select:
+				-quiet,
+				-withRecordsArrays,
+				-select = 'stringValue',
+				-where 	= self->(fw_qryWhere:
+							-code = #thisStringName,
+							-tempLanguage = #tempLanguage,
+							-tempMedia = #tempMedia,
+							-tempVariant = #tempVariant));
+		/if;
+		
+		if: !found_count;
+			#tempMedia	= 'all';
+			#tempVariant = #fw_variant;
+			#stringFromTable->(select:
+				-quiet,
+				-withRecordsArrays,
+				-select = 'stringValue',
+				-where 	= self->(fw_qryWhere:
+							-code = #thisStringName,
+							-tempLanguage = #tempLanguage,
+							-tempMedia = #tempMedia,
+							-tempVariant = #tempVariant));
+		/if;
+
+		if: !found_count;
+			#tempMedia	= 'all';
+			#tempVariant 	= 'default';
+			#stringFromTable->(select:
+				-quiet,
+				-withRecordsArrays,
+				-select = 'stringValue',
+				-where 	= self->(fw_qryWhere:
+							-code = #thisStringName,
+							-tempLanguage = #tempLanguage,
+							-tempMedia = #tempMedia,
+							-tempVariant = #tempVariant));
+		/if;
+		
+		if: !found_count;
+			#tempLanguage	= $fw_gCoreLanguage;
+			#tempMedia		= 'all';
+			#tempVariant 	= 'default';
+			#stringFromTable->(select:
+				-quiet,
+				-withRecordsArrays,
+				-select = 'stringValue',
+				-where 	= self->(fw_qryWhere:
+							-code = #thisStringName,
+							-tempLanguage = #tempLanguage,
+							-tempMedia = #tempMedia,
+							-tempVariant = #tempVariant));
+		/if;
+
+		if: found_count;
+
+			#thisStringValue = (#stringFromTable->get:1)->get:1;
+
+//	process is not allowed for content coming from database
+//	this is taken care of here because this is the only time
+//	we know the content specifically came from the database
+//	content from files is OK to process because the developer 
+//	can be in control of that
+
+			if: !#fw_allowProcess;
+				#thisStringValue->(replace:'[','&#91;');
+				#thisStringValue->(replace:']','&#93;');
+				#thisStringValue->(replace:'<?lassoscript','&lt;?lassoscript');
+				#thisStringValue->(replace:'?>','?&gt;');
+			/if;
+
+			(#thisStringValue->size < fw_kMVSCacheMaxStringLen)
+				? (var:(self->'stringsLoader'))->(addToConfigMap: 
+						-cachevar	= (self->'globalCacheVar'),
+						-cachelock	= (self->'globalCacheLock'),
+						-code 		= #thisStringName,
+						-language	= #fw_language,
+						-media		= #fw_media,
+						-variant	= #fw_variant);
+
+			#fw_stringCnfg = (map: #fw_media = 
+				(map: #fw_variant = #thisStringValue));
+
+		/if;
+	/if;
+
+//	if not found, set the unknown string config map as the default
+
+	!#fw_stringCnfg
+		? #fw_stringCnfg = (self->'fw_unknownStringConfig');
+
+//	substitute media default if media requested is not available
+
+	!(#fw_stringCnfg >> ('msg_' + #fw_media))
+		? #fw_media = 'all';
+
+//	substitute view default if view requested is not available
+
+	!(#fw_stringCnfg->find:('msg_' + #fw_media))->find:#fw_variant
+		? #fw_variant = 'default';
+
+	$fw_debugTimers ? $fw_timer->(stop:'appStrings');
+
+	return: (process:((#fw_stringCnfg->find:('msg_' + #fw_media))->find:#fw_variant));
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->fw_qryWhere
+//
+//	builds a WHERE clause for the db queries in ->unknownTag
+//
+//
+//............................................................................
+
+define_tag:'fw_qryWhere',
+	-optional = 'code',
+	-optional = 'pagePath',
+	-required = 'tempLanguage',
+	-required = 'tempMedia',
+	-required = 'tempVariant';
+
+	local:'qryWhere' = string;
+	
+	if: (local:'code') || (local:'pagePath');
+	
+		if: local:'code';
+			#qryWhere += "stringName = '";
+			#qryWhere += #code;
+			#qryWhere += "'";
+		else: local:'pagePath';
+			#qryWhere += "stringPagePath = '";
+			#qryWhere += #pagePath;
+			#qryWhere += "'";
+		/if;
+		#qryWhere += " AND stringLanguage = '";
+		#qryWhere += #tempLanguage;
+		#qryWhere += "'";
+		#qryWhere += " AND stringClientMedia = '";
+		#qryWhere += #tempMedia;
+		#qryWhere += "'";
+		#qryWhere += " AND stringClientVariant = '";
+		#qryWhere += #tempVariant;
+		#qryWhere += "'";
+
+	else;
+		$fw_error->(insert:'5201'='fwp_appStrings');
+		$fw_debug ? $fw_tagTracer->(add:'fwp_appStrings', -ERROR = 'could not build a db query because it was not supplied with a -code or with a -pagePath.');
+		$fw_criticalLog ? log_critical:('pbError : fwp_appStrings could not build a db query because it was not supplied with a -code or with a -pagePath.');
+	/if;
+
+	return: #qryWhere;
+
+/define_tag;
+
+/define_type;
+?>

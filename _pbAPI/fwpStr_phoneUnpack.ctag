@@ -1,0 +1,72 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_phoneUnpack.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_phoneUnpack }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpStr_phoneUnpack }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			takes a packed phone number string and creates
+					separate variables for each component }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release
+					completely replaces prior phoneUnpack tag 
+					which has been renamed phoneFormat }
+
+*/
+//............................................................................
+//
+//	packed format should be 0001112222333333
+//	where:	000 = area code 	'pha'
+//			111 = prefix		'php'
+//			2222 = number		'phn'
+//			333333 = extension	'phx'
+//	where there is no area code, the data should be padded with 000
+//	there is no need to pad the extension
+//.............................................................................
+
+define_tag:'fwpStr_phoneUnpack', -priority='replace',
+	-required='phone',
+	-optional='varNm';
+
+//	allowed both inputs to phone can come from field or whatever
+//	allow a single input is the var name of the phone data
+
+	if: !(local_defined:'varNm');
+		local:'fw_phRaw' = @(var:#phone);
+		local:'fw_phVar' = local:'phone';
+	else;
+		local:'fw_phRaw' = @(local:'phone');
+		local:'fw_phVar' = @local:'varNm';
+	/if;
+
+	if: !var_defined:(#fw_phVar + 'a');
+		var:(#fw_phVar + 'a') = (fwpStr_phoneGetPHA: #fw_phRaw);
+		var:(#fw_phVar + 'p') = (fwpStr_phoneGetPHP: #fw_phRaw);
+		var:(#fw_phVar + 'n') = (fwpStr_phoneGetPHN: #fw_phRaw);
+	/if;
+
+	if: #fw_phRaw->size > 10;
+		var:(#fw_phVar + 'x') = (fwpStr_phoneGetPHX: #fw_phRaw);
+	else;
+		var:(#fw_phVar + 'x') = (string);
+	/if;
+
+/define_tag;
+?>

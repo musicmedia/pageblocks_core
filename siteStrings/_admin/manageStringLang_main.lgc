@@ -1,0 +1,109 @@
+<?lassoscript
+
+	if($fw_user->('loginValid') == 'Y');
+	
+		// languages for use in applications strings are added to and removed from the table valueLists
+	
+		var('appStringsLang'	= fwp_recordData('valueLists'));
+		var('appStringsLang_inputs'	= 'm_rStat, m_vlScope, m_vlName, m_vlLang, m_vlLabel, m_vlValue, m_vlOrder');
+
+		$fw_edvCurrentView = 'manageStringLang';
+
+		// these values we hardcode
+		var('m_rStat'	= 'Y',
+			'm_vlLang'	= $fw_gCoreLanguage,
+			'm_vlScope'	= 'site',
+			'm_vlName'	= 'appStringsLanguages'
+		);
+		
+	//	---------------------------------------------------------------------------
+	//	detect button clicks here
+	//
+	
+		if(var('btnViewList.x'));
+		
+			redirect_url('list?fw_s=' + $fw_s);
+		
+		else(var('btnFormAdd.x'));
+		
+			if(var('i_langSelect')->size); // the value list value
+			
+				var('m_vlLabel'	= $languagesShortLong->(find($i_langSelect)),
+					'm_vlValue'	= $i_langSelect,
+					'm_rNo'		= fwpStr_randomID(16));
+					
+				$appStringsLang->(add(
+					-withoutValidate,
+					-keyval	= $m_rNo,
+					-inputs	= $appStringsLang_inputs 
+				)); 
+			
+			/if;
+		
+		else(var('btnFormRemove.x'));
+		
+			if(var('i_appLangs')->size); // the value list value
+			
+				// first get record id
+				$appStringsLang->(select(
+					-select	= 'rcrdNo',
+					-where	= "listValue = '" + $i_appLangs + "' AND listName = 'appStringsLanguages'",
+					-limit	= 1,
+					-quiet,
+					-withMakeVars
+				));
+				
+				if(!$fw_error);
+				
+					$appStringsLang->(delete(
+						-keyval	= $m_rNo
+					));
+					
+				/if;
+			
+			/if;
+	
+		/if;
+	
+		var('languages'	= fwp_valueList(
+			-file		= 'languages',
+			-list		= 'languagesLongShort',
+			-titleOption= 'Select Language...',
+			-attributes	= map(
+				'name'		= 'i_langSelect',
+				'id'		= 'langSelect'
+			)
+		));
+		
+		var('appLanguages'	= fwp_valueList(
+			-table		= 'vlists',
+			-list		= 'appStringsLanguages',
+			-language	= $fw_gCoreLanguage,
+			-scope		= 'site',
+			-titleOption= 'Select Language...',
+			-attributes	= map(
+				'name'		= 'i_appLangs',
+				'id'		= 'appLangs'
+			)
+		));
+
+		$fw_error >> '5100' ? $fw_error->(removeCode('5100')); // no records found error		
+
+		var('currAppLangs'	= array);
+		$appStringsLang->(select(
+			-select		= 'listLabel',
+			-where		= "listName = 'appStringsLanguages'",
+			-orderby	= 'listLabel',
+			-limit		= '*',
+			-asRecordsMaps,
+			-quiet
+		));
+		iterate($appStringsLang->('records'), local('i'));
+			$currAppLangs->(insert(#i->(find('m_vlLabel'))));
+		/iterate;
+		
+		!$currAppLangs->size ? $currAppLangs->(insert('(no installed languages)'));
+
+	/if;
+
+?>

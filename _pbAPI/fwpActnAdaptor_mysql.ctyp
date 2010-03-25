@@ -1,0 +1,1257 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		_fwpActnAdaptorMySQL.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		_fwpActnAdaptorMySQL }
+	{rsrcHTTP=		www.pageblocks.org/refc/_fwpActnAdaptorMySQL }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			SQL Syntax Adaptor for MySQL. }
+
+	{maintvsrn=		1.4.1 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-12-30 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	tag 'insert': made param 'keyval' optional and added 'SELECT LAST_INSERT_ID()'
+	 				in order to return auto increment id from table in case of no provided keyval}
+
+	{maintvsrn=		1.4 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-04 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added getRcrdWithWherePairs }
+
+	{maintvsrn=		1.3.3 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added withoutDateStamp option }
+
+	{maintvsrn=		1.3.2 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated to use fwpActn_encodeLIKE }
+
+	{maintvsrn=		1.3.1 }
+	{maintrelease=	5.1.6 }
+	{maintdate=		2007-05-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed quoting created by buildSetPairs,
+	 				and forced dates to ISO format to fix bug where
+	 				dates would not get saved due to being cast to
+	 				Lasso date format }
+
+	{maintvsrn=		1.3 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-12-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added groupBy, limit, and orderBy methods }
+
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-11-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed formats for date fields so all are compatible 
+					with MySQL datetime field types }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-11-20 }
+	{maintauthor=	Jolle Carlestam }
+	{maintnotes=	added support for GROUP BY handling in
+	 				SQL select queries. }
+
+	{maintvsrn=		1.2 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	eliminated ->selectWhereDefault and optimized
+					found count handling }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added flexible where clause to 
+					updateRcrdWithKeyFld and deleteRcrdWithKeyFld }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed bug in ->buildUpdateWithoutWhere with -ignorelock }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+//---------------------------------------------------------------------
+// 	#mapper is a reference to a specific first level key inside $fw_gDbTableModels
+//	which is a map with the following keys:
+//	'db' 			= string 
+//	'tbl' 			= string 
+//	'conn' 			= string
+//	'keyfld' 		= string
+//	'lockfld' 		= string
+//	'inputNames'	= string
+//	'fieldNames'	= string
+//	'fieldTypes'	= string
+//	'valCodes'		= string
+//	'fieldNameMap'	= map
+//	'fieldTypeMap'	= map
+//	'valCodeMap'	= map
+//---------------------------------------------------------------------
+//	->dbDotTable
+//	->addSubdomainFilter
+//	->getRcrdWithKeyVal
+//	->setRcrdLock
+//	->updateRcrdWithLock
+//	->updateRcrdWithKeyFld
+//	->buildUpdateWithoutWhere
+//	->insert
+//	->buildSetPairs
+//	->deleteRcrdWithLock
+//	->deleteRcrdWithKeyFld
+//	->selectWhereDefault
+//	->selectWhereKeyVal
+//	->selectWhereOpBTW
+//	->selectWhereOpLT
+//	->selectWhereOpLTE
+//	->selectWhereOpGT
+//	->selectWhereOpGTE
+//	->selectWhereOpNEQ
+//	->selectWhereOpEQ
+//	->selectWhereOpBW
+//	->selectWhereOpEW
+//	->selectWhereOpCN
+//	->select
+//	->selectCount
+//---------------------------------------------------------------------
+
+define_type:'fwp_adaptorMySQL', -prototype;
+
+	local:'isLoaded' = true;
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		database.table
+//
+
+	define_tag:'dbDotTable',
+		-required = 'mapper';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " ";
+		#fw_sqlSnippet += (#mapper->find:'db');
+		#fw_sqlSnippet += ".";
+		#fw_sqlSnippet += (#mapper->find:'tbl');
+		#fw_sqlSnippet += " ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		AND rcrdSubHost='xxxxx'
+//
+
+	define_tag:'addSubdomainFilter';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND rcrdSubHost='";
+		#fw_sqlSnippet += ($c_myUrl->'subhost');
+		#fw_sqlSnippet += "'";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		SELECT x, y, z
+//		FROM database.table
+//		WHERE keyfield='keyvalue'
+//		{AND rcrdSubHost='xxxxx'}
+//
+
+	define_tag:'getRcrdWithKeyVal',
+		-required = 'mapper',
+		-optional = 'select',
+		-optional = 'keyfld',
+		-required = 'keyval';
+
+//	don't specify -keyfld to use default key field
+
+		!local_defined:'keyfld'
+			? local:'keyfld' = (#mapper->find:'keyfld');
+
+//	don't specify -select to just test if record exists
+
+		!local_defined:'select'
+			? local:'select' = #keyfld;
+
+		local:'fw_sqlSnippet' = "SELECT ";
+		#fw_sqlSnippet += #select;
+		#fw_sqlSnippet += " FROM ";
+		#fw_sqlSnippet += (self->dbDotTable: #mapper);
+		#fw_sqlSnippet += " WHERE ";
+		#fw_sqlSnippet += #keyfld;
+		#fw_sqlSnippet += "='";
+		#fw_sqlSnippet += #keyval;
+		#fw_sqlSnippet += "'";
+
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += (self->addSubdomainFilter);
+
+		return: #fw_sqlSnippet;
+		
+	/define_tag;
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		SELECT x, y, z
+//		FROM database.table
+//		WHERE {statement}
+//		{AND rcrdSubHost='xxxxx'}
+//
+
+	define_tag:'getRcrdWithWherePairs',
+		-required = 'mapper',
+		-optional = 'select',
+		-optional = 'setpairs';
+
+//	don't specify -select to just test if record exists
+
+		!local_defined:'select'
+			? local:'select' = #keyfld;
+
+		local:'fw_sqlSnippet' = "SELECT ";
+		#fw_sqlSnippet += #select;
+		#fw_sqlSnippet += " FROM ";
+		#fw_sqlSnippet += (self->dbDotTable: #mapper);
+		#fw_sqlSnippet += " WHERE ";
+		#fw_sqlSnippet += (self->buildSetPairs: 
+							-mapper   = #mapper,
+							-wherepairs = local:'setpairs');
+		#fw_sqlSnippet->(removeTrailing:'AND ');
+
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += (self->addSubdomainFilter);
+
+		return: #fw_sqlSnippet;
+		
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		UPDATE database.table
+//		SET rcrdLockTime='mm/dd/yy 0000',
+//			rcrdLockOwnr='John Doe',
+//			rcrdLockID='abcdefg',
+//		WHERE keyfield='keyvalue'
+//		{AND rcrdSubHost='xxxxx'}
+//
+
+	define_tag:'setRcrdLock',
+		-required = 'mapper',
+		-required = 'userName',
+		-required = 'lock',
+		-required = 'keyfld',
+		-required = 'keyval';
+	
+		local:'fw_sqlSnippet' = "UPDATE ";
+		#fw_sqlSnippet += (self->dbDotTable: #mapper);
+		#fw_sqlSnippet += " SET ";
+		#fw_sqlSnippet += "rcrdLockTime='";
+		#fw_sqlSnippet += (fwpDate_isoDate:date) + ' ' + (fwpDate_24hrTime:date);
+		#fw_sqlSnippet += "', ";
+		#fw_sqlSnippet += "rcrdLockOwnr='";
+		#fw_sqlSnippet += #userName;
+		#fw_sqlSnippet += "', "; 
+		#fw_sqlSnippet += "rcrdLockID='";
+		#fw_sqlSnippet += #lock;
+		#fw_sqlSnippet += "' ";
+		#fw_sqlSnippet += "WHERE ";
+		#fw_sqlSnippet += #keyfld;
+		#fw_sqlSnippet += "='";
+		#fw_sqlSnippet += #keyval;
+		#fw_sqlSnippet += "'";
+
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += (self->addSubdomainFilter);
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		UPDATE database.table
+//		SET rcrdModified='yyyy-mm-dd 0000',
+//			rcrdModifiedBy='John Doe',
+//			rcrdLockTime='',
+//			rcrdLockOwnr='',
+//			rcrdLockID='',
+//			field='value',
+//			{n field pairs},
+//			field='value'
+//		WHERE lockfield='lockvalue'
+//		{AND rcrdSubHost='xxxxx'}
+//
+
+	define_tag:'updateRcrdWithLock',
+		-required = 'mapper',
+		-optional = 'inputs',
+		-optional = 'setpairs',
+		-required = 'username',
+		-required = 'lock';
+
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += (self->buildUpdateWithoutWhere: 
+							-mapper   = #mapper,
+							-username = #username,
+							-inputs   = (local:'inputs'),
+							-setpairs = (local:'setpairs'));
+
+		#fw_sqlSnippet += (" WHERE " + (#mapper->find:'lockfld') + "='" + #lock + "'");
+
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += (self->addSubdomainFilter);
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		UPDATE database.table
+//		SET rcrdModified='yyyy-mm-dd 0000',
+//			rcrdModifiedBy='John Doe',
+//			field='value',
+//			{n field pairs},
+//			field='value'
+//		WHERE keyfield='keyvalue'
+//		{AND rcrdSubHost='xxxxx'}
+//
+
+	define_tag:'updateRcrdWithKeyFld',
+		-required = 'mapper',
+		-optional = 'inputs',
+		-optional = 'setpairs',
+		-required = 'username',
+		-required = 'keyfld',
+		-required = 'keyval',
+		-optional = 'ignoreLock',
+		-optional = 'withoutDateStamp';
+
+		(params->find:'-ignorelock')
+			? local:'ignorelock' = true;
+
+		(params->find:'-withoutDateStamp')
+			? local:'fw_withoutDateStamp' = #withoutDateStamp
+			| local:'fw_withoutDateStamp' = false;
+			
+
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += (self->buildUpdateWithoutWhere:
+							-mapper 			= #mapper,
+							-inputs 			= (local:'inputs'),
+							-setpairs 			= (local:'setpairs'),
+							-username 			= #username,
+							-ignoreLock 		= (local:'ignoreLoack'),
+							-withoutDateStamp 	= #fw_withoutDateStamp);
+
+		#keyfld && #keyval
+			? #fw_sqlSnippet += (" WHERE " + #keyfld + "='" + #keyval + "'")
+			| #fw_sqlSnippet += ' WHERE ' + #where;
+			
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += (self->addSubdomainFilter);
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		UPDATE database.table
+//		SET rcrdModified='yyyy-mm-dd 0000',
+//			rcrdModifiedBy='John Doe',
+//			{rcrdLockTime='',}
+//			{rcrdLockOwnr='',}
+//			{rcrdLockID='',}
+//			field='value',
+//			{n field pairs},
+//			field='value'
+
+	define_tag:'buildUpdateWithoutWhere',
+		-required = 'mapper',
+		-optional = 'inputs',
+		-optional = 'setpairs',
+		-optional = 'username',
+		-optional = 'ignoreLock',
+		-optional = 'withoutDateStamp';
+		
+		(params->find:'-ignorelock')
+			? local:'ignorelock' = true;
+
+		(params->find:'-withoutDateStamp')
+			? local:'fw_withoutDateStamp' = #withoutDateStamp
+			| local:'fw_withoutDateStamp' = false;
+
+		local:
+			'fw_sqlSnippet'	= string,
+			'fw_thisInput' 	= string;
+
+		local:'fw_sqlSnippet' = "UPDATE ";
+		#fw_sqlSnippet += (self->dbDotTable: #mapper);
+		#fw_sqlSnippet += " SET ";
+
+		if: !#fw_withoutDateStamp;
+			#fw_sqlSnippet += "rcrdModified='";
+			#fw_sqlSnippet += (fwpDate_isoDate:date) + ' ' + (fwpDate_24hrTime:date);
+			#fw_sqlSnippet += "', ";
+	
+			#fw_sqlSnippet += "rcrdModifiedBy='" ;
+			#fw_sqlSnippet += local:'username';
+			#fw_sqlSnippet += "', ";
+		/if;
+
+		if: !(local:'ignoreLock');
+			#fw_sqlSnippet += "rcrdLockTime='', ";
+			#fw_sqlSnippet += "rcrdLockOwnr='', ";
+			#fw_sqlSnippet += "rcrdLockID='', ";
+		/if;
+
+		#fw_sqlSnippet += (self->buildSetPairs: 
+							-mapper   = #mapper,
+							-inputs   = local:'inputs',
+							-setpairs = local:'setpairs');
+
+		#fw_sqlSnippet->(removetrailing:', ');
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns: 
+//		INSERT INTO database.table
+//		SET keyfield='keyvalue'
+//			rcrdCreated='yyyy-mm-dd 0000',
+//			rcrdCreatedBy='John Doe',
+//			rcrdModified='yyyy-mm-dd 0000',
+//			rcrdModifiedBy='John Doe',
+//			{rcrdSubHost='xxxxx',}
+//			field='value',
+//			{n field pairs},
+//			field='value'
+//
+
+	define_tag:'insert',
+		-required = 'mapper',
+		-optional = 'inputs',
+		-optional = 'setpairs',
+		-required = 'username',
+		-optional = 'keyval';
+
+		local:
+			'fw_sqlSnippet' = string,
+			'fw_rightNow' = (fwpDate_isoDate:date) + ' ' + (fwpDate_24hrTime:date);
+
+		#fw_sqlSnippet = "INSERT INTO ";
+		#fw_sqlSnippet += (self->dbDotTable: #mapper);
+		#fw_sqlSnippet += " SET ";
+
+		if(local('keyval')); 
+			#fw_sqlSnippet += (#mapper->find:'keyfld');
+			#fw_sqlSnippet += "='";
+			#fw_sqlSnippet += #keyval;
+			#fw_sqlSnippet += "', ";
+		/if;
+
+		#fw_sqlSnippet += "rcrdCreated='";
+		#fw_sqlSnippet += #fw_rightNow;
+		#fw_sqlSnippet += "', ";
+
+		#fw_sqlSnippet += "rcrdCreatedBy='";
+		#fw_sqlSnippet += #username;
+		#fw_sqlSnippet += "', ";
+
+		#fw_sqlSnippet += "rcrdModified='";
+		#fw_sqlSnippet += #fw_rightNow;
+		#fw_sqlSnippet += "', ";
+
+		#fw_sqlSnippet += "rcrdModifiedBy='";
+		#fw_sqlSnippet += #username;
+		#fw_sqlSnippet += "', ";
+
+		if: $fw_gUseSubdomains;
+			#fw_sqlSnippet += "rcrdSubHost='";
+			#fw_sqlSnippet += $c_myUrl->'subhost';
+			#fw_sqlSnippet += "', ";
+		/if;
+
+		#fw_sqlSnippet += (self->buildSetPairs: 
+							-mapper = #mapper,
+							-inputs = local:'inputs',
+							-setpairs = local:'setpairs');
+
+		#fw_sqlSnippet->(removetrailing:', '); 
+		
+		if(!local('keyval')); 
+			#fw_sqlSnippet += '; SELECT LAST_INSERT_ID() AS fw_actnKeyVal';
+		/if; 
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		field='value',
+//		{n field pairs},
+//		field='value'
+//
+
+	define_tag:'buildSetPairs',
+		-required = 'mapper',
+		-optional = 'inputs',
+		-optional = 'setpairs',
+		-optional = 'wherepairs';
+
+		local:
+			'fw_sqlSnippet'	= string,
+			'fw_thisInput'	= string,
+			'fw_thisPair'	= string,
+			'fw_fieldIndx'	= integer,
+			'fw_thisField'	= string,
+			'fw_thisValue'	= string,
+			'fw_thisType'	= string;
+
+		if: local:'inputs';
+
+//	read the table definition and set the param and field arrays
+//	then loop through the table definition and see if a particular field was submitted by the form
+//	where a variable equal to an entry in the param array has been defined,
+//	we know that a form field was entered, so we construct a line for the SQL statement
+//	and trim the last comma after the last line is added
+
+			iterate: (#mapper->find:'inputNames'), #fw_thisInput;
+	
+				if: (var_defined:#fw_thisInput) 
+					&& ((local:'inputs') >> #fw_thisInput)
+					&& ((#mapper->find:'fieldNames')->get:loop_count)
+					&& ((#mapper->find:'fieldNames')->get:loop_count) != '-';
+	
+//	depending on lasso data type, ensure the var is in fact that data type, 
+//	and use use sql_encode or not
+//	could be written for string & default, but this structure
+//	leaves room for future enhancements
+	
+	
+					#fw_thisField = ((#mapper->find:'fieldNames')->get:loop_count);
+					#fw_thisValue = (var:(#mapper->find:'inputNames')->get:loop_count);
+	
+					select:((#mapper->find:'fieldTypes')->get:loop_count);
+					case:'decimal';
+						#fw_thisValue = decimal:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "=";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += ", ";
+					case:'integer';
+						#fw_thisValue = integer:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "=";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += ", ";
+					case:'date';
+						#fw_thisValue = (fwpDate_isoDateTime:(string:#fw_thisValue));
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "='";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += "', ";
+					case;
+						#fw_thisValue = string:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "='";
+						#fw_sqlSnippet += (encode_sql: #fw_thisValue);
+						#fw_sqlSnippet += "', ";
+					/select;
+				/if;
+	
+			/iterate;
+
+		else: local:'setpairs';
+
+//	this version takes an array of field-value pairs regardless of -inputs
+
+			iterate: local:'setpairs', #fw_thisPair;
+
+				#fw_thisField = #fw_thisPair->first;
+				#fw_thisValue = #fw_thisPair->second;
+		
+				#fw_fieldIndx = ((#mapper->find:'fieldNames')->findPosition:#fw_thisField)->last;
+				!#fw_fieldIndx
+					? #fw_fieldIndx = ((#mapper->find:'inputNames')->findPosition:#fw_thisField)->last;
+				
+				if: #fw_fieldIndx;
+
+					select: ((#mapper->find:'fieldTypes')->get:#fw_fieldIndx);
+					case:'decimal';
+						#fw_thisValue = decimal:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "=";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += ", ";
+					case:'integer';
+						#fw_thisValue = integer:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "=";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += ", ";
+					case:'date';
+						#fw_thisValue = (fwpDate_isoDateTime:(string:#fw_thisValue));
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "='";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += "', ";
+					case;
+						#fw_thisValue = string:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "='";
+						#fw_sqlSnippet += (encode_sql: #fw_thisValue);
+						#fw_sqlSnippet += "', ";
+					/select;
+				/if;				
+
+			/iterate;
+		
+		else: local:'wherepairs';
+
+//	this version takes an array of field-value pairs regardless of -inputs
+
+			iterate: local:'wherepairs', #fw_thisPair;
+
+				#fw_thisField = #fw_thisPair->first;
+				#fw_thisValue = #fw_thisPair->second;
+		
+				#fw_fieldIndx = ((#mapper->find:'fieldNames')->findPosition:#fw_thisField)->last;
+				!#fw_fieldIndx
+					? #fw_fieldIndx = ((#mapper->find:'inputNames')->findPosition:#fw_thisField)->last;
+				
+				if: #fw_fieldIndx;
+
+					select: ((#mapper->find:'fieldTypes')->get:#fw_fieldIndx);
+					case:'decimal';
+						#fw_thisValue = decimal:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "=";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += " AND ";
+					case:'integer';
+						#fw_thisValue = integer:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "=";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += " AND ";
+					case:'date';
+						#fw_thisValue = (fwpDate_isoDateTime:(string:#fw_thisValue));
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "='";
+						#fw_sqlSnippet += #fw_thisValue;
+						#fw_sqlSnippet += "' AND ";
+					case;
+						#fw_thisValue = string:#fw_thisValue;
+						#fw_sqlSnippet += #fw_thisField;
+						#fw_sqlSnippet += "='";
+						#fw_sqlSnippet += (encode_sql: #fw_thisValue);
+						#fw_sqlSnippet += "' AND ";
+					/select;
+				/if;				
+
+			/iterate;
+		
+		/if;
+
+		return: #fw_sqlSnippet;
+
+/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		DELETE FROM database.table
+//		WHERE lockfield='lockvalue'
+//		{AND rcrdSubHost='xxxxx'}
+//
+
+	define_tag:'deleteRcrdWithLock',
+		-required = 'mapper',
+		-required = 'lock';
+
+		local:'fw_sqlSnippet' = "DELETE FROM ";
+		#fw_sqlSnippet += (self->dbDotTable: #mapper);
+		#fw_sqlSnippet += (" WHERE " + (#mapper->find:'lockfld') + "='" + #lock + "'");
+
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += (self->addSubdomainFilter);
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		DELETE FROM database.table
+//		WHERE keyfield='keyvalue'
+//		{AND rcrdSubHost='xxxxx'}
+//
+
+	define_tag:'deleteRcrdWithKeyFld',
+		-required = 'mapper',
+		-required = 'keyfld',
+		-required = 'keyval';
+
+		local:'fw_sqlSnippet' = "DELETE FROM ";
+		#fw_sqlSnippet += (self->dbDotTable: #mapper);
+
+		#keyfld && #keyval
+			? #fw_sqlSnippet += (" WHERE " + #keyfld + "='" + #keyval + "'")
+			| #fw_sqlSnippet += ' WHERE ' + #where;
+
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += (self->addSubdomainFilter);
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		keyfield LIKE '%'
+//
+
+	define_tag:'selectWhereDefault',
+		-required = 'keyfld';
+	
+		local:'fw_sqlSnippet' = string;
+
+//		#fw_sqlSnippet += #keyfld;
+//		#fw_sqlSnippet += " LIKE '%'"; 
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		keyfield='keyvalue'
+//
+
+	define_tag:'selectWhereKeyVal',
+		-required = 'keyfld',
+		-required = 'keyval';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += #keyfld;
+		#fw_sqlSnippet += "='"; 
+		#fw_sqlSnippet += #keyval;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field >= 'value1'
+//		AND field <= 'value2'
+//
+
+	define_tag:'selectWhereOpBTW',
+		-required = 'field',
+		-required = 'value1',
+		-required = 'value2';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " >= '";
+		#fw_sqlSnippet += #value1;
+		#fw_sqlSnippet += "' ";
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " <= '";
+		#fw_sqlSnippet += #value2;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field < 'value'
+//
+
+	define_tag:'selectWhereOpLT',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " < '";
+		#fw_sqlSnippet += #value;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field <= 'value'
+//
+
+	define_tag:'selectWhereOpLTE',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " <= '";
+		#fw_sqlSnippet += #value;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field > 'value'
+//
+
+	define_tag:'selectWhereOpGT',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " > '";
+		#fw_sqlSnippet += #value;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field >= 'value'
+//
+
+	define_tag:'selectWhereOpGTE',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " >= '";
+		#fw_sqlSnippet += #value;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field != 'value'
+//
+
+	define_tag:'selectWhereOpNEQ',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " != '";
+		#fw_sqlSnippet += #value;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field = 'value'
+//
+
+	define_tag:'selectWhereOpEQ',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " = '";
+		#fw_sqlSnippet += #value;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field LIKE 'value%'
+//
+
+	define_tag:'selectWhereOpBW',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " LIKE '";
+		#fw_sqlSnippet += fwpActn_encodeLIKE:#value;
+		#fw_sqlSnippet += "%' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field LIKE '%value'
+//
+
+	define_tag:'selectWhereOpEW',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " LIKE '%";
+		#fw_sqlSnippet += fwpActn_encodeLIKE:#value;
+		#fw_sqlSnippet += "' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	NOTE: the leading space before the AND is critical
+//	returns:
+//		AND field LIKE '%value%'
+//
+
+	define_tag:'selectWhereOpCN',
+		-required = 'field',
+		-required = 'value';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += " AND ";
+		#fw_sqlSnippet += #field;
+		#fw_sqlSnippet += " LIKE '%";
+		#fw_sqlSnippet += fwpActn_encodeLIKE:#value;
+		#fw_sqlSnippet += "%' ";
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		SELECT x, y, z
+//		FROM database.table
+//		WHERE {conditions from ->selectWhere tags above}
+//		ORDER BY field {asc|desc} {,field {asc|desc}} {,field {asc|desc}}
+//		LIMIT a,b
+//
+
+	define_tag:'select',
+		-required = 'select',
+		-required = 'from',
+		-required = 'where',
+		-required = 'groupby',
+		-required = 'orderby',
+		-required = 'limit';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += 'SELECT ' + #select;
+		#fw_sqlSnippet += ' FROM '  + #from;
+
+		#where
+			? #fw_sqlSnippet += ' WHERE ' + #where;
+	
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += self->addSubdomainFilter;
+	
+		#fw_sqlSnippet += #groupBy;
+		#fw_sqlSnippet += #orderBy;
+		#fw_sqlSnippet += #limit;
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		SELECT COUNT(*) AS foundCount
+//		FROM database.table
+//		WHERE {conditions from ->selectWhere tags above}
+//
+
+	define_tag:'selectCount',
+		-required = 'mapper',
+		-required = 'from',
+		-required = 'where';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet += 'SELECT COUNT(*) as foundCount ';
+		#fw_sqlSnippet += ' FROM '  + #from;
+
+		#where
+			? #fw_sqlSnippet += ' WHERE ' + #where;
+	
+		$fw_gUseSubdomains
+			? #fw_sqlSnippet += self->addSubdomainFilter;
+	
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		GROUP BY {expression}
+//
+
+	define_tag:'groupBy',
+		-required = 'clause';
+	
+		local:'fw_sqlSnippet' = string;
+
+		#fw_sqlSnippet = (' GROUP BY ' + #clause);
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		ORDER BY {expression}
+//
+
+	define_tag:'orderBy',
+		-optional = 'clause',
+		-optional = 'sortFld',
+		-optional = 'sortOrdr',
+		-optional = 'sub1Fld',
+		-optional = 'sub1Ordr',
+		-optional = 'sub2Fld',
+		-optional = 'sub2Ordr';
+
+		local:'fw_sqlSnippet' = string;
+
+		if: local:'clause';
+			#fw_sqlSnippet = (' ORDER BY ' + #clause);
+		else;
+			#fw_sqlSnippet = (' ORDER BY ' + #sortFld + ' ' + #sortOrdr);
+			if: local:'sub1Ordr';
+				#fw_sqlSnippet += ', ';
+				#fw_sqlSnippet += #sub1Fld;
+				#fw_sqlSnippet += ' ';
+				#fw_sqlSnippet += #sub1Ordr;
+			/if;
+			if: local:'sub2Ordr';
+				#fw_sqlSnippet += ', ';
+				#fw_sqlSnippet += #sub2Fld;
+				#fw_sqlSnippet += ' ';
+				#fw_sqlSnippet += #sub2Ordr;
+			/if;
+		/if;
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+//---------------------------------------------------------------------
+//	modify this method to return a string
+//	suitable to the syntax of the database
+//	returns:
+//		LIMIT {expression}
+//
+
+	define_tag:'limit',
+		-required = 'skip',
+		-required = 'limit';
+	
+		local:'fw_sqlSnippet' = string;
+
+		if: #skip && !#limit;
+			#fw_sqlSnippet = ' LIMIT ' + #skip;
+		else: #limit;
+			#fw_sqlSnippet = ' LIMIT ' + #skip + ',' + #limit;
+		/if;
+
+		return: #fw_sqlSnippet;
+
+	/define_tag;
+
+/define_type;
+
+
+//=============================================================================
+//
+// instantiate as singleton 
+//	and register this adaptor with the adaptors map
+//
+
+global:'fw_gActnAdaptorMySQL' = (fwp_adaptorMySQL);
+
+!global_defined:'fw_gAdaptorIndex'
+	? global:'fw_gAdaptorIndex' = map;
+
+$fw_gAdaptorIndex->(insert: 'mysql' = 'fw_gActnAdaptorMySQL');
+
+?>

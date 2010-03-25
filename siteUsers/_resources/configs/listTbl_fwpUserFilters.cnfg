@@ -1,0 +1,127 @@
+﻿[output_none]
+#
+# version:	3.0
+# released: 2006-01-16
+#
+# do not use literal { or } characters except for config file parsing
+# use entities to display them as data if needed
+#------------------------------------------------------------------------------
+# general table config
+#
+
+{tableConfig:
+
+# table tag
+
+listCellSpacePx===1
+#listCellPadPx===0
+#listTableBorderPx===0
+#listTableWidth===
+
+# css style selectors to use 
+
+listDivClass===stdlist
+listHdrClass===hdr
+listAltRowAClass===altrowA
+listAltRowBClass===altrowB
+listHdrSortClass===sorted
+listDataSortClass===sorted
+
+# location and size of asc|desc buttons
+
+listSortAscBtn===[$fw_sPath->'controls']ibtn_sortAsc.gif
+listSortDescBtn===[$fw_sPath->'controls']ibtn_sortDesc.gif
+
+# location of list navigation panel
+
+#listTopNavPanel===[$fw_sPath->'panels']listNavPanelTop.dsp
+#listBtmNavPanel===[$fw_sPath->'panels']listNavPanelBtm.dsp
+
+}
+
+
+#--------------------------------------------------------
+# data columns config
+#
+
+{column:
+	lblName===Edit
+	lblStyle===cntr
+	cellType===form
+	cellWidth===32
+	cellSortDefault===
+	cellContent===
+	cellStyle===cntr
+	formAction===usrsAdmin
+	formHidden===fw_s, var:fw_edpSubmittedForm=filters
+	formButton===[$fw_sPath->'controls']ibtn_edit_org.gif
+	formBtnName===btnSubListEdit
+	formPrvlg===
+}
+
+{column:
+	lblName===Name
+	lblStyle===cntr
+	cellType===field
+	cellWidth===112
+	cellSortDefault===m_ufName```asc```alphabetically by Name
+	cellContent===[var:'m_ufName']
+	cellStyle===cntr
+}
+	
+{column:
+	lblName===Table
+	lblStyle===cntr
+	cellType===field
+	cellWidth===112
+	cellSortDefault===m_ufTbl```asc```alphabetically by Table
+	cellContent===[var:'m_ufTbl']
+	cellStyle===cntr
+}
+
+{column:
+	lblName===Field
+	lblStyle===cntr
+	cellType===field
+	cellWidth===112
+	cellSortDefault===m_ufFld```asc```alphabetically by Field
+	cellContent===[var:'m_ufFld']
+	cellStyle===cntr
+}
+
+{column:
+	lblName===Match
+	lblStyle===cntr
+	cellType===field
+	cellWidth===204
+	cellSortDefault===
+	cellContent===[var:'m_ufMat']
+	cellStyle===cntr
+}
+
+{column:
+	lblName===Op
+	lblStyle===cntr
+	cellType===field
+	cellWidth===32
+	cellSortDefault===
+	cellContent===[var:'m_ufOp']
+	cellStyle===cntr
+}
+
+{column:
+	lblName===Del
+	lblStyle===cntr
+	cellType===form
+	cellWidth===32
+	cellSortDefault===
+	cellContent===
+	cellStyle===cntr
+	formAction===usrsAdmin
+	formHidden===fw_s, var:fw_edpSubmittedForm=filters
+	formButton===[$fw_sPath->'controls']ibtn_trash_red.gif
+	formBtnName===btnSubListDelete
+	formPrvlg===
+}
+
+[/output_none]

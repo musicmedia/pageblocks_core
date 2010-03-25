@@ -1,0 +1,548 @@
+﻿/*
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+
+	{fileName=		fwpro_theme_site.css }
+	{rsrcType=		css }
+	{rsrcName=		fwpro_theme_site.css }
+	{rsrcHTTP=		www.pageblocks.org/refc/ }
+
+	{author=		Greg Willits }
+	{authorEmail=	 }
+	{authorHTTP=	 }
+
+	{desc=			colors for public pages for FWPro site }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+//............................................................................
+*/
+
+/* 
+//
+//	major page elements
+//
+*/
+
+body {
+	background-color: #8fa98f;
+	color: black;
+	}
+
+#pagewrapper {
+	background-color: #ffffff;
+	}
+
+#pgblockhdr {
+	background-color: #eeeed8;
+	}
+
+#bodyShdwLeft {
+	background: url(/site/msthd/msthdImgs/bg_bodyShdwLeft.gif) repeat-y 0 0;
+	}
+
+#bodyShdwRight {
+	background: url(/site/msthd/msthdImgs/bg_bodyShdwRight.gif) repeat-y 0 0;
+	}
+
+/* @group Header */
+
+#headerCapWrapper {
+	height: 15px;
+	}
+
+#headerCapShdwLeft {
+	height: 15px;
+	background: url(/site/msthd/msthdImgs/bg_headerCapShdwLeft.gif) no-repeat 0 0;
+	}
+
+#headerCapLeft {
+	float: left;
+	width: 15px;
+	height: 15px;
+	background: url(/site/msthd/msthdImgs/bg_headerCapCornerLeft.gif) no-repeat 0 0;
+	}
+
+#headerCapCntr {
+	float: left;
+	width: 890px;
+	height: 15px;
+	background-color: #eeeed8;
+	}
+
+#headerCapRight {
+	float: left;
+	width: 15px;
+	height: 15px;
+	background: url(/site/msthd/msthdImgs/bg_headerCapCornerRight.gif) no-repeat 0 0;
+	}
+
+#headerCapShdwRight {
+	height: 15px;
+	background: url(/site/msthd/msthdImgs/bg_headerCapShdwRight.gif) no-repeat 0 0;
+	}
+
+/* @end */
+
+/* @group Footer Cap */
+
+#footerCapWrapper {
+	height: 36px;
+	}
+
+#footerCapShdwLeft {
+	height: 36px;
+	background: url(/site/msthd/msthdImgs/bg_footerCapShdwLeft.gif) no-repeat 0 0;
+	}
+
+#footerCapLeft {
+	float: left;
+	width: 15px;
+	height: 36px;
+	background: url(/site/msthd/msthdImgs/bg_footerCapCornerLeft.gif) no-repeat 0 0;
+	}
+
+#footerCapCntr {
+	float: left;
+	width: 890px;
+	height: 36px;
+	background: url(/site/msthd/msthdImgs/bg_footerCapShdwCntr.gif) repeat-x 0 0;
+	}
+
+#footerCapRight {
+	float: left;
+	width: 15px;
+	height: 36px;
+	background: url(/site/msthd/msthdImgs/bg_footerCapCornerRight.gif) no-repeat 0 0;
+	}
+	
+#footerCapShdwRight {
+	height: 36px;
+	background: url(/site/msthd/msthdImgs/bg_footerCapShdwRight.gif) no-repeat 0 0;
+	}
+
+/* @end */
+
+
+
+#homeTop {
+	float: left;
+	width: 690px;
+	padding: 0;
+	margin: 16px 0 0 0;
+	text-align: left;
+	/*border: 1px solid red;*/
+	}
+
+#homeTopLeft, #homeTopCenter, #homeTopRight {
+	float: left;
+	width: 210px;
+	padding: 0 20px 0 0;
+	margin: 0;
+	text-align: left;
+	/*border: 1px solid red;*/
+	}
+
+#homeTopLeft div.header, 
+#homeTopCenter div.header, 
+#homeTopRight div.header {
+	text-align: center;
+	}
+
+#homeBottom {
+	float: left;
+	width: 690px;
+	padding: 0;
+	margin: 16px 0 0 0;
+	text-align: left;
+	/*border: 1px solid red;*/
+	}
+
+#homeBottomLeft {
+	float: left;
+	width: 210px;
+	padding: 0 20px 0 0;
+	margin: 0;
+	text-align: left;
+	/*border: 1px solid red;*/
+	}
+
+#homeBottomRight {
+	float: left;
+	width: 440px;
+	padding: 0 20px 0 0;
+	margin: 0;
+	text-align: left;
+	/*border: 1px solid red;*/
+	}
+
+#homeBottomRight img {
+	padding-top: 8px;
+	}
+
+#homeSidebarTop {
+	float: left;
+	width: 170px;
+	height: 180px ;
+	padding: 6px 0 0 0;
+	margin: 0;
+	text-align: left;
+	/*border: 1px solid red;*/
+	}
+
+#homeSidebarTopCap {
+	float: left;
+	width: 170px;
+	height: 12px ;
+	padding: 0;
+	margin: 0;
+	background: url(/site/msthd/msthdImgs/bg_homeSidebarTopCap.gif) no-repeat 0 0;
+	}
+
+
+#homeSidebarTop img {
+	padding-bottom:  12px;
+	}
+
+#homeSidebarBottom {
+	float: left;
+	width: 154px;
+	padding: 0 8px 60px 8px;
+	margin: 0 0 0 0;
+	background: url(/site/msthd/msthdImgs/bg_homeSidebar.gif) repeat-x;
+	border-left: 1px solid #cccc99;
+	text-align: center;
+	}
+
+#refcToolbar {
+	padding: 8px 0 0 0;
+	height:  40px;
+	}
+
+#refcFilter {
+	float: left;
+	width: 495px;
+	}
+
+#refcAdvSearch {
+	float: left;
+	width: 100px;
+	font-size: 11px;
+	color: #677fe1;
+	text-align: center;
+	}
+
+#refcList {
+	clear: both;
+	}
+
+#refcList div.listnavbar {
+	width: 660px;
+	text-align: left;
+	}
+
+
+/* ............................................................................
+//
+//	basic text elements
+//
+*/
+
+a {
+	color: #3653d3;
+	}
+
+a:hover, a.jump:hover {
+	color: #f60;
+	}
+
+a.jump {
+	color: black;
+	border-bottom: 1px dotted blue;
+	}
+
+h1 {
+	font-weight: normal;
+	color: #505050;
+	}
+
+h2 {
+	font-weight: normal;
+	color: #72723e;
+	padding-bottom: 0;
+	}
+
+#homeTop h2 {
+	line-height: 110%;
+	text-align: center;
+	}
+
+h3 {
+	font-weight: normal;
+	color: #72723e;
+	}
+
+#homeSidebarBottom h3 {
+	font-size: 16px;
+	padding: 30px 0 0 0;
+	line-height: 100%;
+	text-align: center;
+	}
+
+h3#versionNo {
+	padding-top: 0;
+	color: black;
+	}
+
+h4 {
+	font-weight: normal;
+	color: #72723e;
+	}
+
+h5 {
+	font-weight: normal;
+	color: black;
+	}
+
+h6 {
+	font-weight: normal;
+	color: black;
+	}
+
+p, li, ul, cite {
+	color: black;
+	}
+
+p.submenu {
+	padding-bottom: 20px;
+	}
+
+p.versionLink {
+	font-size: 12px;
+	padding: 4px 0 0 0;
+	}
+
+#homeTop ul {
+	padding-left: 16px;
+	}
+
+.dim {
+	color: #808080;
+	}
+
+.alert {
+	color: #ce1700;
+	}
+
+.highlight {
+	background-color: #ff9;
+	}
+
+.intro {
+	font-size: 13px;
+	color: #0000aa;
+	}
+
+.filename {
+	color: #666666;
+	}
+
+pre.code, code, samp, var, kbd {
+	color: #663300;
+	}
+
+em {
+	color: #cc0000;
+	}
+
+/* ............................................................................
+//
+//	lists (released with APIb46)
+//
+*/
+
+.stdlist table {
+	background-color: white;
+	color: black;
+	}
+
+.stdlist table tr.hdr {
+	background-color: #cc9;
+	color: #000;
+	}
+
+.stdlist table tr.hdr td.sorted {
+	background-color: #c96;
+	}
+
+.stdlist table tr.altrowA {
+	background-color: #f5f5dc;
+	}
+
+.stdlist table tr.altrowB {
+	background-color: #fff8dc;
+	}
+
+.stdlist table td.sorted {
+	background-color: #f5deb3;
+	}
+
+/* ............................................................................
+//
+//	non-layout, basic tables (released with APIb46)
+//
+*/
+
+.stdtable table {
+	background-color: white;
+	color: black;
+	}
+
+/* ............................................................................
+//
+//	forms (released with APIb46)
+//
+*/
+
+.stdform table {
+	background-color: white;
+	color: black;
+	}
+
+.stdform tr {
+	background-color: #f5f5dc;
+	}
+
+.stdform td.label {
+	background-color: #cc9;
+	color: #000;
+	}
+
+.stdform td.reqd {
+	color: #B40000;
+	}
+
+.stdform td.empty {
+	background-color: white;
+	}
+
+/* form input fields and value lists  */
+.txtinput {
+	color: black;
+	background-color: white;
+	border-color: black black white white;
+	}
+
+.fwppopup {
+	color: black;
+	}
+
+.fwpcheckbox {
+	color: black;
+	}
+
+.fwpradiobtns {
+	color: black;
+	}
+
+.fwplistbox {
+	color: black;
+	}
+
+/* ............................................................................
+//
+//	autoPerms Styles for permissions table
+//
+*/
+
+.permsMatrix td.modLabel {
+	background-color: #cc9;
+	color: black;
+	}
+
+.permsMatrix td.permLabel {
+	background-color: #cc9;
+	color: black;
+	}
+
+.permsMatrix td.permCellA {
+	background-color: #f5f5dc;
+	color: black;
+	}
+
+.permsMatrix td.permCellB {
+	background-color: #fff8dc;
+	color: black;
+	}
+
+/* ............................................................................
+//
+//	site specific oddball styles
+//
+*/
+
+p.stdcaption {
+	color: #808080;
+	}
+
+p.caption {
+	padding-top: 0px;
+	margin-top: 0;
+	color: #804000;
+	font-size: 10px;
+	}
+
+#intro p {
+	color: #0000aa;
+	}
+
+div.errata {
+	color: #808080;
+	}
+
+div.errata p {
+	color: #aaaaaa;
+	}
+
+div.errata a {
+	color: #aaaaaa;
+	border-bottom: 1px dotted #aaaaaa;
+	}
+
+div.errata a:hover {
+	color: #f60;
+	}
+
+span.download {
+	color: #f60;
+	}
+
+p.downloaddesc {
+	margin: 0 0 6px 0;
+	padding: 0 0 6px 0;
+	border-bottom: 1px solid #cccccc;
+	}
+
+pre.sourcecode {
+	color: #996633;
+	}
+
+pre.codeblock {
+	color: #996633;
+	}
+
+.mono {
+	color: #663300;
+	}
+
+.altmono {
+	color: #cc0000;
+	}
+

@@ -1,0 +1,47 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpDate_mmyySlash.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpDate_mmShort }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpDate_mmyySlash }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Returns a date in 12/00 format }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.7 }
+	{maintdate=		2007-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated for changes to date handling introduced in 8.5.2
+					and generally cleaned up and simplified }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpDate_mmyySlash',
+	-priority = 'replace',
+	-required = 'dateString', -copy;
+
+	(#dateString != '') && (#dateString !>> '0000') && (valid_date: #dateString)
+		? return: (date_format: (date:#dateString), -format='%m/%y');
+
+/define_tag;
+?>

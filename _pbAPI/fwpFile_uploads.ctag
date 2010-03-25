@@ -1,0 +1,200 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpFile_uploads.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpFile_uploads }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpFile_uploads }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			captures uploads and relocates them }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed a bunch of internal vars to be easier to read
+	 				and updated the debug and error handling }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpFile_uploads', -priority='replace',
+	-required='path',
+	-optional='fields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpFile_uploads', -path = #path);
+
+	local:
+		'fw_destPath'		= #path,
+		'fw_allowedFields'	= local:'fields',
+		'fw_thisFile'		= string,
+		'fw_isAllowedField'	= false,
+		'fw_isAllowedSize'	= false,
+		'fw_isAllowedType'	= false,
+		'fw_fileTempPath'	= string,
+		'fw_fileType'		= string,
+		'fw_fileSize'		= string,
+		'fw_fileExt'		= string,
+		'fw_fileRealName'	= string,
+		'fw_fileInput'		= string,
+		'fw_errTemp'		= map;
+
+//	backward compatibility
+
+	(params >> '-flds')
+		? #fw_allowedFields = local:'flds';
+
+//	an array for the complete pathname and filesize of each uploaded file
+//	contains all uploads from the page regardless of destination folder
+
+	!(var_defined:'fw_uploads')
+		? var:'fw_uploads' = array;
+
+	!(var_defined:'fw_uploadsMap')
+		? var:'fw_uploadsMap' = map;
+
+//	normalize separators
+
+	if: #fw_allowedFields;
+		#fw_allowedFields->(replace: ' ','');
+		#fw_allowedFields = #fw_allowedFields->(split:',');
+	/if;
+
+	#fw_destPath->trim;
+	!(#fw_destPath->endsWith:'/')
+		? #fw_destPath += '/';
+
+	inline:
+		-username = $fw_gUploadUser,
+		-password = $fw_gUploadPswd;
+
+		if: !(file_exists:#fw_destPath);
+
+			$fw_error->(insert: '5122' = 'fwpFile_uploads');
+			$fw_debug ? $fw_tagTracer->(add:'fwpFile_uploads->moveFilesTo', -ERROR = 'destination path does not exist or cannot be accessed because ' + file_currentError);
+			$fw_criticalLog ? log_critical:('pbError : fwpFile_uploads destination path ' + #fw_destPath + ' does not exist or cannot be accessed because ' + file_currentError);
+		
+		else;
+
+			if: (file_uploads->size);
+				iterate: file_uploads, #fw_thisFile;
+	
+					#fw_fileTempPath	= #fw_thisFile->(find:'path');
+					#fw_fileType		= (#fw_thisFile->(find:'type')->split:'/')->last;
+					#fw_fileSize		= #fw_thisFile->(find:'size');
+					#fw_fileInput		= #fw_thisFile->(find:'param');
+					#fw_fileExt			= #fw_thisFile->(find:'origextension');
+					#fw_fileRealName	= #fw_thisFile->(find:'origname');
+					#fw_fileRealName	= #fw_fileRealName->(split:'/')->last->(split:'\\')->last;
+	
+					#fw_fileRealName->trim;
+	
+//	is this an allowed file type and size?
+	
+					(#fw_allowedFields->size > 0)
+						? #fw_isAllowedField = ((#fw_allowedFields->(find:#fw_fileInput))->last)
+						| #fw_isAllowedField = true;
+	
+					($fw_uploadMIMEs->size > 0)
+						? #fw_isAllowedType = (($fw_uploadMIMEs->find:#fw_fileType)->last)
+						| #fw_isAllowedType = true;
+	
+					($fw_uploadSizeMax > 0)
+						? #fw_isAllowedSize = ($fw_uploadSizeMax > #fw_fileSize)
+						| #fw_isAllowedSize = true;
+	
+					if: #fw_isAllowedField;
+						if: #fw_isAllowedType;
+							if: #fw_isAllowedSize;
+	
+//	we passed all the tests
+//	create a variable to simuate a converted action_param
+//	of the field containing the real file name
+//	this gets used by the autoSQL routines to modify the record
+	
+								(var:#fw_fileInput) = #fw_fileRealName;
+	
+								$fw_uploadsMap->(insert: #fw_fileInput = (map:
+																			'path' 			= #fw_fileTempPath,
+																			'type' 			= #fw_fileType,
+																			'size' 			= #fw_fileSize,
+																			'origextension' = #fw_fileExt,
+																			'origname' 		= #fw_fileRealName));
+
+//	move the file to the final location
+	
+								file_create: (#fw_destPath + #fw_fileRealName), -fileoverwrite;
+								
+									($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpFile_uploads : create file', 
+																	-file = (#fw_destPath + #fw_fileRealName),
+																	-status = file_currentError);
+															
+									($fw_criticalLog && (file_currentError != 0)) ? log_critical:('pbError : fwpFile_uploads could not create ' + (#destinationPath + #fileRealName) + ' because ' + file_currentError);
+									(file_currentError != 0) ? $fw_error->(insert:'5122' = 'fwp_fileUploads');
+	
+								file_write: (#fw_destPath + #fw_fileRealName), file_read:#fw_fileTempPath;
+	
+									($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpFile_uploads : write file', 
+																	-file = (#fw_destPath + #fw_fileRealName),
+																	-status = file_currentError);
+									($fw_criticalLog && (file_currentError != 0)) ? log_critical:('pbError : fwpFile_uploads could not create ' + (#destinationPath + #fileRealName) + ' because ' + file_currentError);
+									(file_currentError != 0) ? $fw_error->(insert:'5122' = 'fwp_fileUploads');
+	
+//	insert the full real path into an array
+	
+								file_exists:(#fw_destPath + #fw_fileRealName)
+									? $fw_uploads->(insert: (#fw_destPath + #fw_fileRealName) = #fw_fileSize);
+	
+							else;
+	
+//	file is too big
+//	test for duplicate errors from successive tag calls
+//	created by sending uploads to different target folders
+//	indicate filesize = 0 to show file was rejected
+								if: #fw_errTemp !>> #fw_fileRealName;
+									#fw_errTemp->(insert: #fw_fileRealName = '5121');
+									$fw_error->(insert:'5121' = #fw_fileRealName);
+									$fw_uploads->(insert: (pair:(#fw_destPath + #fw_fileRealName) = 0));
+								/if;
+							/if;
+	
+						else;
+//	file format not allowed
+							if: #fw_errTemp !>> #fw_fileRealName;
+								#fw_errTemp->(insert: #fw_fileRealName = '5120');
+								$fw_error->(insert:'5120' = #fw_fileRealName);
+								$fw_uploads->(insert: (pair:(#fw_destPath + #fw_fileRealName) = 0));
+							/if;
+						/if;  // allowedType
+					/if;  // allowedField
+				/iterate;
+			/if; // if file_uploads
+		/if; // if destPath exists
+	/inline;
+/define_tag;
+?>
+

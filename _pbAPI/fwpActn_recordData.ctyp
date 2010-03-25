@@ -1,0 +1,3945 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwp_recordData.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_recordData }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_recordData }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates a generic data type for SQL table data. }
+
+	{maintvsrn=		2.3.2 }
+	{maintrelease=	5.3 }
+	{maintdate=		2008-07-11}
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	added keyword -useGet to tag validateInputs to force
+					tag to validate using GET params. Added the same keyword
+					to tag ->update and ->updateUsingLock}
+
+	{maintvsrn=		2.3.1 }
+	{maintrelease=	5.3 }
+	{maintdate=		2007-12-31}
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	added tag 'addWithoutKeyval' to make add with no keyval
+					provided. Made approprite changes to
+					fwpActnAdaptor_mysql.ctyp as well. The new tag returns
+					LAST_INSERT_ID as a var named 'rcrdNo' which can be
+					retrieved right after the tag was called }
+
+	{maintvsrn=		2.3.0 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-04 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -wherePairs option to getRecordUsingLock.
+					added ->'validationResults'.
+					added ->showMsgsForInput.
+					added ->errorExistsForInput.
+					added ->fw_withRecordsMaps which creates the records
+					maps using the inputs names instead of fields names,
+					for backwards compatability -withRecordsMapsFields will
+					still generate the older version using field names.
+					Added a -quiet option to ->getRecordUsingLock.
+					Changed queryString from getRecordUsingLock to be the 
+					query that gets the record (not the query that locks
+					the record). }
+
+	{maintvsrn=		2.2.2 }
+	{maintrelease=	5.2.5b }
+	{maintdate=		2007-07-31}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	removed fw_ prefix from validateInputs }
+
+	{maintvsrn=		2.2.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-25}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added withoutDateStamp to ->update. This allows update to be
+	 				used to force unlock a record w/o altering modified status.
+	 				Changed some occurrences of error 5500 to 5113 }
+
+	{maintvsrn=		2.2.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems.
+	 				Fixed bug in convertToFieldNames which was replacing 
+	 				subwords and causing problems }
+
+	{maintvsrn=		2.1.0 }
+	{maintrelease=	5.1.7 }
+	{maintdate=		2007-05-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added support for multiple locks using fw_recordLockStore }
+
+	{maintvsrn=		2.0.3 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-03-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added queryParams ivar }
+
+	{maintvsrn=		2.0.2 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-02-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed occurence of error 50XX to 5505 }
+
+	{maintvsrn=		2.0.1 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-12-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated select method to move orderby, groupby, and limit
+					statements that remained as literal sql expressions into
+					the adaptor }
+
+	{maintvsrn=		2.0 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-11-14 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Allows field names in all query clauses to be expressed
+	 				as the tableModel_ input names. }
+
+	{maintvsrn=		1.5.2 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-11-20 }
+	{maintauthor=	Jolle Carlestam }
+	{maintnotes=	added experimental support for GROUP BY handling in
+	 				SQL select queries. }
+
+	{maintvsrn=		1.5.1 }
+	{maintrelease=	5.1.3 }
+	{maintdate=		2006-11-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed a bug in ->sql that referred to wrong local var
+	 				when -withRecordsMaps was used.
+	 				Added ->getFieldForInput and ->getInputForField
+	 				Changed all cases of sending a field list to makeVars 
+	 				and recordsMaps to use field_names from the inline
+	 				Fixed a bug in withRecordsMaps, and cleaned out
+	 				some left over experimental code
+	 				Eliminated -fieldNames option from ->sql }
+
+	{maintvsrn=		1.5 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added -withMakeVars, -withRecordsArrays, -withRecordsMaps
+					to the ->sql tag. Refactored -withRecordsMaps into
+					a separate private tag.
+					Fixed bug with pageCount in ->select if perPage was 0 }
+
+	{maintvsrn=		1.4.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed an issue that would not create the cookie name
+					using the application prefix defined in initMasters }
+
+	{maintvsrn=		1.4.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-12 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added pageCount and currentPage, and deprecated showFirst
+					and showLast in favor of firstRecord and lastRecord }
+
+	{maintvsrn=		1.3.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-28 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added a test for a comma in -limit so that
+					a '30,60' value could be submitted. Optimized
+					handling of found count in ->select. }
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-21 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added ->duplicate }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-06 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed params->find to params->contains
+					which is more efficient }
+
+	{maintvsrn=		1.2 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype,
+					added tagTrace statements,
+					updated some if blocks to ?,
+					refactored where clause to add it to update and delete }
+
+	{maintvsrn=		1.1.2 }
+	{maintrelease=	5.0.3  }
+	{maintdate=		2006-04-13 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed a syntax bug in ->sql that works in 8.1 but will
+					cause problems in 8.5 }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.0.0  }
+	{maintdate=		2006-04-03 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added use of fw_gUsePbUserAuth where needed }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.0.0 b8 }
+	{maintdate=		2006-03-01 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -expires to record lock cookie so that windows
+					users who close the browser instead of the document window
+					still have the cookie for a while }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -withoutValidate option
+					added 'db', 'tbl', 'dbtbl' ivars 
+					cleaned up comments 
+					added -withoutLog options to update, delete, add tags 
+					added -withoutValidate options to update & add tags }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+
+define_type:'fwp_recordData', -prototype;
+
+	local:
+		'globalCacheVar'	= 'fw_gDbTableModels',
+
+		'keytable'				= string,
+		'fw_realTable'			= string,
+		'fw_modelIsLoaded'		= false,
+		'fw_qryAdaptorIsLoaded'	= false,
+		
+		'fw_tableModel'			= null,
+		'fw_modelDb'			= string,
+		'fw_modelTbl'			= string,
+		'fw_modelConn'			= string,
+		'fw_modelkeyFld'		= string,
+		'fw_modelLockFld'		= string,
+		
+		'fw_qryAdaptor'			= null,
+
+		'foundCount'			= integer,
+		'firstRecord'			= integer,
+		'lastRecord'			= integer,
+		'showFirst'				= integer,
+		'showLast'				= integer,
+		'pageCount'				= integer,
+		'currentPage'			= integer,
+		'inlineName'			= string,
+		'records'				= array,
+		'fields'				= map,
+		'lock'					= string,
+
+		'error'					= false,
+		'errors'				= array,
+		'formIsValid'			= false,
+		'inputsAreInvalid'		= false,
+		'rulesAreInvalid'		= false,
+		'validationResults'		= map,
+		'queryParams'			= array,
+		'queryString'			= string,
+		'queryStringAlt'		= string,
+		'queryTime'				= string,
+		'tagTime'				= string;
+
+//	didn't think we'd need these, but we do
+//	so, yes they're redundant, but following the privacy rules of fw_
+//	we need non-fw_ versions, and it's too late to eliminate the fw_ versions
+		
+	local:
+		'db'				= string,
+		'tbl'				= string,
+		'dbtbl'				= string;
+
+
+//============================================================================
+//
+//	->onCreate
+//
+//	Description:
+//
+//	Instantiates the object`s syntax adaptor and default data set.
+//	This tag is automatic; the developer should not call this tag
+//
+//............................................................................
+
+define_tag:'onCreate';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->onCreate');
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlXtraCreate');
+
+	!(global_defined:(self->'globalCacheVar'))
+		? self->cacheReset;
+
+	if: !(var_defined:'fw_recordLockStore');
+		var:'fw_recordLockStore' = fwp_recordLockStore;
+		$fw_recordLockStore->init;
+	/if;
+
+	if: (params->contains:'-keytable');
+		(self->'keytable') = ((params->find:'-keytable')->last)->get:2;
+	else;
+		(self->'keytable') = params->get:1;
+	/if;
+
+	($fw_gTables->type == 'map')
+		? (self->'fw_realTable') = @($fw_gTables->find:(self->'keytable'))
+		| (self->'fw_realTable') = @(self->'keytable');
+
+	!(self->'fw_realTable')
+		? (self->'fw_realTable') = @(self->'keytable');
+
+	(self->'validationResults')->(insert:'coreCodes' = array);
+	(self->'validationResults')->(insert:'appCodes' = array);
+	(self->'validationResults')->(insert:'errorMsgs' = array);
+
+//	................................................
+//	lazy load of table model
+
+	(self->'fw_modelIsLoaded') = (fwpActn_loadTableModel:(self->'fw_realTable'));
+
+	if: (self->'fw_modelIsLoaded');
+
+		(self->'fw_tableModel') = @($fw_gDbTableModels->find:(self->'fw_realTable'));
+
+		(self->'fw_modelDb')		= @((self->'fw_tableModel')->find:'db');
+		(self->'fw_modelTbl')		= @((self->'fw_tableModel')->find:'tbl');
+		(self->'fw_modelConn')		= @((self->'fw_tableModel')->find:'conn');
+		(self->'fw_modelKeyFld')	= @((self->'fw_tableModel')->find:'keyfld');
+		(self->'fw_modelLockFld')	= @((self->'fw_tableModel')->find:'lockfld');
+
+		(self->'db')	= @((self->'fw_tableModel')->find:'db');
+		(self->'tbl')	= @((self->'fw_tableModel')->find:'tbl');
+		(self->'dbtbl')	= (self->'db') + '.' + (self->'tbl');
+
+
+		(self->'fw_qryAdaptor') 	= global:($fw_gAdaptorIndex->find:(self->'fw_modelConn'));
+
+		if: (self->'fw_qryAdaptor');
+			(self->'fw_qryAdaptorIsLoaded') = true;
+		else;
+			$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'tableModel serverType___ does not match an available query adaptor : ' + (self->'fw_modelConn'));
+			$fw_debug && $fw_criticalLog ? log_critical:('pbError : tableModel serverType___ does not match an available query adaptor : ' + (self->'fw_modelConn'));
+			$fw_error->(insert:'5201' = 'fwp_recordData');
+		/if;
+
+	else;
+		// 	we don't normally report or log this error because
+		//	the likely cause is that the tableModel file was not found
+		//	which the file loading process would have already reported
+		//	and we don't need multiple reports of that fact
+		($fw_debug >= fw_kVerbose) ? $fw_error->(insert:'5201' = 'fwp_recordData');
+		($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'tableModel not loaded for table ' + (self->'fw_realTable'));
+		($fw_debug >= fw_kVerbose) && $fw_criticalLog ? log_critical:('pbError : fwp_recordData could not load tableModel for table ' + (self->'fw_realTable'));
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlXtraCreate');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->cacheReset
+//
+//	builds an error mesage based on a single error code
+//
+//............................................................................
+
+define_tag:'cacheReset';
+	(global:(self->'globalCacheVar')) = map;
+/define_tag;
+
+//: -
+//============================================================================
+//
+//	->fw_logAction
+//
+//	Description:
+//
+//	Writes an entry to the data log
+//
+//............................................................................
+
+define_tag:'fw_logAction',
+	-required = 'usrName',
+	-required = 'usrRcrd',
+	-required = 'rcrd',
+	-required = 'action',
+	-required = 'qryTime';
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_recordData->logAction',-action = #action);
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlXtraLog');
+
+	fwpLog_data: 
+		-usrName	= #usrName,
+		-usrRcrd	= #usrRcrd,
+		-table		= (self->'fw_modelTbl'),
+		-rcrd		= #rcrd,
+		-action		= #action,
+		-pageInfo	= $fw_logPageInfo,
+		-fwpInfo	= $fw_logFWPInfo,
+		-qryTime	= #qryTime;
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlXtraLog');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->fw_convertToFieldNames
+//
+//	converts all tableModel input names to field names
+//
+//............................................................................
+
+define_tag:'fw_convertToFieldNames',
+	-required = 'qryClause', -type = 'string';
+
+	$fw_debug ? $fw_tagTracer->(add:'fw_convertToFieldNames', -qryClause=#qryClause);
+
+	local:
+		'fw_qryClause'	= #qryClause,
+		'fw_qryWords'	= array,
+		'thisQueryWord'	= string,
+		'fieldName'		= string;
+
+	#fw_qryWords = (string_findRegExp: #fw_qryClause, -find='\\w+', -ignoreCase);
+
+	iterate: #fw_qryWords, #thisQueryWord;
+		#fieldName = ((self->'fw_tableModel')->find:'fieldNameMap')->(find:#thisQueryWord);
+		#fieldName
+			? #fw_qryClause = (string_replaceRegExp: 
+									#fw_qryClause,
+									-find = '\\b(' + #thisQueryWord + ')\\b', 
+									-replace = #fieldName);
+	/iterate;
+
+	return: #fw_qryClause;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->fw_makeVars
+//
+//	Description:
+//
+//	Converts fields from a record into individual page vars.
+//
+//............................................................................
+
+define_tag:'fw_makeVars',
+	-required = 'fieldList';
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_recordData->makeVars', -fieldList = #fieldList);
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlXtraMakeVars');
+
+	local:
+		'fw_fieldNames'	= array,
+		'fw_thisItem' 	= string,
+		'fw_indx'		= string;
+
+	if: #fieldList == '*';
+		#fw_fieldNames = (self->'fw_tableModel')->find:'fieldNames';
+	/if;
+
+	(#fieldList->type == string)
+		? #fw_fieldNames = (fwpCnfg_splitComma: #fieldList)
+		| #fw_fieldNames = @#fieldList;
+
+	records: -inlinename = (self->'inlineName');
+
+		iterate: #fw_fieldNames, #fw_thisItem;
+
+			#fw_indx = (((self->'fw_tableModel')->find:'fieldNames')->findIndex:#fw_thisItem)->last;
+
+			if: #fw_indx;
+				select: (((self->'fw_tableModel')->find:'fieldTypes')->get:#fw_indx);
+				case: 'integer';
+					var:(((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx) = integer:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx));
+				case: 'decimal';
+					var:(((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx) = decimal:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx));
+				case: 'date';
+					var:(((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx) = date:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx));
+				case;
+					var:(((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx) = string:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx));
+				/select;
+			/if;
+		/iterate;
+	/records;
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlXtraMakeVars');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->fw_makeFieldsMap
+//
+//	Description:
+//
+//	Converts fields from a record into a map
+//
+//............................................................................
+
+define_tag:'fw_makeFieldsMap',
+	-required = 'fieldList';
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_recordData->makeFieldsMap', -fieldList = #fieldList);
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlXtramakeFieldsMap');
+
+	local:
+		'fw_fieldNames'	= array,
+		'fw_thisItem' 	= string,
+		'fw_indx'		= string;
+
+	if: #fieldList == '*';
+		#fw_fieldNames = (self->'fw_tableModel')->find:'fieldNames';
+	/if;
+
+	(#fieldList->type == 'string')
+		? #fw_fieldNames = (fwpCnfg_splitComma: #fieldList)
+		| #fw_fieldNames = @#fieldList;
+
+	records: -inlinename = (self->'inlineName');
+
+		iterate: #fw_fieldNames, #fw_thisItem;
+
+			#fw_indx = (((self->'fw_tableModel')->find:'fieldNames')->findIndex:#fw_thisItem)->last;
+
+			if: #fw_indx;
+				select: (((self->'fw_tableModel')->find:'fieldTypes')->get:#fw_indx);
+				case: 'integer';
+					(self->'fields')->(insert: (((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx) = integer:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx)));
+				case: 'decimal';
+					(self->'fields')->(insert: (((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx) = decimal:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx)));
+				case: 'date';
+					(self->'fields')->(insert: (((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx) = date:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx)));
+				case;
+					(self->'fields')->(insert: (((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx) = string:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx)));
+				/select;
+			/if;
+		/iterate;
+	/records;
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlXtramakeFieldsMap');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->fw_withRecordsMaps
+//
+//............................................................................
+
+define_tag:'fw_withRecordsMaps',
+	-required = 'records',
+	-required = 'fields';
+
+	local:
+		'_fieldNames' 	= #fields,
+		'_inputNames'	= @((self->'fw_tableModel')->find:'inputNameMap'),
+		'_thisRcrd'		= array,
+		'_thisField'	= string,
+		'_tempMap'		= map,
+		'_indxR'		= 0,
+		'_indxF'		= 0;
+
+	(#_fieldNames->type == 'string')
+		? #_fieldNames = fwpCnfg_splitComma: #_fields;
+
+	iterate: #records, #_thisRcrd;
+		#_indxR += 1;
+		#_tempMap = map;
+		#_indxF = 0;
+		iterate: #_thisRcrd, #_thisField;
+			#_indxF += 1;
+			#_tempMap->(insert: (#_inputNames->find:(#_fieldNames->get:#_indxF)) = #_thisField);
+		/iterate;
+		(self->'records')->(insert: #_tempMap);
+	/iterate;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->fw_withRcrdsMaps
+//
+//	Description:
+//
+//
+//............................................................................
+
+define_tag:'fw_withRcrdsMaps',
+	-required = 'records',
+	-required = 'fields';
+
+	local:
+		'_fieldNames' 	= #fields,
+		'_thisRcrd'		= array,
+		'_thisField'	= string,
+		'_tempMap'		= map,
+		'_indx'			= 0,
+		'_indxR'		= 0,
+		'_indxF'		= 0;
+
+	(#_fieldNames->type == 'string')
+		? #_fieldNames = fwpCnfg_splitComma: #_fields;
+
+	iterate: #records, #_thisRcrd;
+		#_indxR += 1;
+		#_tempMap = map;
+		#_indxF = 0;
+		iterate: #_thisRcrd, #_thisField;
+			#_indxF += 1;
+			#_tempMap->(insert:(#_fieldNames->get:#_indxF) = #_thisField);
+		/iterate;
+		(self->'records')->(insert: #_tempMap);
+	/iterate;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->buildSQLWhere
+//
+//	Description:
+//
+//	builds a Where clause
+//	actnWhere has four possible sources:
+//	first, it might be empty, so we create a safe default
+//	second, if it is the literal word form, we want to create field definitions 
+//		based on a submitted form (using a dbTbl config file)
+//	third, if flagged to use a library, we include the specified local module library
+//	fourth, it has already been defined elsewhere, so our condition tree has no effect, and
+//		it is used a literal SQL string
+//
+//............................................................................
+
+define_tag:'fw_buildSQLWhere',
+	-optional =	'inputs',
+	-optional =	'where',
+	-optional =	'keyfld',
+	-optional =	'keyval';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_recordData->buildSQLWhere',
+														-inputs = local:'inputs',
+														-where  = local:'where',
+														-keyfld = local:'keyfld',
+														-keyval = local:'keyval');
+
+	local:
+		'fw_actnInputs'		= @local:'inputs',
+		'fw_actnKeyFld'		= @local:'keyfld',
+		'fw_actnKeyVal'		=  local:'keyval',
+		'fw_actnWhere'		=  local:'where',
+		'thisParam' 		= string,
+		'paramField'		= string,
+		'paramValue'		= string,
+		'fw_indx'			= integer;
+
+	if: !#fw_actnWhere && (#fw_actnKeyVal == '%');
+
+		#fw_actnWhere = string;
+
+//		#fw_actnWhere = (self->'fw_qryAdaptor')->(selectWhereDefault: 
+//			-keyfld = (self->'fw_modelKeyFld'));
+
+	else: !#fw_actnWhere && (#fw_actnKeyVal != '%');
+
+		#fw_actnWhere = (self->'fw_qryAdaptor')->(selectWhereKeyVal: 
+							-keyfld=#fw_actnKeyFld, 
+							-keyval=#fw_actnKeyVal);
+
+	else: #fw_actnWhere == 'form';
+
+		#fw_actnWhere = string;
+
+//	first let`s try to build based on form submissions
+//	loop through the table definition and see if a particular field was submitted by the form
+
+		iterate: ((self->'fw_tableModel')->find:'inputNames'), #thisParam;
+			#fw_indx += 1;
+			if: (var_defined:#thisParam) && (var:#thisParam) && (#fw_actnInputs >> #thisParam);
+			
+//	modify statement based on search operator
+//	default operator if none is defined is contains
+
+				#paramField = (((self->'fw_tableModel')->find:'fieldNames')->get:#fw_indx);
+				#paramValue = (encode_sql:(var:((self->'fw_tableModel')->find:'inputNames')->get:#fw_indx));
+
+				select: (var: (#thisParam + 'Op'));
+					case: 'btw';
+						local:'value1' = (#paramValue->split:':::')->get:1;
+						local:'value2' = (#paramValue->split:':::')->get:2;
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpBTW:
+							-field = #paramField,
+							-value1 = #value1,
+							-value1 = #value2);
+					case: 'lt';
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpLT:
+							-field = #paramField,
+							-value = #paramValue);
+					case: 'lte';
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpLTE:
+							-field = #paramField,
+							-value = #paramValue);
+					case: 'gt';
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpET:
+							-field = #paramField,
+							-value = #paramValue);
+					case: 'gte';
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpGTE:
+							-field = #paramField,
+							-value = #paramValue);
+					case: 'neq';
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpNEQ:
+							-field = #paramField,
+							-value = #paramValue);
+					case: 'eq';
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpEQ:
+							-field = #paramField,
+							-value = #paramValue);
+					case: 'bw';
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpBW:
+							-field = #paramField,
+							-value = #paramValue);
+					case: 'ew';
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpEW:
+							-field = #paramField,
+							-value = #paramValue);
+					case;
+						#fw_actnWhere += (self->'fw_qryAdaptor')->(selectWhereOpCN:
+							-field = #paramField,
+							-value = #paramValue);
+				/select;
+			/if;
+		/iterate;
+
+		#fw_actnWhere->(removeleading:' AND');
+
+//	end with a safe default just in case nothing was submitted in the form
+
+//		!#fw_actnWhere
+//			? #fw_actnWhere = (self->'fw_qryAdaptor')->(selectWhereDefault: 
+//					-mapper 	= (self->'fw_tableModel'),
+//					-keyfld 	= #fw_actnKeyFld);
+
+
+
+//	the actnWhere var can be defined to fetch a specific library file with
+//	fw_actnWhere='lib```{modPath}' which is parsed to create a file path to include
+//	that include must end up creating a value for #fw_actnWhere
+//	{modPath} is any valid LDML expression so vars & concats can be processed
+
+	else: #fw_actnWhere->(beginswith:'lib```');
+
+		library: (process:(#fw_actnWhere->(split:'```')->get:2));
+
+	/if;
+
+	return: #fw_actnWhere;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->getFieldForInput
+//
+//	retrieves the fieldName for a specified inputName
+//
+//............................................................................
+
+define_tag:'getFieldForInput',
+	-required = 'inputName',	-type = 'string';
+
+	return: ((self->'fw_tableModel')->find:'fieldNameMap')->find:#inputName;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->getInputForField
+//
+//	retrieves the inputName for a specified fieldName
+//
+//............................................................................
+
+define_tag:'getInputForField',
+	-required = 'fieldName',	-type = 'string';
+
+	return: ((self->'fw_tableModel')->find:'inputNameMap')->find:#fieldName;
+
+/define_tag;
+
+//: -
+//============================================================================
+//
+//	->sql
+//
+//	Description:
+//
+//	Performs complete supplied sql query
+//
+//............................................................................
+
+define_tag:'sql',
+	-required = 'query',
+	-optional = 'logname';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->sql');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagSQL');
+
+	local:
+		'fw_qryError'				= false,
+		'fw_qryErrors'				= array,
+		'fw_usrName'				= string,
+		'fw_usrRcrd'				= string,
+		'fw_qryActn'				= local:'query',
+		'fw_actnMakeVars'			= false,
+		'fw_actnRcrdsArray'			= false,
+		'fw_actnRcrdsMapsFields'	= false,
+		'fw_actnRecordsMaps'		= false;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-asRecordsArrays') || (params >> '-withRecordsArrays')
+		? #fw_actnRcrdsArray = true;
+
+	(params >> '-asRecordsMaps') || (params >> '-withRecordsMaps')
+		? #fw_actnRecordsMaps = true;
+
+	(params >> '-asRecordsMapsFields') || (params >> '-withRecordsMapsFields')
+		? #fw_actnRcrdsMaps = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+	#fw_qryActn->trim;
+
+	if: $fw_gUsePbUserAuth
+		&& $fw_s
+		&& (((var:$fw_userVarName)->'loginValid') == 'Y');
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = 'Anonymous';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+
+	$fw_logFWPInfo = '-sql: ' + local:'logname';
+
+//	............................................................................
+
+	$fw_timer->(start:'sqlQrySQL');
+
+	#fw_qryActn = self->(fw_convertToFieldNames: #fw_qryActn);
+
+	inline:
+		-inlineName = (self->'inlineName'),
+		-username 	= $fw_gQueryUser,
+		-password 	= $fw_gQueryPswd,
+		-database 	= (self->'fw_modelDb'),
+		-table		= (self->'fw_modelTbl'),
+		-sql		= #fw_qryActn;
+
+		$fw_timer->(stop:'sqlQrySQL');
+
+		(self->'foundCount') = found_count;
+
+		if: error_code != 0;
+			$fw_error->(insert:'5201' = 'fwp_recordData');
+			#fw_qryErrors->(insert:'5505' = ('Query failed due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+			$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Query failed due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+			$fw_debug && $fw_criticalLog ? log_critical:('pbError 5505: Query failed due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+		else;
+	
+			if: $fw_gLogDb && (local:'logname');
+				self->(fw_logAction: 
+					-usrName	= #fw_usrName,
+					-usrRcrd	= #fw_usrRcrd,
+					-rcrd		= 'unknown',
+					-action		= 'sql',
+					-qryTime	= $fw_timer->(eventTotal:'sqlQrySQL'));
+			/if;
+
+			(found_count == 1) && #fw_actnMakeVars
+				? self->(fw_makevars: -fieldList = field_names);
+
+			#fw_actnRcrdsArray
+				? (self->'records') = @records_array;
+
+			#fw_actnRcrdsMapsFields
+				? self->(fw_withRcrdsMaps:
+					-fields = field_names,
+					-records = @records_array);
+	
+			#fw_actnRecordsMaps
+				? self->(fw_withRecordsMaps:
+					-fields = field_names,
+					-records = @records_array);
+		/if;
+	/inline;
+	
+	$fw_error->(merge:#fw_qryErrors);
+	
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors'		= #fw_qryErrors;
+	self->'queryString' = #fw_qryActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQrySQL');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagSQL');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagSQL');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->getRecordUsingLock
+//
+//	Description:
+//
+//	Selects a record, and locks it if available. Replaces the previously
+//	separate tags of ->updatePrep and ->deletePrep as they were the same.
+//
+//............................................................................
+
+define_tag:'getRecordUsingLock',
+	-optional = 'select',
+	-optional = 'keyfld',
+	-optional = 'keyval',
+	-optional = 'wherePairs',
+	-optional = 'lockval',
+	-optional = 'lockname';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->getRecordUsingLock');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagGetWithLock');
+
+	local:
+		'fw_actnSelect'			= local:'select',
+		'fw_actnKeyFld'			= local:'keyfld',
+		'fw_actnKeyVal'			= local:'keyval',
+		'fw_actnWherePairs'		= local:'wherePairs',
+		'fw_actnPrevLock'		= local:'lockval',
+		'fw_actnLockName'		= local:'lockname',
+		'fw_actnQuiet'			= false,
+		'fw_actnMakeFieldsMap'	= false,
+		'fw_actnMakeVars'		= false;
+
+	(params >> '-quiet')
+		? #fw_actnQuiet = true;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-withMakeFieldsMap')
+		? #fw_actnMakeFieldsMap = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+	local:
+		'fw_qryErrors'			= array,
+		'fw_usrName'			= string,
+		'fw_actnLock'			= string,
+		'fw_lockDelta'			= string,
+		'fw_lockInfo'			= string,
+		'fw_getRcrdActn'		= string,
+		'fw_lockRcrdActn'		= string;
+
+//	for backwards compatibility when lockName was not available
+
+	!#fw_actnLockName
+		? #fw_actnLockName = '_legacyLock_';
+	
+	!#fw_actnSelect
+		? #fw_actnSelect = '*';
+	
+	#fw_actnSelect != '*'
+		? #fw_actnSelect = 'rcrdNo, rcrdLockID, rcrdLockTime, rcrdLockOwnr, ' + #fw_actnSelect;
+	
+	!#fw_actnKeyFld
+		? #fw_actnKeyFld = @((self->'fw_tableModel')->find:'keyfld');
+	
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName	 = (var:$fw_userVarName)->(getProfile:'userName');
+	else;
+		#fw_usrName  = 'Anonymous';
+	/if;
+
+	if: #fw_actnPrevLock;
+		#fw_actnLock = #fw_actnPrevLock;
+	else;
+		#fw_actnLock = (fwpStr_randomID:9);
+	/if;
+
+	$fw_logFWPInfo = '-getRecordUsingLock, r=' + #fw_actnKeyVal + ', k=' + #fw_actnLock;
+	
+//	............................................................................
+	
+//	make sure there`s a rcrdNo, or data gets messed up 
+//	return only the lock fields so we can also assess the record`s lock status 
+	
+	if: #fw_actnKeyVal || #fw_actnWherePairs;
+	
+//	open a connection for use throughout this tag
+	
+		inline:
+			-username 	= $fw_gQueryUser,
+			-password 	= $fw_gQueryPswd,
+			-database 	= (self->'fw_modelDb'),
+			-table		= (self->'fw_modelTbl');
+			
+			if: #fw_actnKeyVal;
+				#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+					-mapper = (self->'fw_tableModel'),
+					-select	 = #fw_actnSelect,
+					-keyfld  = #fw_actnKeyFld,
+					-keyval  = #fw_actnKeyVal);
+			else;
+				#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithWherePairs: 
+					-mapper 	= (self->'fw_tableModel'),
+					-select	 	= #fw_actnSelect,
+					-setpairs	= #fw_actnWherePairs);
+			/if;
+
+			$fw_timer->(start:'sqlQryGetWithLockGet');
+
+			#fw_getRcrdActn = self->(fw_convertToFieldNames:#fw_getRcrdActn);
+
+			inline:
+				-inlinename	= (self->'inlineName'),
+				-sql		= #fw_getRcrdActn;
+		
+				$fw_timer->(stop:'sqlQryGetWithLockGet');
+
+				if: found_count != 0;
+	
+//	convert field data to vars
+//	do this ahead of lock checking to allow the app the option 
+//	of displaying data even if it cannot display a form
+	
+					#fw_actnMakeFieldsMap
+						? self->(fw_makeFieldsMap: -fieldList = field_names);
+
+					#fw_actnMakeVars
+						? self->(fw_makeVars: -fieldList = field_names);
+	
+//	is the record available / unlocked? 
+//	if it is locked, does it happen to be the same lok ID as we started with?
+//	if is our ID then has the lock delay period expired?
+//	even though you would think we would test as though this is the first pass,
+//	if the field validation of the updtOK page fails, we`ll be back here
+//	so we have to test the lok ID and time  
+	
+					#fw_lockDelta=(Date_Difference: 
+						(date), 
+						(field:'rcrdLockTime'), 
+						-minute);
+
+					if: ( 
+						  !(field:'rcrdLockID')
+						  || (field:'rcrdLockID') && (#fw_lockDelta > $fw_rcrdLockDelay) 
+						) || (
+						  (field:'rcrdLockID') 
+						  && ((field:'rcrdLockID') == (local:'fw_actnLock')) 
+						  && (#fw_lockDelta < $fw_rcrdLockDelay)
+						);
+
+//	all is good (i.e. it is not locked, or we own the lock), so let`s lock this record for our use
+	
+						$fw_recordLockStore->(insert:
+							-name 	= #fw_actnLockName,
+							-db 	= (self->'fw_modelDb'),
+							-tbl 	= (self->'fw_modelTbl'),
+							-conn 	= (self->'fw_modelConn'),
+							-id 	= #fw_actnLock);
+
+						#fw_lockRcrdActn = (self->'fw_qryAdaptor')->(setRcrdLock:
+							-mapper 	= (self->'fw_tableModel'),
+							-userName	= #fw_usrName,
+							-lock 		= #fw_actnLock,
+							-keyfld 	= 'rcrdNo',
+							-keyval 	= field:'rcrdNo');
+		
+						$fw_timer->(start:'sqlQryGetWithLockSet');
+
+						#fw_lockRcrdActn = self->(fw_convertToFieldNames:#fw_lockRcrdActn);
+						
+						inline:
+							-sql=#fw_lockRcrdActn;
+		
+							$fw_timer->(stop:'sqlQryGetWithLockSet');
+
+							if: error_code == 0;
+	
+//	at this point we have a succesful lock and non-empty fw_lock
+//	we do nothing else
+	
+//	here are all the error trapping switches 
+	
+							else;
+								#fw_actnLock = string;
+								if: !(error_code == 0);
+									$fw_error->(insert:'5201'='fwp_recordData');
+									#fw_qryErrors->(insert:'5500' = ('(a) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+									$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+									$fw_debug && $fw_criticalLog ? log_critical:('pbError 5500 : (a) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl'));
+								else;
+									$fw_error->(insert:'5201'='fwp_recordData');
+									#fw_qryErrors->(insert: '5507' = ('Record could not be locked due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+									$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be locked due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+									$fw_debug && $fw_criticalLog ? log_critical:('pbError 5507 : Record could not be locked due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+								/if;
+							/if;
+						/inline;
+	
+//	if there is any error, we clear the lockID
+//	in order to respond with an empty reply as the custom tag output
+	
+					else;
+						#fw_actnLock = string;
+						#fw_qryErrors->(insert: '5111' = (#fw_usrName + '___' + (date_add: date:(field:'rcrdLockTime'), -minute=$fw_rcrdLockDelay)));
+					/if;
+		
+				else;
+					#fw_actnLock = string;
+					if: error_code == 0;
+						if: !#fw_actnQuiet && !(var:'fw_errQuiet5500');
+							$fw_error->(insert:'5201'='fwp_recordData');
+							#fw_qryErrors->(insert:'5500' = ('(b) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+							$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(b) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+							$fw_debug && $fw_criticalLog ? log_critical:('pbError 5500: (b) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl'));
+						/if;
+					else;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert: '5501' = ('Record could not be found with query {' + #fw_getRcrdActn + '} due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('5501 Record could not be found with query {' + #fw_getRcrdActn + '} due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+						$fw_debug && $fw_criticalLog ? log_critical:('pbError 5501 : Record could not be found with query {' + #fw_getRcrdActn + '} due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+					/if;
+				/if;
+			/inline;
+		/inline;
+	else;
+		#fw_actnLock = string;
+		$fw_error->(insert:'5201'='fwp_recordData');
+		#fw_qryErrors->(insert: '5501' = 'getRecordUsingLock keyval was empty');
+		$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'getRecordUsingLock keyval was empty');
+		$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : getRecordUsingLock keyval was empty');
+	/if;
+	
+//	if fw_actnLock is not empty, the lok was good, the app can present an update form
+//	if fw_actnLock is empty the app must not allow updating, but can at least still
+//	display the requested data
+	
+	self->'lock' = #fw_actnLock;
+
+	$fw_error->(merge:#fw_qryErrors);
+	
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+
+	self->'errors' 		= #fw_qryErrors;
+	self->'queryString' = #fw_getRcrdActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQryGetWithLockGet') + 
+						  $fw_timer->(eventTotal:'sqlQryGetWithLockSet');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagGetWithLock');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagGetWithLock');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->updateUsingLock
+//
+//	Description:
+//
+//	Updates a single record using the tableModel_ defined lock field and 
+//	supplied value as the key
+//
+//............................................................................
+
+define_tag:'updateUsingLock',
+	-optional='lockval',
+	-optional='lockname',
+	-optional='inputs',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->updateUsingLock',
+		-lockval = #lockval,
+		-inputs = #inputs);
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagUpdtWithLock');
+
+	local:
+		'fw_actnLockVal'			= local:'lockval',
+		'fw_actnInputs'				= local:'inputs',
+		'fw_actnCnfrmFlds'			= local:'confirmFields',
+		'fw_actnLockName'			= local:'lockname',
+		'fw_actnMakeVars'			= false,
+		'fw_actnWithoutValidate'	= false,
+		'fw_actnWithoutLog'			= false,
+		'fw_actnUseGet'				= false;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-withoutValidate')
+		? #fw_actnWithoutValidate = true;
+
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+	(params >> '-useGet')
+		? #fw_actnUseGet = true;
+
+//	for backwards compatibility when lockName was not available
+
+	!#fw_actnLockName
+		? #fw_actnLockName = '_legacyLock_';
+	
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	normalize the commas, but
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	#fw_actnInputs = (fwpCnfg_splitComma: #fw_actnInputs);
+	
+	local:
+		'fw_qryErrors'			= array,
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_lockDelta'			= string,
+		'fw_lokInfo'			= string,
+		'fw_getRcrdActn'		= string,
+		'fw_updtRcrdActn'		= string,
+		'fw_cnfrmFldsActn'		= string,
+		'fw_r'					= string;
+	
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = 'Anonymous';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-updateUsingLock, k=' + #fw_actnLockVal;
+	
+//	............................................................................
+
+//	field-specific data validation stuff is automated via the tableModel config specs
+
+	if(!#fw_actnUseGet);
+		!#fw_actnWithoutValidate
+			? (self->validateInputs: -inputs = #fw_actnInputs);
+	else;
+		!#fw_actnWithoutValidate
+			? (self->validateInputs: -inputs = #fw_actnInputs, -useGet);
+	/if;
+
+	if: !(self->'inputsAreInvalid');
+
+//	make sure there`s a rcrdNo, or data gets messed up 
+//	return only the lock fields so we can also assess the record`s lock status 
+
+		if: #fw_actnLockVal;
+
+//	open a connection for use throughout this tag
+	
+			inline:
+				-username 	= $fw_gQueryUser,
+				-password 	= $fw_gQueryPswd,
+				-database 	= (self->'fw_modelDb'),
+				-table		= (self->'fw_modelTbl');
+			
+//	construct the statement
+//	return only the lock fields so we can also assess the record`s lock status
+
+				#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+					-mapper = (self->'fw_tableModel'),
+					-select	 = 'rcrdNo, rcrdLockID, rcrdLockTime, rcrdLockOwnr',
+					-keyfld  = (self->'fw_modelLockFld'),
+					-keyval  = #fw_actnLockVal);
+		
+				$fw_timer->(start:'sqlQryUpdtWithLockGet');
+
+				($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_recordData->updateUsingLock : checkLock',
+					-fw_getRcrdActn = #fw_getRcrdActn);
+	
+				#fw_getRcrdActn = self->(fw_convertToFieldNames:#fw_getRcrdActn);
+				
+				inline: -sql = #fw_getRcrdActn;
+
+					$fw_timer->(stop:'sqlQryUpdtWithLockGet');
+					if: found_count != 0;
+
+//	snag the rcrdNo for the acquisition of the confirmation fields after the update
+//	the update uses the lockID for all actions
+//	but it is erased in the update action itself
+//	this is a security measure -- even if a cracker knows the recordID
+//	a record cannot be updated without a valid lock session 
+//	(assuming the attack runs through this code)
+//	we acquire the recordID only after we`re successfully find a lockID
+
+						#fw_r = (field:'rcrdNo');
+
+//	let`s verify that the record is locked (it`s supposed to be)
+//	and that the current session is the same one that locked the record.
+//	we also have to test that this update occurs before the alloted lockout time expires
+//	otherwise another user may have accessed the record for updating 
+
+						#fw_lockDelta=(Date_Difference: 
+							(date), 
+							(field:'rcrdLockTime'), 
+							-minute);
+	
+						if: ((field:'rcrdLockID') == #fw_actnLockVal) 
+							 &&
+							(integer:#fw_lockDelta < integer:$fw_rcrdLockDelay);
+
+//	all is good, let`s go ahead and update the record, but first
+
+//	create the UPDATE statement
+//	starting with the standard FrameWork fields and values for an update
+//	then adding the fields affected by the current form 
+
+							#fw_updtRcrdActn = (self->'fw_qryAdaptor')->(updateRcrdWithLock: 
+								-mapper 	= (self->'fw_tableModel'),
+								-inputs		= #fw_actnInputs,
+								-username 	= #fw_usrName,
+								-lock 		= #fw_actnLockVal);
+
+//	perform the database action 
+
+							$fw_timer->(start:'sqlQryUpdtWithLockSet');
+						
+							($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_recordData->updateUsingLock : updtAction',
+								-fw_updtRcrdActn = #fw_updtRcrdActn,
+								-fw_actnInputs = #fw_actnInputs);
+
+							#fw_updtRcrdActn = self->(fw_convertToFieldNames:#fw_updtRcrdActn);
+							
+							inline: -sql = #fw_updtRcrdActn;
+								
+								$fw_timer->(stop:'sqlQryUpdtWithLockSet');
+
+								if: $fw_gLogDb && !#fw_actnWithoutLog;
+									self->(fw_logAction: 
+										-usrName	= #fw_usrName,
+										-usrRcrd	= #fw_usrRcrd,
+										-rcrd		= local:'fw_r',
+										-action		= 'update',
+										-qryTime	= $fw_timer->(eventTotal:'sqlQryUpdtWithLockSet'));
+								/if;
+
+								if: !(error_code == 0);
+									$fw_error->(insert:'5201'='fwp_recordData');
+									#fw_qryErrors->(insert: '5502' = ('Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+									$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+									$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5502 : Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+								else;
+//	record lock is not deleted from the store unless there's no error
+//	this way if there is an error it is still possible to trap and clear the lock in a cleanup routine
+									$fw_recordLockStore->(delete:#fw_actnLockName);
+								/if;
+							/inline;	// end fw_updtRcrdActn qry
+
+//	With MySQL, only the keyfield is available after an add or update (which we already know in fw_r)
+//	To display record data such as for the fw_actnCnfrmFlds data in our response form below, we have to redo the search 
+
+							if: #fw_actnCnfrmFlds;
+	
+								#fw_cnfrmFldsActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+									-mapper = (self->'fw_tableModel'),
+									-select	 = #fw_actnCnfrmFlds,
+									-keyval  = #fw_r);
+
+//	perform the database action 
+
+								$fw_timer->(start:'sqlQryUpdtWithLockCnfrm');
+	
+								#fw_cnfrmFldsActn = self->(fw_convertToFieldNames:#fw_cnfrmFldsActn);
+								inline: 
+									-inlinename = (self->'inlineName'),
+									-sql = #fw_cnfrmFldsActn;
+	
+									$fw_timer->(stop:'sqlQryUpdtWithLockCnfrm');
+		
+									if: found_count != 0;
+	
+										#fw_actnMakeVars
+											? self->(fw_makevars: -fieldList = field_names);
+	
+									else;
+
+//	oh oh, we just updated a record but couldn`t find it
+//	is it because the record really isn`t there
+//	or did some other error occur
+
+										if: !(error_code == 0);
+											$fw_error->(insert:'5201'='fwp_recordData');
+											#fw_qryErrors->(insert:'5500' = ('(a1) Record number ' + #fw_actnLockVal + ' not found in table ' + (self->'fw_modelTbl')));
+											$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a1) Record number ' + #fw_actnLockVal + ' not found in table ' + (self->'fw_modelTbl')));
+											$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : (a1) Record number ' + #fw_actnLockVal + ' not found in table ' + (self->'fw_modelTbl'));
+										else;
+											$fw_error->(insert:'5201'='fwp_recordData');
+											#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+											$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+											$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+										/if;
+									/if;	// end found_count test
+								/inline;	// end fw_cnfrmFldsActn qry
+							/if;	// end fw_actnCnfrmFlds test
+	
+						else;
+						
+							#fw_qryErrors->(insert: '5112' = 
+								('Could not validate record lock with ' +
+								'lockID=' + (field:'rcrdLockID') + 
+								', delta=' + #fw_lockDelta + 
+								', delay=' + $fw_rcrdLockDelay + 
+								'\r'));
+						/if;	// end lock status test
+	
+					else;
+						if: error_code == 0;
+							#fw_qryErrors->(insert:'5113' = ('(a2) Record number ' + #fw_actnLockVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl')));
+							$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a2) Record number ' + #fw_actnLockVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl')));
+							$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5113 : (a2) Record number ' + #fw_actnLockVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl'));
+						else;
+							$fw_error->(insert:'5201'='fwp_recordData');
+							#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+							$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+							$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r');
+						/if;
+					/if;	// end get record via lock found_count test
+				/inline;	// end #fw_getRcrdActn qry
+			/inline;	// end connection
+		else;
+			$fw_error->(insert:'5201'='fwp_recordData');
+			#fw_qryErrors->(insert: '5501' = 'Lock value empty');
+			$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'Lock value empty');
+			$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Lock value empty');
+		/if;	// end lock value test
+
+	else;
+
+		(self->'error') = true;
+		$fw_formIsNotValid = true;
+
+	/if;	// end validation test
+
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors'		= #fw_qryErrors;
+	self->'queryString' = #fw_updtRcrdActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQryUpdtWithLockGet') + 
+						  $fw_timer->(eventTotal:'sqlQryUpdtWithLockSet') + 
+						  $fw_timer->(eventTotal:'sqlQryUpdtWithLockCnfrm');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagUpdtWithLock');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagUpdtWithLock');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->updateUsingKeyVal
+//
+//	Description:
+//
+//	Updates a single record based on any key field and value. While this 
+//	tag does not search for a record based on a lock, it will still honor
+//	an active lock if one exists and abandon the update.
+//
+//............................................................................
+
+define_tag:'updateUsingKeyVal',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='inputs',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->updateUsingKeyVal');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagUpdtWithKey');
+
+	local:
+		'fw_actnKeyFld'				= @local:'keyfld',
+		'fw_actnKeyVal'				= local:'keyval',
+		'fw_actnInputs'				= local:'inputs',
+		'fw_actnCnfrmFlds'			= local:'confirmFields',
+		'fw_actnMakeVars'			= false,
+		'fw_actnWithoutValidate'	= false,
+		'fw_actnWithoutLog'			= false;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-withoutValidate')
+		? #fw_actnWithoutValidate = true;
+
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	normalize the commas, but
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	if:	#fw_actnInputs && (#fw_actnInputs != '*');
+		#fw_actnInputs = (fwpCnfg_splitComma: #fw_actnInputs);
+	/if;
+	
+	local:
+		'fw_qryErrors'			= array,
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_lockDelta'			= string,
+		'fw_lokInfo'			= string,
+		'fw_getRcrdActn'		= string,
+		'fw_updtRcrdActn'		= string,
+		'fw_cnfrmFldsActn'		= string,
+		'fw_r'					= string;
+	
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = 'Anonymous';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-updateUsingKeyVal, kv=' + #fw_actnKeyVal;
+	
+//	............................................................................
+
+//	field-specific data validation stuff is automated via the tableModel config specs
+
+	!#fw_actnWithoutValidate
+		? (self->validateInputs: -inputs = #fw_actnInputs);
+
+	if: !(self->'inputsAreInvalid');
+
+//	make sure there`s a rcrdNo, or data gets messed up 
+//	return only the lock fields so we can also assess the record`s lock status 
+
+		if: #fw_actnKeyVal;
+	
+//	open a connection for use throughout this tag
+		
+			inline:
+				-username 	= $fw_gQueryUser,
+				-password 	= $fw_gQueryPswd,
+				-database 	= (self->'fw_modelDb'),
+				-table		= (self->'fw_modelTbl');
+				
+//	construct the statement
+//	return only the lock fields so we can also assess the record`s lock status
+	
+				#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+					-mapper = (self->'fw_tableModel'),
+					-select	 = 'rcrdNo, rcrdLockID, rcrdLockTime, rcrdLockOwnr',
+					-keyfld  = #fw_actnKeyFld,
+					-keyval  = #fw_actnKeyVal);
+		
+				$fw_timer->(start:'sqlQryUpdtWithKeyGet');
+	
+				#fw_getRcrdActn = self->(fw_convertToFieldNames:#fw_getRcrdActn);
+				
+				inline: -sql = #fw_getRcrdActn;
+					$fw_timer->(stop:'sqlQryUpdtWithKeyGet');
+					if: found_count != 0;
+	
+//	snag the rcrdNo for the acquisition of the confirmation fields after the update
+//	the update uses the lockID for all actions
+//	but it is erased in the update action itself
+//	this is a security measure -- even if a cracker knows the recordID
+//	a record cannot be updated without a valid lock session 
+//	(assuming the attack runs through this code)
+//	we acquire the recordID only after we`re successfully find a lockID
+	
+						#fw_r = (field:'rcrdNo');
+	
+//	let`s verify that the record is locked (it`s supposed to be)
+//	and that the current session is the same one that locked the record.
+//	we also have to test that this update occurs before the alloted lockout time expires
+//	otherwise another user may have accessed the record for updating 
+	
+						#fw_lockDelta=(Date_Difference: 
+							(date), 
+							(field:'rcrdLockTime'), 
+							-minute);
+	
+						if: !(field:'rcrdLockID')
+						    ||
+							(
+							  (field:'rcrdLockID') == #fw_actnKeyVal
+							  &&
+							  (integer:#fw_lockDelta < integer:$fw_rcrdLockDelay)
+							);
+	
+//	all is good, let`s go ahead and update the record, but first
+
+//	create the UPDATE statement
+//	starting with the standard FrameWork fields and values for an update
+//	then adding the fields affected by the current form 
+	
+							#fw_updtRcrdActn = (self->'fw_qryAdaptor')->(updateRcrdWithKeyFld: 
+								-mapper = (self->'fw_tableModel'),
+								-inputs		= #fw_actnInputs,
+								-username 	= #fw_usrName,
+								-keyfld 	= #fw_actnKeyFld,
+								-keyval 	= #fw_actnKeyVal);
+	
+//	perform the database action 
+	
+							$fw_timer->(start:'sqlQryUpdtWithKeySet');
+							
+							#fw_updtRcrdActn = self->(fw_convertToFieldNames:#fw_updtRcrdActn);
+
+							inline: -sql = #fw_updtRcrdActn;
+								$fw_timer->(stop:'sqlQryUpdtWithKeySet');
+	
+								if: $fw_gLogDb && !#fw_actnWithoutLog;
+									self->(fw_logAction: 
+										-usrName	= #fw_usrName,
+										-usrRcrd	= #fw_usrRcrd,
+										-rcrd		= local:'fw_r',
+										-action		= 'update',
+										-qryTime	= $fw_timer->(eventTotal:'sqlQryUpdtWithKeySet'));
+								/if;
+	
+//	verify that no lasso errors occured with the inline 
+	
+								if: !(error_code == 0);
+									$fw_error->(insert:'5201'='fwp_recordData');
+									#fw_qryErrors->(insert: '5502' = ('Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+									$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+									$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5502 : Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+								else;
+//	record lock is not deleted from the store unless there's no error
+//	this way if there is an error it is still possible to trap and clear the lock in a cleanup routine
+									$fw_recordLockStore->(delete:'#lockName');
+								/if;
+							/inline;
+	
+//	With MySQL, only the keyfield is available after an add or update (which we already know in fw_r)
+//	To display record data such as for the fw_actnCnfrmFlds data in our response form below, we have to redo the search 
+	
+							if: #fw_actnCnfrmFlds;
+	
+								#fw_cnfrmFldsActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+									-mapper = (self->'fw_tableModel'),
+									-select	 = #fw_actnCnfrmFlds,
+									-keyval  = #fw_r);
+	
+//	perform the database action 
+	
+								$fw_timer->(start:'sqlQryUpdtWithKeyCnfrm');
+	
+								#fw_cnfrmFldsActn = self->(fw_convertToFieldNames:#fw_cnfrmFldsActn);
+
+								inline: 
+									-inlinename = (self->'inlineName'),
+									-sql = #fw_cnfrmFldsActn;
+	
+									$fw_timer->(stop:'sqlQryUpdtWithKeyCnfrm');
+		
+									if: found_count != 0;
+										#fw_actnMakeVars
+											? self->(fw_makevars: -fieldList = field_names);
+									else;
+				
+//	oh oh, we just updated a record but couldn`t find it
+//	is it because the record really isn`t there
+//	or did some other error occur
+			
+										if: !(error_code == 0);
+											$fw_error->(insert:'5201'='fwp_recordData');
+											#fw_qryErrors->(insert:'5500' = ('(a1) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+											$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a1) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+											$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : (a1) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl'));
+										else;
+											$fw_error->(insert:'5201'='fwp_recordData');
+											#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+											$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+											$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+										/if;
+									/if;
+								/inline;
+							/if;
+		
+						else;
+							#fw_qryErrors->(insert: '5112' = 
+								('Could not validate record lock with ' +
+								'lockID=' + (field:'rcrdLockID') + 
+								', delta=' + #fw_lockDelta + 
+								', delay=' + $fw_rcrdLockDelay + 
+								'\r'));
+						/if;
+		
+					else;
+						if: error_code == 0;
+							$fw_error->(insert:'5201'='fwp_recordData');
+							#fw_qryErrors->(insert:'5500' = ('(a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl')));
+							$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl')));
+							$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : (a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl'));
+						else;
+							$fw_error->(insert:'5201'='fwp_recordData');
+							#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+							$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+							$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r');
+						/if;
+					/if;
+				/inline;
+			/inline;
+		else;
+			$fw_error->(insert:'5201'='fwp_recordData');
+			#fw_qryErrors->(insert: '5501' = 'Record number empty');
+			$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'Record number empty');
+			$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record number empty');
+		/if;
+	
+	else;
+
+		(self->'error') = true;
+		$fw_formIsNotValid = true;
+
+	/if;
+
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors'		= #fw_qryErrors;
+	self->'queryString' = #fw_updtRcrdActn;
+	self->'queryTime'	= $fw_timer->(stop:'sqlQryUpdtWithKeyGet') +
+						  $fw_timer->(stop:'sqlQryUpdtWithKeySet') +
+						  $fw_timer->(stop:'sqlQryUpdtWithKeyCnfrm');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagUpdtWithKey');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagUpdtWithKey');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->update
+//
+//	Description:
+//
+//	Updates a single record based on any key field and value. Lock fields
+//	are ignored, but they are not altered.
+//
+//............................................................................
+
+define_tag:'update',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='where',
+	-optional='inputs',
+	-optional='setpairs',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->update');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagUpdt');
+
+	local:
+		'fw_actnKeyFld'				= local:'keyfld',
+		'fw_actnKeyVal'				= local:'keyval',
+		'fw_actnWhere'				= local:'where',
+		'fw_actnInputs'				= local:'inputs',
+		'fw_actnPairs'				= local:'setpairs',
+		'fw_actnCnfrmFlds'			= local:'confirmFields',
+		'fw_actnMakeVars'			= false,
+		'fw_actnWithoutValidate'	= false,
+		'fw_actnWithoutDateStamp'	= false,
+		'fw_actnWithoutLog'			= false,
+		'fw_actnUseGet'				= false;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-withoutValidate')
+		? #fw_actnWithoutValidate = true;
+
+	(params >> '-withoutDateStamp')
+		? #fw_actnWithoutDateStamp = true;
+
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+	(params >> '-useGet')
+		? #fw_actnUseGet = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	normalize the commas, but
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	if:	#fw_actnInputs && (#fw_actnInputs != '*');
+		#fw_actnInputs = (fwpCnfg_splitComma: #fw_actnInputs);
+	/if;
+	
+	local:
+		'fw_qryErrors'			= array,
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_updtRcrdActn'		= string,
+		'fw_cnfrmFldsActn'		= string,
+		'fw_r'					= string;
+	
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = 'Anonymous';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-update, kv=' + #fw_actnKeyVal;
+	
+//	............................................................................
+
+//	field-specific data validation stuff is automated via the tableModel config specs
+//	compared to other update methods, we have to allow for no inputs in this one
+//	due to possibility of using -setpairs. (is possible to parse -setpairs though)
+
+	if(!#fw_actnUseGet);
+		!#fw_actnWithoutValidate && #fw_actnInputs
+			? (self->validateInputs: -inputs = #fw_actnInputs);
+	else;
+		!#fw_actnWithoutValidate && #fw_actnInputs
+			? (self->validateInputs: -inputs = #fw_actnInputs, -useGet);
+	/if;
+
+	if: !(self->'inputsAreInvalid');
+
+//	make sure there`s a rcrdNo, or data gets messed up 
+//	return only the lock fields so we can also assess the record`s lock status 
+
+		if: #fw_actnKeyVal;
+	
+//	open a connection for use throughout this tag
+		
+			inline:
+				-username 	= $fw_gQueryUser,
+				-password 	= $fw_gQueryPswd,
+				-database 	= (self->'fw_modelDb'),
+				-table		= (self->'fw_modelTbl');
+				
+//	create the UPDATE statement
+//	starting with the standard FrameWork fields and values for an update
+//	then adding the fields affected by the current form 
+	
+				#fw_actnWhere = self->(fw_buildSQLWhere: 
+					-inputs 	= #fw_actnInputs,
+					-where 		= #fw_actnWhere,
+					-keyfld		= #fw_actnKeyFld, 
+					-keyval		= #fw_actnKeyVal);
+
+				#fw_updtRcrdActn = (self->'fw_qryAdaptor')->(updateRcrdWithKeyFld: 
+					-ignorelock,
+					-withoutDateStamp 	= #fw_actnWithoutDateStamp,
+					-mapper 			= (self->'fw_tableModel'),
+					-inputs				= #fw_actnInputs,
+					-setpairs			= #fw_actnPairs,
+					-username 			= #fw_usrName,
+					-keyfld 			= #fw_actnKeyFld,
+					-keyval 			= #fw_actnKeyVal,
+					-where 				= #fw_actnWhere);
+	
+//	perform the database action 
+	
+				$fw_timer->(start:'sqlQryUpdtSet');
+				
+				#fw_updtRcrdActn = self->(fw_convertToFieldNames:#fw_updtRcrdActn);
+				
+				inline: -sql = #fw_updtRcrdActn;
+					
+					$fw_timer->(stop:'sqlQryUpdtSet');
+		
+					if: $fw_gLogDb && !#fw_actnWithoutLog;
+						self->(fw_logAction: 
+							-usrName	= #fw_usrName,
+							-usrRcrd	= #fw_usrRcrd,
+							-rcrd		= local:'fw_r',
+							-action		= 'update',
+							-qryTime	= $fw_timer->(eventTotal:'sqlQryUpdtSet'));
+					/if;
+	
+//	verify that no lasso errors occured with the inline 
+	
+					if: !(error_code == 0);
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert: '5502' = ('Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5502 : Record could not be updated due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+					/if;
+				/inline;
+	
+//	With MySQL, only the keyfield is available after an add or update (which we already know in fw_r)
+//	To display record data such as for the fw_actnCnfrmFlds data in our response form below, we have to redo the search 
+	
+				if: #fw_actnCnfrmFlds;
+	
+					#fw_cnfrmFldsActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+						-mapper = (self->'fw_tableModel'),
+						-select	 = #fw_actnCnfrmFlds,
+						-keyval  = #fw_r);
+	
+//	perform the database action 
+	
+					$fw_timer->(start:'sqlQryUpdtCnfrm');
+
+					#fw_cnfrmFldsActn = self->(fw_convertToFieldNames:#fw_cnfrmFldsActn);
+					
+					inline: 
+						-inlinename = (self->'inlineName'),
+						-sql = #fw_cnfrmFldsActn;
+	
+						$fw_timer->(stop:'sqlQryUpdtCnfrm');
+	
+						if: found_count != 0;
+	
+							#fw_actnMakeVars
+								? self->(fw_makevars: -fieldList = field_names);
+	
+						else;
+	
+//	oh oh, we just updated a record but couldn`t find it
+//	is it because the record really isn`t there
+//	or did some other error occur
+	
+							if: !(error_code == 0);
+								$fw_error->(insert:'5201'='fwp_recordData');
+								#fw_qryErrors->(insert:'5500' = ('(a1) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+								$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a1) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+								$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : (a1) Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl'));
+							else;
+								$fw_error->(insert:'5201'='fwp_recordData');
+								#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+								$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+								$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+							/if;
+						/if;
+					/inline;
+				/if;
+			/inline;
+		else;
+			$fw_error->(insert:'5201'='fwp_recordData');
+			#fw_qryErrors->(insert: '5501' = 'Record number empty');
+			$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'Record number empty');
+			$fw_debug && $fw_criticalLog ? log_critical: ('pbError 0000 : Record number empty');
+		/if;
+		
+	else;
+		(self->'error') = true;
+		$fw_formIsNotValid = true;
+	/if;
+
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors' 		= #fw_qryErrors;
+	self->'queryString' = #fw_updtRcrdActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQryUpdtSet') +
+						  $fw_timer->(eventTotal:'sqlQryUpdtCnfrm');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagUpdt');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagUpdt');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->deleteUsingLock
+//
+//	Description:
+//
+//	Deletes a single record using the tableModel_ defined lock field and 
+//	supplied value as the key
+//
+//............................................................................
+
+define_tag:'deleteUsingLock',
+	-optional='lockval',
+	-optional='lockname',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->deleteUsingLock');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagDelWithLock');
+
+	local:
+		'fw_actnLockVal'	= local:'lockval',
+		'fw_actnLockName'	= local:'lockname',
+		'fw_actnCnfrmFlds'	= local:'confirmFields',
+		'fw_actnMakeVars'	= false,
+		'fw_actnWithoutLog'	= false;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+//	for backwards compatibility when lockName was not available
+
+	!#fw_actnLockName
+		? #fw_actnLockName = '_legacyLock_';
+	
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	normalize the commas, but
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	local:
+		'fw_qryErrors'			= array,
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_lockDelta'			= string,
+		'fw_lokInfo'			= string,
+		'fw_getSelectFields'	= string,
+		'fw_getRcrdActn'		= string,
+		'fw_delRcrdActn'		= string,
+		'fw_r'					= string;
+	
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = 'Anonymous';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-deleteUsingLock, k=' + #fw_actnLockVal;
+	
+//	............................................................................
+
+//	field-specific data validation stuff is automated via the tableModel config specs
+
+	if: #fw_actnLockVal;
+
+//	open a connection for use throughout this tag
+
+		inline:
+			-username 	= $fw_gQueryUser,
+			-password 	= $fw_gQueryPswd,
+			-database 	= (self->'fw_modelDb'),
+			-table		= (self->'fw_modelTbl');
+		
+//	construct the statement
+//	return only the lock fields so we can also assess the record`s lock status
+
+			#fw_getSelectFields = 'rcrdNo, rcrdLockID, rcrdLockTime, rcrdLockOwnr';
+
+			if: #fw_actnCnfrmFlds;
+				 #fw_getSelectFields += ', ';
+				 #fw_getSelectFields += #fw_actnCnfrmFlds;
+			/if;
+
+			#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+				-mapper = (self->'fw_tableModel'),
+				-select	 = #fw_getSelectFields,
+				-keyfld  = (self->'fw_modelLockFld'),
+				-keyval  = #fw_actnLockVal);
+	
+			$fw_timer->(start:'sqlQryDelWithLockGet');
+
+			#fw_getRcrdActn = self->(fw_convertToFieldNames:#fw_getRcrdActn);
+			
+			inline: 
+				-inlinename = (self->'inlineName'),
+				-sql = #fw_getRcrdActn;
+	
+				$fw_timer->(stop:'sqlQryDelWithLockGet');
+
+				if: found_count != 0;
+
+//	snag the record number for logging
+
+					#fw_r = (field:'rcrdNo');
+
+//	convert field data to vars to display
+
+					#fw_actnMakeVars
+						? self->(fw_makevars: -fieldList = field_names);
+
+//	let`s verify that the record is locked (it`s supposed to be)
+//	and that the current session is the same one that locked the record.
+//	we also have to test that this update occurs before the alloted lockout time expires
+//	otherwise another user may have accessed the record for updating 
+
+					#fw_lockDelta=(Date_Difference: 
+						(date), 
+						(field:'rcrdLockTime'), 
+						-minute);
+
+					if: ((field:'rcrdLockID') == #fw_actnLockVal) 
+						 &&
+						(integer:#fw_lockDelta < integer:$fw_rcrdLockDelay);
+
+//	all is good, let`s go ahead and delete the record, but first
+
+//	create the UPDATE statement
+//	starting with the standard FrameWork fields and values for an update
+//	then adding the fields affected by the current form 
+
+						#fw_delRcrdActn = (self->'fw_qryAdaptor')->(deleteRcrdWithLock: 
+							-mapper 	= (self->'fw_tableModel'),
+							-lock 		= #fw_actnLockVal);
+
+//	perform the database action 
+
+						$fw_timer->(start:'sqlQryDelWithLockSet');
+						
+						#fw_delRcrdActn = self->(fw_convertToFieldNames:#fw_delRcrdActn);
+						
+						inline: -sql = #fw_delRcrdActn;
+							
+							$fw_timer->(stop:'sqlQryDelWithLockSet');
+
+							if: error_code == 0;
+
+//	record lock is not deleted from the store unless there's no error
+//	this way if there is an error it is still possible to trap and clear the lock in a cleanup routine
+
+								$fw_recordLockStore->(delete:#fw_actnLockName);
+
+								if: $fw_gLogDb && !#fw_actnWithoutLog;
+									self->(fw_logAction: 
+										-usrName	= #fw_usrName,
+										-usrRcrd	= #fw_usrRcrd,
+										-rcrd		= local:'fw_r',
+										-action		= 'delete',
+										-qryTime	= $fw_timer->(eventTotal:'sqlQryDelWithLockSet'));
+								/if;
+
+//	verify that no lasso errors occured with the inline 
+
+							else: !(error_code == 0);
+								$fw_error->(insert:'5201'='fwp_recordData');
+								#fw_qryErrors->(insert: '5504' = ('Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+								$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+								$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5504 : Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+							/if;
+						/inline;
+
+					else;
+						#fw_qryErrors->(insert: '5112' = 
+							('Could not validate record lock with ' +
+							'lockID=' + (field:'rcrdLockID') + 
+							', delta=' + #fw_lockDelta + 
+							', delay=' + $fw_rcrdLockDelay + 
+							'\r'));
+					/if;
+	
+				else;
+					if: error_code == 0;
+						#fw_qryErrors->(insert:'5113' = ('(a2) Record number ' + #fw_actnLockVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl')));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a2) Record number ' + #fw_actnLockVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl')));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5113 : (a2) Record number ' + #fw_actnLockVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl'));
+					else;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r');
+					/if;
+				/if;
+			/inline;
+		/inline;
+	else;
+		$fw_error->(insert:'5201'='fwp_recordData');
+		#fw_qryErrors->(insert: '5501' = 'Record number empty');
+		$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'Record number empty');
+		$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record number empty');
+	/if;
+	
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors' 		= #fw_qryErrors;
+	self->'queryString' = #fw_delRcrdActn;
+	self->'queryTime'	= $fw_timer->(stop:'sqlQryDelWithLockGet') + $fw_timer->(stop:'sqlQryDelWithLockSet');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagDelWithLock');
+	$fw_debugTimers ? (self->'tagTime') = $fw_timer->(eventTotal:'sqlTagDelWithLock');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->deleteUsingKeyVal
+//
+//	Description:
+//
+//	Deletes a single record based on any key field and value. While this 
+//	tag does not search for a record based on a lock, it will still honor
+//	an active lock if one exists and abandon the delete.
+//
+//............................................................................
+
+define_tag:'deleteUsingKeyVal',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->deleteUsingKeyVal');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagDelWithKey');
+
+	local:
+		'fw_actnKeyFld'		= @local:'keyfld',
+		'fw_actnKeyVal'		= local:'keyval',
+		'fw_actnCnfrmFlds'	= local:'confirmFields',
+		'fw_actnMakeVars'	= false,
+		'fw_actnWithoutLog'	= false;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	normalize the commas, but
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	if:	!#fw_actnKeyFld;
+		#fw_actnKeyFld = (self->'fw_modelKeyFld');
+	/if;
+	
+	local:
+		'fw_qryErrors'			= array,
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_lockDelta'			= string,
+		'fw_lokInfo'			= string,
+		'fw_getSelectFields'	= string,
+		'fw_getRcrdActn'		= string,
+		'fw_delRcrdActn'		= string,
+		'fw_r'					= string;
+	
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = 'Anonymous';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-deleteUsingKeyVal, kv=' + #fw_actnKeyVal;
+	
+//	............................................................................
+
+//	make sure there`s a rcrdNo, or data gets messed up 
+//	return only the lock fields so we can also assess the record`s lock status 
+
+	if: #fw_actnKeyVal;
+
+//	open a connection for use throughout this tag
+	
+		inline:
+			-username 	= $fw_gQueryUser,
+			-password 	= $fw_gQueryPswd,
+			-database 	= (self->'fw_modelDb'),
+			-table		= (self->'fw_modelTbl');
+			
+//	construct the statement
+//	return only the lock fields so we can also assess the record`s lock status
+
+			#fw_getSelectFields = 'rcrdNo, rcrdLockID, rcrdLockTime, rcrdLockOwnr';
+
+			if: #fw_actnCnfrmFlds;
+				 #fw_getSelectFields += ', ';
+				 #fw_getSelectFields += #fw_actnCnfrmFlds;
+			/if;
+
+			#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+				-mapper = (self->'fw_tableModel'),
+				-select	 = #fw_getSelectFields,
+				-keyfld  = #fw_actnKeyFld,
+				-keyval  = #fw_actnKeyVal);
+	
+			$fw_timer->(start:'sqlQryDelWithKeyGet');
+
+			#fw_getRcrdActn = self->(fw_convertToFieldNames:#fw_getRcrdActn);
+			
+			inline: 
+				-inlinename = (self->'inlineName'),
+				-sql = #fw_getRcrdActn;
+		
+				$fw_timer->(stop:'sqlQryDelWithKeyGet');
+
+				if: found_count != 0;
+
+//	snag the record number for logging
+
+					#fw_r = (field:'rcrdNo');
+
+//	convert field data to vars to display
+
+					#fw_actnMakeVars
+						? self->(fw_makevars: -fieldList = field_names);
+
+//	let`s check if the record is locked (it might be)
+
+					#fw_lockDelta=(Date_Difference: 
+						(date), 
+						(field:'rcrdLockTime'), 
+						-minute);
+
+					if: !(field:'rcrdLockID')
+						||
+						(
+						  (field:'rcrdLockID') == #fw_actnKeyVal
+						  &&
+						  (integer:#fw_lockDelta < integer:$fw_rcrdLockDelay)
+						);
+
+//	all is good (not locked or lock is expired)
+//	let`s go ahead and delete the record, 
+
+						#fw_delRcrdActn = (self->'fw_qryAdaptor')->(deleteRcrdWithKeyFld: 
+							-mapper 	= (self->'fw_tableModel'),
+							-keyfld		= #fw_actnKeyFld,
+							-keyval 	= #fw_actnKeyVal);
+
+//	perform the database action 
+
+						$fw_timer->(start:'sqlQryDelWithKeySet');
+						
+						#fw_delRcrdActn = self->(fw_convertToFieldNames:#fw_delRcrdActn);
+						
+						inline: -sql = #fw_delRcrdActn;
+							
+							$fw_timer->(stop:'sqlQryDelWithKeySet');
+
+							if: error_code == 0;
+
+								if: $fw_gLogDb && !#fw_actnWithoutLog;
+									self->(fw_logAction: 
+										-usrName	= #fw_usrName,
+										-usrRcrd	= #fw_usrRcrd,
+										-rcrd		= local:'fw_r',
+										-action		= 'delete',
+										-qryTime	= $fw_timer->(eventTotal:'sqlQryDelWithKeyGet'));
+								/if;
+
+//	verify that no lasso errors occured with the inline 
+
+							else: !(error_code == 0);
+								$fw_error->(insert:'5201'='fwp_recordData');
+								#fw_qryErrors->(insert: '5504' = ('Record could not be deleted due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+								$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be deleted due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+								$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5504 : Record could not be deleted due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+							/if;
+						/inline;
+
+					else;
+						#fw_qryErrors->(insert: '5112' = 
+							('Could not validate record lock with ' +
+							'lockID=' + (field:'rcrdLockID') + 
+							', delta=' + #fw_lockDelta + 
+							', delay=' + $fw_rcrdLockDelay + 
+							'\r'));
+					/if;
+	
+				else;
+					if: error_code == 0;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert:'5500' = ('(a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl')));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl')));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : (a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + (self->'fw_modelLockFld') + ' of table ' + (self->'fw_modelTbl'));
+					else;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r');
+					/if;
+				/if;
+			/inline;
+		/inline;
+	else;
+		$fw_error->(insert:'5201'='fwp_recordData');
+		#fw_qryErrors->(insert: '5501' = 'Record number empty');
+		$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'Record number empty');
+		$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record number empty');
+	/if;
+
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors'		= #fw_qryErrors;
+	self->'queryString' = #fw_delRcrdActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQryDelWithKeyGet') +
+						  $fw_timer->(eventTotal:'sqlQryDelWithKeySet');
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagDelWithKey');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagDelWithKey');
+
+/define_tag;
+
+
+
+
+//============================================================================
+//
+//	->delete
+//
+//	Description:
+//
+//	Deletes a single record based on any key field and value. Lock fields
+//	are ignored.
+//
+//............................................................................
+
+define_tag:'delete',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='where',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->delete');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagDel');
+
+	local:
+		'fw_actnKeyFld'		= @local:'keyfld',
+		'fw_actnKeyVal'		= local:'keyval',
+		'fw_actnWhere'		= local:'where',
+		'fw_actnCnfrmFlds'	= local:'confirmFields',
+		'fw_actnMakeVars'	= false,
+		'fw_actnWithoutLog'	= false;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	normalize the commas, but
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	if:	!#fw_actnKeyFld;
+		#fw_actnKeyFld = (self->'fw_modelKeyFld');
+	/if;
+	
+	local:
+		'fw_qryErrors'			= array,
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_lockDelta'			= string,
+		'fw_lokInfo'			= string,
+		'fw_getSelectFields'	= string,
+		'fw_getRcrdActn'		= string,
+		'fw_delRcrdActn'		= string,
+		'fw_r'					= string;
+	
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = 'Anonymous';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-deleteAtWill, kv=' + #fw_actnKeyVal;
+	
+//	............................................................................
+
+//	make sure there`s a rcrdNo, or data gets messed up 
+//	return only the lock fields so we can also assess the record`s lock status 
+
+	if: #fw_actnKeyVal;
+
+//	open a connection for use throughout this tag
+	
+		inline:
+			-username 	= $fw_gQueryUser,
+			-password 	= $fw_gQueryPswd,
+			-database 	= (self->'fw_modelDb'),
+			-table		= (self->'fw_modelTbl');
+			
+//	construct the statement
+//	return only the key field so we can log it
+
+			#fw_getSelectFields = 'rcrdNo';
+
+			if: #fw_actnCnfrmFlds;
+				 #fw_getSelectFields += ', ';
+				 #fw_getSelectFields += #fw_actnCnfrmFlds;
+			/if;
+
+			#fw_actnWhere = self->(fw_buildSQLWhere: 
+				-where 		= #fw_actnWhere,
+				-keyfld		= #fw_actnKeyFld, 
+				-keyval		= #fw_actnKeyVal);
+
+			#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+				-mapper = (self->'fw_tableModel'),
+				-select	 = #fw_getSelectFields,
+				-keyfld  = #fw_actnKeyFld,
+				-keyval  = #fw_actnKeyVal);
+	
+			$fw_timer->(start:'sqlQryDelGet');
+
+			#fw_getRcrdActn = self->(fw_convertToFieldNames:#fw_getRcrdActn);
+			
+			inline: 
+				-inlinename = (self->'inlineName'),
+				-sql = #fw_getRcrdActn;
+		
+				$fw_timer->(stop:'sqlQryDelGet');
+
+				if: found_count != 0;
+
+//	snag the record number for logging
+
+					#fw_r = (field:'rcrdNo');
+
+//	convert field data to vars to display
+
+					#fw_actnMakeVars
+						? self->(fw_makevars: -fieldList = field_names);
+
+					#fw_delRcrdActn = (self->'fw_qryAdaptor')->(deleteRcrdWithKeyFld: 
+						-mapper = (self->'fw_tableModel'),
+						-keyfld		= #fw_actnKeyFld,
+						-keyval 	= #fw_actnKeyVal);
+
+//	perform the database action 
+
+					$fw_timer->(start:'sqlQryDelSet');
+					
+					#fw_delRcrdActn = self->(fw_convertToFieldNames:#fw_delRcrdActn);
+					
+					inline: -sql = #fw_delRcrdActn;
+						
+						$fw_timer->(stop:'sqlQryDelSet');
+
+						if: error_code == 0;
+
+							if: $fw_gLogDb && !#fw_actnWithoutLog;
+								self->(fw_logAction: 
+									-usrName	= #fw_usrName,
+									-usrRcrd	= #fw_usrRcrd,
+									-rcrd		= local:'fw_r',
+									-action		= 'delete',
+									-qryTime	= $fw_timer->(eventTotal:'sqlQryDelSet'));
+							/if;
+
+//	verify that no lasso errors occured with the inline 
+
+						else: !(error_code == 0);
+							$fw_error->(insert:'5201'='fwp_recordData');
+							#fw_qryErrors->(insert: '5504' = ('Record could not be deleted due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+							$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be deleted due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+							$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5504 : Record could not be deleted due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+						/if;
+					/inline;
+
+				else;
+					if: error_code == 0;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert:'5500' = ('(a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl')));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl')));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : (a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl'));
+					else;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r');
+					/if;
+				/if;
+			/inline;
+		/inline;	
+	else;
+		$fw_error->(insert:'5201'='fwp_recordData');
+		#fw_qryErrors->(insert: '5501' = 'Record number empty');
+		$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'Record number empty');
+		$fw_debug && $fw_criticalLog ? log_critical: ('pbError 0000 : Record number empty');
+	/if;
+	
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors'		= #fw_qryErrors;
+	self->'queryString' = #fw_delRcrdActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQryDelGet') +
+						  $fw_timer->(eventTotal:'sqlQryDelSet');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagDel');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagDel');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->select
+//
+//	Description:
+//
+//	Selects records with multiple selection automation options
+//
+//............................................................................
+
+define_tag:'select', 
+	-optional='inputs',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='select',
+	-optional='from',
+	-optional='where',
+	-optional='groupby',
+	-optional='orderby',
+	-optional='sort',
+	-optional='skip',
+	-optional='limit';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->select');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagSelect');
+
+	(self->'queryParams')	= params;
+
+	local:
+		'fw_actnInputs'				=  local:'inputs',
+		'fw_actnKeyFld'				= @local:'keyfld',
+		'fw_actnKeyVal'				=  local:'keyval',
+		'fw_actnSelect'				=  local:'select',
+		'fw_actnFrom'				= @local:'from',
+		'fw_actnWhere'				=  local:'where',
+		'fw_actnGroupby'			= @local:'groupby',
+		'fw_actnOrderby'			= @local:'orderby',
+		'fw_actnSort'				= @local:'sort',
+		'fw_actnSkip'				= @local:'skip',
+		'fw_actnLimit'				=  local:'limit',
+		'fw_actnQuiet'				= false,
+		'fw_actnFoundCount'			= false,
+		'fw_actnMakeVars'			= false,
+		'fw_actnMakeFieldsMap'		= false,
+		'fw_actnRcrdsArray'			= false,
+		'fw_actnRcrdsMapsFields'	= false,
+		'fw_actnRecordsMaps'		= false;
+
+	(params >> '-quiet')
+		? #fw_actnQuiet = true;
+
+	(params >> '-withFoundCount')
+		? #fw_actnFoundCount = true;
+
+	(params >> '-withMakeVars')
+		? #fw_actnMakeVars = true;
+
+	(params >> '-withMakeFieldsMap')
+		? #fw_actnMakeFieldsMap = true;
+
+	(params >> '-asRecordsArrays') || (params >> '-withRecordsArrays')
+		? #fw_actnRcrdsArray = true;
+
+	(params >> '-asRecordsMaps') || (params >> '-withRecordsMaps')
+		? #fw_actnRecordsMaps = true;
+
+	(params >> '-asRecordsMapsFields') || (params >> '-withRecordsMapsFields')
+		? #fw_actnRcrdsMapsFields = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	normalize comma list and split it 
+
+	if:	#fw_actnInputs;
+		#fw_actnInputs = (fwpCnfg_splitComma:#fw_actnInputs);
+	/if;
+
+	local:
+		'fw_sqlGroupBy'			= string,
+		'fw_sqlOrderBy'			= string,
+		'fw_sqlLimit'			= string,
+		'fw_sqlActn'			= string,
+		'fw_countActn'			= string,
+		'fw_thisItem'			= string,
+		'fw_indx'				= 0,
+		'fw_qryErrors'			= array;
+
+	$fw_logFWPInfo = '-select';
+
+//	............................................................................
+
+//	if an FWPro list sort string was passed, parse it
+//	a primary sort and 2 levels of sub sorts are supported
+//	::ToDo:: should rewrite this to be unlimited
+
+	local:
+		'fw_sortFld'		= string,
+		'fw_sortOrdr'		= string,
+		'fw_sortDesc'		= string,
+		'fw_sortsub1Fld'	= string,
+		'fw_sortsub1Ordr'	= string,
+		'fw_sortsub1Desc'	= string,
+		'fw_sortsub2Fld'	= string,
+		'fw_sortsub2Ordr'	= string,
+		'fw_sortsub2Desc'	= string;
+		
+	if: #fw_actnSort;
+		#fw_sortFld		= (#fw_actnSort->split:'```')->get:1;
+		#fw_sortOrdr	= (#fw_actnSort->split:'```')->get:2;
+		#fw_sortDesc	= (#fw_actnSort->split:'```')->get:3;
+
+		if: (#fw_actnSort->split:'```')->size > 3;
+			#fw_sortsub1Fld		= (#fw_actnSort->split:'```')->get:4;
+			#fw_sortsub1Ordr	= (#fw_actnSort->split:'```')->get:5;
+			#fw_sortsub1Desc	= (#fw_actnSort->split:'```')->get:6;
+		/if;
+
+		if: (#fw_actnSort->split:'```')->size > 6;
+			#fw_sortsub1Fld		= (#fw_actnSort->split:'```')->get:7;
+			#fw_sortsub1Ordr	= (#fw_actnSort->split:'```')->get:8;
+			#fw_sortsub1Desc	= (#fw_actnSort->split:'```')->get:9;
+		/if;
+
+//	modify the default sort definition if needed
+//	if we`re coming back here from one of the list sort buttons
+//	then there will already be a #sort from that form
+
+		if: ((var:'fw_sortInvert') == 'Y') && (#fw_sortOrdr == 'asc');
+			#fw_sortOrdr = 'desc';
+			#fw_actnSort = #fw_sortFld + '```' + #fw_sortOrdr + '```' + #fw_sortDesc;
+		else: ((var:'fw_sortInvert') == 'Y') && (#fw_sortOrdr == 'desc');
+			#fw_sortOrdr = 'asc';
+			#fw_actnSort = #fw_sortFld + '```' + #fw_sortOrdr + '```' + #fw_sortDesc;
+		/if;
+	/if;
+
+//	............................................................................
+
+
+//	set some basic defaults if certain parameters are not defined
+
+	!#fw_actnSelect
+		? #fw_actnSelect = '*';
+
+	!#fw_actnKeyFld
+		? #fw_actnKeyFld = ((self->'fw_tableModel')->find:'keyfld');
+
+	!#fw_actnKeyVal
+		? #fw_actnKeyVal = '%';
+
+	!#fw_actnSort
+		? #fw_actnSort = string;
+
+	if: #fw_actnLimit >> ',';
+		#fw_actnSkip 	= (#fw_actnLimit->(split:','))->get:1;
+		#fw_actnLimit 	= (#fw_actnLimit->(split:','))->get:2;
+	/if;
+
+	if: !#fw_actnLimit;
+		#fw_actnLimit = $fw_listRcrdsMax;
+	else: #fw_actnLimit == '*'; 
+		#fw_actnLimit = 0;
+	else;
+		#fw_actnLimit = integer:#fw_actnLimit;
+	/if;
+
+	!#fw_actnSkip
+		? #fw_actnSkip = 0;
+
+
+//	---------------------------------------------------------------------------
+//	build a FROM clause
+
+	!#fw_actnFrom
+		? #fw_actnFrom = (self->'fw_qryAdaptor')->(dbDotTable: -mapper=(self->'fw_tableModel'));
+
+//	---------------------------------------------------------------------------
+//	build a WHERE clause
+
+	#fw_actnWhere = self->(fw_buildSQLWhere: 
+		-inputs 	= #fw_actnInputs,
+		-where 		= #fw_actnWhere,
+		-keyfld		= #fw_actnKeyFld, 
+		-keyval		= #fw_actnKeyVal);
+
+//	---------------------------------------------------------------------------
+//	build a GROUP BY clause
+
+//	fw_actnGroupBy means a hand coded statement was submitted
+//	to group result on a selected field
+
+	if: #fw_actnGroupby;
+		#fw_sqlGroupBy = (self->'fw_qryAdaptor')->(groupBy:
+			-clause = #fw_actnGroupby);
+	else;
+		#fw_sqlGroupBy = string;
+	/if;
+
+
+//	---------------------------------------------------------------------------
+//	build an ORDER BY clause
+
+//	fw_actnOrderBy means a hand coded statement was submitted
+//	fw_actnSort means a PageBlocks list sort string was submitted
+
+	if: #fw_actnOrderby;
+		#fw_sqlOrderBy = (self->'fw_qryAdaptor')->(orderBy:
+			-clause = #fw_actnOrderby);
+	else: #fw_actnSort;
+		#fw_sqlOrderBy = (self->'fw_qryAdaptor')->(orderBy:
+			-sortFld 	= #fw_sortFld,
+			-sortOrdr 	= #fw_sortOrdr,
+			-sub1Fld	= #fw_sortsub1Fld,
+			-sub1Ordr	= #fw_sortsub1Ordr,
+			-sub2Fld	= #fw_sortsub2Fld,
+			-sub2Ordr	= #fw_sortsub2Ordr);
+	else;
+		#fw_sqlOrderBy = string;
+	/if;
+
+//	---------------------------------------------------------------------------
+//	build a LIMIT clause
+
+	if: #fw_actnSkip || #fw_actnLimit;
+		#fw_sqlLimit = (self->'fw_qryAdaptor')->(limit:
+			-skip = #fw_actnSkip,
+			-limit = #fw_actnLimit);
+	/if;
+
+//	---------------------------------------------------------------------------
+//	build the SQL statement
+//	note for future version: need to add error detection to ensure all required vars are defined
+//	right now it defaults to SQL generating an error, but it would be better to tell the developer 
+//	a specific var is not defined
+//	we build a var so the entire statement is easy to print out for debugging when needed
+
+	#fw_sqlActn = (self->'fw_qryAdaptor')->(select:
+		-mapper 	= (self->'fw_tableModel'),
+		-select	 = #fw_actnSelect,
+		-from	 = #fw_actnFrom,
+		-where	 = #fw_actnWhere,
+		-groupby = #fw_sqlGroupBy,
+		-orderby = #fw_sqlOrderBy,
+		-limit	 = #fw_sqlLimit);
+
+//	open a connection to use across both queries 
+
+	inline: 
+		-username = $fw_gQueryUser,
+		-password = $fw_gQueryPswd,
+		-database = (self->'fw_modelDb'),
+		-table    = (self->'fw_modelTbl');
+
+//	build an alternate sql statement in order to get the total count of matching records
+//	we ignore errors, because they`ll just happen again in the real select statement
+
+		if: #fw_actnFoundCount;
+	
+			#fw_countActn = (self->'fw_qryAdaptor')->(selectCount:
+				-mapper = (self->'fw_tableModel'),
+				-from	 = #fw_actnFrom,
+				-where	 = #fw_actnWhere,
+				-groupby = #fw_sqlGroupBy);
+	
+			$fw_timer->(start:'sqlQrySelectCount');
+	
+			#fw_countActn = self->(fw_convertToFieldNames:#fw_countActn);
+			
+			inline: 
+				-maxrecords = 'all',
+				-sql = #fw_countActn;
+
+				$fw_timer->(stop:'sqlQrySelectCount');
+				records;
+					(self->'foundCount') = field:'foundCount';
+				/records;
+			/inline;
+		/if;
+
+//	perform the main database select
+//	and store as a named inline
+
+		$fw_timer->(start:'sqlQrySelect');
+	
+		#fw_sqlActn = self->(fw_convertToFieldNames:#fw_sqlActn);
+		
+		inline: 
+			-inlinename = (self->'inlineName'),
+			-maxrecords = 'all',
+			-sql = #fw_sqlActn;
+	
+			$fw_timer->(stop:'sqlQrySelect');
+
+			#fw_actnRcrdsArray
+				? (self->'records') = @records_array;
+
+			#fw_actnRcrdsMapsFields
+				? self->(fw_withRcrdsMaps:
+					-fields = field_names,
+					-records = @records_array);
+	
+			#fw_actnRecordsMaps
+				? self->(fw_withRecordsMaps:
+					-fields = field_names,
+					-records = @records_array);
+	
+			if: !(self->'foundCount');
+				(self->'foundCount') = found_count;
+			/if;
+	
+			if: (self->'foundCount');
+				(self->'firstRecord')	= (integer:(local:'fw_actnSkip')) + 1;
+				(self->'lastRecord')	= (integer:(local:'fw_actnSkip')) + found_count;
+			else;
+				(self->'firstRecord')	= 0;
+				(self->'lastRecord')	= 0;
+			/if;
+
+//	backwards compatibility
+			(self->'showFirst') = @(self->'firstRecord');
+			(self->'showLast') = @(self->'lastRecord');
+
+// calc pages
+			if: #fw_actnFoundCount;
+				local:
+					'showFirstValues'	= array,
+					'thisShowFirst'		= integer,
+					'perPage'			= (integer:(local:'fw_actnLimit'));
+					
+				#perPage < 1
+					? #perPage = (self->'foundCount');
+					
+				#perPage < 1
+					? #perPage = $fw_listRcrdsMax;
+			
+				((self->'foundCount') % #perPage)
+					? (self->'pageCount') = (integer:((self->'foundCount') / #perPage) + 1)
+					| (self->'pageCount') = (integer:((self->'foundCount') / #perPage));
+			
+				#thisShowFirst = 1; // first page has showFirst of 1
+				loop: (self->'pageCount');
+					#showFirstValues->(insert: #thisShowFirst);
+					#thisShowFirst += #perPage;
+				/loop;
+
+				(self->'currentPage') = (#showFirstValues->(findPosition: (self->'firstRecord'))->last);
+			/if;
+
+//	convert single record selects to vars
+	
+			(found_count == 1) && #fw_actnMakeVars
+				? self->(fw_makeVars: -fieldList = field_names);
+	
+//	convert single record selects to fieldsMap
+	
+			(found_count == 1) && #fw_actnMakeFieldsMap
+				? self->(fw_makeFieldsMap: -fieldList = field_names);
+	
+//	error trapping switches
+	
+			if: (self->'foundcount') == 0;
+				if: error_code == 0;
+					if: !#fw_actnQuiet && !(var:'fw_errQuiet5100');
+						#fw_qryErrors->(insert: (pair:'5100' = 'No matching records (y)'));
+					/if;
+				else;
+					$fw_error->(insert:'5201'='fwp_recordData');
+					#fw_qryErrors->(insert: '5506' = ('Failed search due to Lasso error ' + error_code));
+					$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Failed search due to Lasso error ' + error_code));
+					$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5506 : Failed search due to Lasso error ' + error_code);
+				/if;
+			/if;
+		/inline;
+
+	/inline; // end connection
+
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors' 			= #fw_qryErrors;
+	self->'queryString' 	= #fw_sqlActn;
+	self->'queryStringAlt' 	= #fw_countActn;
+	self->'queryTime'		= $fw_timer->(eventTotal:'sqlQrySelect') +
+							  $fw_timer->(eventTotal:'sqlQrySelectCount');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagSelect');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagSelect');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->add
+//
+//	Description:
+//
+//	Adds a record with a test to ensure record ID is unique
+//
+//............................................................................
+
+define_tag:'add',
+	-optional='inputs',
+	-optional='keyval',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->add');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagAdd');
+
+	local:
+		'fw_actnKeyVal'				= local:'keyval',
+		'fw_actnInputs'				= local:'inputs',
+		'fw_actnCnfrmFlds'			= local:'confirmFields',
+		'fw_actnWithoutValidate'	= false,
+		'fw_actnWithoutLog'			= false;
+	
+	(params >> '-withoutValidate')
+		? #fw_actnWithoutValidate = true;
+
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	if: #fw_actnInputs && (#fw_actnInputs != '*');
+		#fw_actnInputs = (fwpCnfg_splitComma: #fw_actnInputs);
+	/if;
+
+	local:
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_qryErrors'			= array,
+		'fw_getRcrdActn'		= string,
+		'fw_addRcrdActn'		= string,
+		'fw_cnfrmFldsActn'		= string;
+
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = $fw_client->'ip';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-add; r=' + #fw_actnKeyVal;
+	
+//	............................................................................
+
+//	field-specific data validation stuff is automated via the tableModel config specs
+
+	!#fw_actnWithoutValidate
+		? (self->validateInputs: -inputs = #fw_actnInputs);
+
+	if: !(self->'inputsAreInvalid');
+
+//	make sure there`s a rcrdNo 
+//	also verify that there isn`t already a record with this rcrdNo to prevent duplicates
+
+		if: #fw_actnKeyVal;
+	
+//	open a connection for use throughout this tag
+	
+			inline:
+				-username 	= $fw_gQueryUser,
+				-password 	= $fw_gQueryPswd,
+				-database 	= (self->'fw_modelDb'),
+				-table		= (self->'fw_modelTbl');
+
+				#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+					-mapper = (self->'fw_tableModel'),
+					-keyval  = #fw_actnKeyVal);
+
+				$fw_timer->(start:'sqlQryAddGet');
+				
+				#fw_getRcrdActn = self->(fw_convertToFieldNames:#fw_getRcrdActn);
+				
+				inline:	
+					-sql = #fw_getRcrdActn;
+		
+					$fw_timer->(stop:'sqlQryAddGet');
+
+//	we expect to NOT find any records from the above search
+	
+					if: (found_count == 0);
+	
+//	all is good, let`s go ahead and add the record
+	
+						#fw_addRcrdActn = (self->'fw_qryAdaptor')->(insert:
+							-mapper 	= (self->'fw_tableModel'),
+							-inputs 	= #fw_actnInputs,
+							-username 	= #fw_usrName,
+							-keyval		= #fw_actnKeyVal);
+		
+							$fw_timer->(start:'sqlQryAddSet');
+		
+							#fw_addRcrdActn = self->(fw_convertToFieldNames:#fw_addRcrdActn);
+							
+							inline: 
+								-sql = #fw_addRcrdActn;
+
+								$fw_timer->(stop:'sqlQryAddSet');
+
+								if: error_code == 0;
+
+									if: $fw_gLogDb && !#fw_actnWithoutLog;
+										self->(fw_logAction: 
+											-usrName	= #fw_usrName,
+											-usrRcrd	= #fw_usrRcrd,
+											-rcrd		= #fw_actnKeyVal,
+											-action		= 'add',
+											-qryTime	= $fw_timer->(eventTotal:'sqlQryAddSet'));
+									/if;
+
+//	if we want to verify the record was actually saved,
+//	then let`s search for it and read some confirmation fields
+//	to display back to the user
+
+									if: #fw_actnCnfrmFlds;
+			
+										#fw_cnfrmFldsActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+											-mapper = (self->'fw_tableModel'),
+											-select	 = #fw_actnCnfrmFlds,
+											-keyval  = #fw_actnKeyVal);
+	
+										$fw_timer->(start:'sqlQryAddCnfrm');
+			
+										#fw_cnfrmFldsActn = self->(fw_convertToFieldNames:#fw_cnfrmFldsActn);
+										
+										inline: 
+											-inlinename = (self->'inlineName'),
+											-sql = #fw_cnfrmFldsActn;
+			
+											$fw_timer->(stop:'sqlQryAddCnfrm');
+				
+											if: found_count != 0;
+			
+												#fw_actnMakeVars
+													? self->(fw_makevars: -fieldList = field_names);
+		
+//	oh oh, we just added a record but couldn`t find it
+//	is it because the record really isn`t there
+//	or did some other error occur
+
+											else;
+												if: error_code != 0;
+													$fw_error->(insert:'5201'='fwp_recordData');
+													#fw_qryErrors->(insert:'5500' = ('Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+													$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+													$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl'));
+												else;
+													$fw_error->(insert:'5201'='fwp_recordData');
+													#fw_qryErrors->(insert:'5501' = ('Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+													$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+													$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+												/if;
+											/if;
+										/inline; // fw_cnfrmFldsActn
+									/if;
+								else;
+									$fw_error->(insert:'5201'='fwp_recordData');
+									#fw_qryErrors->(insert:'5503' = ('Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+									$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+									$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5503 : Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+								/if;
+							/inline; // fw_addRcrdActn
+
+//	our test for an existing record way above actually found one
+//	or we had some other database error while looking
+
+					else;
+						if: error_code == 0;
+							#fw_qryErrors->(insert:'5110' = 'Record number already exists');
+						else;
+							$fw_error->(insert:'5201'='fwp_recordData');
+							#fw_qryErrors->(insert:'5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+							$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+							$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+						/if;
+					/if;
+				/inline; // getRcrdActn
+			/inline;
+		else;
+			$fw_error->(insert:'5201'='fwp_recordData');
+			#fw_qryErrors->(insert:'5501' = 'Record number empty');
+			$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'Record number empty');
+			$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record number empty');
+		/if;
+	
+	else;
+		//	the field validation include should have already built up the error handling variables
+		//	but we may as well set the main error flag to make error detection easy even for validation
+		(self->'error') = true;
+		$fw_formIsNotValid = true;
+	/if;
+
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors'		= #fw_qryErrors;
+	self->'queryString' = #fw_addRcrdActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQryAddGet') +
+						  $fw_timer->(eventTotal:'sqlQryAddSet') +
+						  $fw_timer->(eventTotal:'sqlQryAddCnfrm');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagAdd');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagAdd');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->addWithoutKeyval
+//
+//	Description:
+//
+//	Adds a record without provided keyval using sql incrementing field
+//
+//............................................................................
+
+define_tag:'addWithoutKeyval',
+	-optional='inputs',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->addWithoutKeyval');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagAdd');
+
+	local:
+		'fw_actnInputs'				= local:'inputs',
+		'fw_actnCnfrmFlds'			= local:'confirmFields',
+		'fw_actnWithoutValidate'	= false,
+		'fw_actnWithoutLog'			= false;
+	
+	(params >> '-withoutValidate')
+		? #fw_actnWithoutValidate = true;
+
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	if: #fw_actnInputs && (#fw_actnInputs != '*');
+		#fw_actnInputs = (fwpCnfg_splitComma: #fw_actnInputs);
+	/if;
+
+	local:
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_qryErrors'			= array,
+		'fw_getRcrdActn'		= string,
+		'fw_addRcrdActn'		= string,
+		'fw_cnfrmFldsActn'		= string,
+		'fw_actnKeyVal'			= integer;
+
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = $fw_client->'ip';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-addWithoutKeyval';
+	
+//	............................................................................
+
+//	field-specific data validation stuff is automated via the tableModel config specs
+
+	!#fw_actnWithoutValidate
+		? (self->validateInputs: -inputs = #fw_actnInputs);
+
+	if: !(self->'inputsAreInvalid');
+	
+//	open a connection for use throughout this tag
+	
+		inline:
+			-username 	= $fw_gQueryUser,
+			-password 	= $fw_gQueryPswd,
+			-database 	= (self->'fw_modelDb'),
+			-table		= (self->'fw_modelTbl');
+
+//	let`s go ahead and add the record
+
+			#fw_addRcrdActn = (self->'fw_qryAdaptor')->(insert:
+				-mapper 	= (self->'fw_tableModel'),
+				-inputs 	= #fw_actnInputs,
+				-username 	= #fw_usrName);
+
+				$fw_timer->(start:'sqlQryAddSet');
+
+				#fw_addRcrdActn = self->(fw_convertToFieldNames:#fw_addRcrdActn);
+				
+				inline: 
+					-sql = #fw_addRcrdActn;
+					#fw_actnKeyVal = field('fw_actnKeyVal');
+
+					$fw_timer->(stop:'sqlQryAddSet');
+
+					if: error_code == 0; 
+					
+					var('rcrdNo' = #fw_actnKeyVal);
+
+						if: $fw_gLogDb && !#fw_actnWithoutLog;
+							self->(fw_logAction: 
+								-usrName	= #fw_usrName,
+								-usrRcrd	= #fw_usrRcrd,
+								-rcrd		= #fw_actnKeyVal,
+								-action		= 'add',
+								-qryTime	= $fw_timer->(eventTotal:'sqlQryAddSet'));
+						/if;
+
+//	if we want to verify the record was actually saved,
+//	then let`s search for it and read some confirmation fields
+//	to display back to the user
+
+						if: #fw_actnCnfrmFlds;
+
+							#fw_cnfrmFldsActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+								-mapper = (self->'fw_tableModel'),
+								-select	 = #fw_actnCnfrmFlds,
+								-keyval  = #fw_actnKeyVal);
+
+							$fw_timer->(start:'sqlQryAddCnfrm');
+
+							#fw_cnfrmFldsActn = self->(fw_convertToFieldNames:#fw_cnfrmFldsActn);
+							
+							inline: 
+								-inlinename = (self->'inlineName'),
+								-sql = #fw_cnfrmFldsActn;
+
+								$fw_timer->(stop:'sqlQryAddCnfrm');
+	
+								if: found_count != 0;
+
+									#fw_actnMakeVars
+										? self->(fw_makevars: -fieldList = field_names);
+
+//	oh oh, we just added a record but couldn`t find it
+//	is it because the record really isn`t there
+//	or did some other error occur
+
+								else;
+									if: error_code != 0;
+										$fw_error->(insert:'5201'='fwp_recordData');
+										#fw_qryErrors->(insert:'5500' = ('Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+										$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+										$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : Record number ' + #fw_actnKeyVal + ' not found in table ' + (self->'fw_modelTbl'));
+									else;
+										$fw_error->(insert:'5201'='fwp_recordData');
+										#fw_qryErrors->(insert:'5501' = ('Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+										$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+										$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+									/if;
+								/if;
+							/inline; // fw_cnfrmFldsActn
+						/if;
+					else;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert:'5503' = ('Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5503 : Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+					/if;
+				/inline; // fw_addRcrdActn
+
+		/inline;
+	
+	else;
+		//	the field validation include should have already built up the error handling variables
+		//	but we may as well set the main error flag to make error detection easy even for validation
+		(self->'error') = true;
+		$fw_formIsNotValid = true;
+	/if;
+
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors'		= #fw_qryErrors;
+	self->'queryString' = #fw_addRcrdActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQryAddGet') +
+						  $fw_timer->(eventTotal:'sqlQryAddSet') +
+						  $fw_timer->(eventTotal:'sqlQryAddCnfrm');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagAdd');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagAdd');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->duplicate
+//
+//	Description:
+//
+//	Duplicates a record with a test to ensure record ID is unique
+//
+//............................................................................
+
+define_tag:'duplicate',
+	-required='keyval',
+	-required='newkeyval',
+	-optional='confirmFields';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordData->duplicate');
+
+	!(self->'fw_modelIsLoaded') || !(self->'fw_qryAdaptorIsLoaded')
+		? return;
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlTagDuplicate');
+
+	local:
+		'fw_actnKeyVal'				= local:'keyval',
+		'fw_newKeyVal'				= local:'newkeyval',
+		'fw_actnCnfrmFlds'			= local:'confirmFields',
+		'fw_actnWithoutLog'			= false;
+	
+	(params >> '-withoutLog')
+		? #fw_actnWithoutLog = true;
+
+	(self->'inlineName') = (fwpStr_randomID:16);
+
+//	don`t split these yet so we can use them in a SELECT
+
+	if:	#fw_actnCnfrmFlds;
+		#fw_actnCnfrmFlds = (fwpCnfg_splitComma: #fw_actnCnfrmFlds, -nosplit=true);
+	/if;
+	
+	local:
+		'fw_actnFields'			= array,
+		'fw_thisField'			= string,
+		'fw_actnInputs'			= array,
+		'fw_setPairs'			= array,
+		'fw_usrName'			= string,
+		'fw_usrRcrd'			= string,
+		'fw_qryErrors'			= array,
+		'fw_getRcrdActn'		= string,
+		'fw_checkRcrdActn'		= string,
+		'fw_addRcrdActn'		= string,
+		'fw_cnfrmFldsActn'		= string;
+
+	#fw_actnFields = (self->'fw_tableModel')->find:'fieldNames';
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdNo'))->last);
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdCreated'))->last);
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdCreatedBy'))->last);
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdModified'))->last);
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdModifiedBy'))->last);
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdStatus'))->last);
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdLockID'))->last);
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdLockTime'))->last);
+	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdLockOwnr'))->last);
+
+	#fw_actnInputs = #fw_actnFields->(join:',');
+
+	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
+		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+		#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+	else;
+		#fw_usrName = $fw_client->'ip';
+		#fw_usrRcrd = 'Anonymous';
+	/if;
+	
+	$fw_logFWPInfo = '-duplicate; r=' + #fw_actnKeyVal + ' to ' + #fw_newKeyVal;
+	
+//	............................................................................
+
+//	make sure there`s a rcrdNo 
+//	also verify that there isn`t already a record with this rcrdNo to prevent duplicates
+
+	if: #fw_actnKeyVal;
+
+//	open a connection for use throughout this tag
+
+		inline:
+			-username 	= $fw_gQueryUser,
+			-password 	= $fw_gQueryPswd,
+			-database 	= (self->'fw_modelDb'),
+			-table		= (self->'fw_modelTbl');
+
+//	retrieve the source record
+
+			#fw_getRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+				-mapper = (self->'fw_tableModel'),
+				-select = #fw_actnInputs,
+				-keyval  = #fw_actnKeyVal);
+
+			$fw_timer->(start:'sqlQryDuplicateGet');
+			
+			#fw_getRcrdActn = self->(fw_convertToFieldNames:#fw_getRcrdActn);
+			
+			inline:
+				-sql = #fw_getRcrdActn;
+
+				$fw_timer->(stop:'sqlQryDuplicateGet');
+
+				if: (found_count == 1);
+
+						iterate: #fw_actnFields, #fw_thisField;
+							#fw_setPairs->(insert: (#fw_thisField) = (field:(#fw_thisField)));
+						/iterate;
+
+//	verify the new rcrdNo doesn't already exist
+
+					#fw_checkRcrdActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+						-mapper = (self->'fw_tableModel'),
+						-keyval  = #fw_newKeyVal);
+		
+					$fw_timer->(start:'sqlQryDuplicateCheck');
+					
+					#fw_checkRcrdActn = self->(fw_convertToFieldNames:#fw_checkRcrdActn);
+					
+					inline:	
+						-sql = #fw_checkRcrdActn;
+			
+						$fw_timer->(stop:'sqlQryDuplicateCheck');
+	
+						if: (found_count == 0);
+
+//	all is good, let`s go ahead and add the record
+
+							#fw_addRcrdActn = (self->'fw_qryAdaptor')->(insert:
+								-mapper 	= (self->'fw_tableModel'),
+								-setPairs 	= #fw_setPairs,
+								-username 	= #fw_usrName,
+								-keyval		= #fw_newKeyVal);
+			
+								$fw_timer->(start:'sqlQryDuplicateSet');
+			
+								#fw_addRcrdActn = self->(fw_convertToFieldNames:#fw_addRcrdActn);
+								
+								inline: 
+									-sql = #fw_addRcrdActn;
+		
+									$fw_timer->(stop:'sqlQryDuplicateSet');
+		
+									if: error_code == 0;
+		
+										if: $fw_gLogDb && !#fw_actnWithoutLog;
+											self->(fw_logAction: 
+												-usrName	= #fw_usrName,
+												-usrRcrd	= #fw_usrRcrd,
+												-rcrd		= #fw_newKeyVal,
+												-action		= 'duplicate',
+												-qryTime	= $fw_timer->(eventTotal:'sqlQryDuplicateSet'));
+										/if;
+
+//	if we want to verify the record was actually saved,
+//	then let`s search for it and read some confirmation fields
+//	to display back to the user
+
+										if: #fw_actnCnfrmFlds;
+				
+											#fw_cnfrmFldsActn = (self->'fw_qryAdaptor')->(getRcrdWithKeyVal: 
+												-mapper = (self->'fw_tableModel'),
+												-select	 = #fw_actnCnfrmFlds,
+												-keyval  = #fw_newKeyVal);
+		
+											$fw_timer->(start:'sqlQryDuplicateCnfrm');
+				
+											#fw_cnfrmFldsActn = self->(fw_convertToFieldNames:#fw_cnfrmFldsActn);
+											
+											inline: 
+												-inlinename = (self->'inlineName'),
+												-sql = #fw_cnfrmFldsActn;
+				
+												$fw_timer->(stop:'sqlQryDuplicateCnfrm');
+					
+												if: found_count != 0;
+				
+													#fw_actnMakeVars
+														? self->(fw_makevars: -fieldList = field_names);
+	
+//	oh oh, we just added a record but couldn`t find it
+//	is it because the record really isn`t there
+//	or did some other error occur
+
+												else;
+													if: error_code != 0;
+														$fw_error->(insert:'5201'='fwp_recordData');
+														#fw_qryErrors->(insert:'5500' = ('Record number ' + #fw_newKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+														$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record number ' + #fw_newKeyVal + ' not found in table ' + (self->'fw_modelTbl')));
+														$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : Record number ' + #fw_newKeyVal + ' not found in table ' + (self->'fw_modelTbl'));
+													else;
+														$fw_error->(insert:'5201'='fwp_recordData');
+														#fw_qryErrors->(insert:'5501' = ('Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+														$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+														$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record data could not be acquired due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+													/if;
+												/if;
+											/inline; // fw_cnfrmFldsActn
+										/if;
+									else;
+										$fw_error->(insert:'5201'='fwp_recordData');
+										#fw_qryErrors->(insert:'5503' = ('Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+										$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+										$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5503 : Record could not be added due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+									/if;
+								/inline; // fw_addRcrdActn
+
+//	our test for an existing record way above actually found one
+//	or we had some other database error while looking
+
+						else;
+							if: error_code == 0;
+								#fw_qryErrors->(insert:'5110' = 'Record number already exists');
+							else;
+								$fw_error->(insert:'5201'='fwp_recordData');
+								#fw_qryErrors->(insert:'5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+								$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')'));
+								$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')');
+							/if;
+						/if;
+
+					/inline; // checkRcrdActn
+
+//	our test for an existing record way above did not find one
+//	or we had some other database error while looking
+
+				else;
+					if: error_code == 0;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert:'5500' = ('(a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl')));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('(a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl')));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5500 : (a2) Record number ' + #fw_actnKeyVal + ' not found in field ' + #fw_actnKeyFld + ' of table ' + (self->'fw_modelTbl'));
+					else;
+						$fw_error->(insert:'5201'='fwp_recordData');
+						#fw_qryErrors->(insert: '5501' = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+						$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = ('Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r'));
+						$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record could not be found due to Lasso error: ' + error_msg + ' (' + error_code + ')\r');
+					/if;
+				/if;
+
+			/inline; // getRcrdActn
+		/inline; // connection
+	else;
+		$fw_error->(insert:'5201'='fwp_recordData');
+		#fw_qryErrors->(insert:'5501' = 'Record number empty');
+		$fw_debug ? $fw_tagTracer->(add:'fwp_recordData', -ERROR = 'Record number empty');
+		$fw_debug && $fw_criticalLog ? log_critical: ('pbError 5501 : Record number empty');
+	/if;
+	
+	$fw_error->(merge:#fw_qryErrors);
+
+	((#fw_qryErrors->size) > 0) 
+		? (self->'error') = true;
+	
+	self->'errors'		= #fw_qryErrors;
+	self->'queryString' = #fw_addRcrdActn;
+	self->'queryTime'	= $fw_timer->(eventTotal:'sqlQryDuplicateGet') +
+						  $fw_timer->(eventTotal:'sqlQryDuplicateCheck') +
+						  $fw_timer->(eventTotal:'sqlQryDuplicateSet') +
+						  $fw_timer->(eventTotal:'sqlQryDuplicateCnfrm');
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlTagDuplicate');
+	$fw_debugTimers ? self->'tagTime' = $fw_timer->(eventTotal:'sqlTagDuplicate');
+
+/define_tag;
+
+
+//: -
+//============================================================================
+//
+//	->validateInputs
+//
+//	Description:
+//
+//	Validates inputs according to tableModel_ config file settings.
+//	Generally the developer should not need to call this tag directly
+//	unless doing validation on multiple models prior to batch db storage actions.
+//	Use the optional -withoutValidation to turn this tag call off.
+//
+//............................................................................
+
+define_tag:'validateInputs',
+	-required = 'inputs';
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_recordData->validateInputs', -inputs = #inputs);
+
+	$fw_debugTimers ? $fw_timer->(start:'sqlXtraInputs');
+	
+	// added 2008-07-11 nikolaj
+	local('fw_actnUseGet'	= false);
+	
+	params >> '-useGet'
+		? #fw_actnUseGet	= true;
+
+
+	if(!#fw_actnUseGet); 
+		(self->'inputsAreInvalid') = $fw_validator->(validate:
+			-usingPOSTForm,
+			-inputs		= #inputs,
+			-valcodes	= (self->'fw_tableModel')->find:'valCodeMap');
+	else;
+		(self->'inputsAreInvalid') = $fw_validator->(validate:
+			-usingGETForm,
+			-inputs		= #inputs,
+			-valcodes	= (self->'fw_tableModel')->find:'valCodeMap');
+	/if; 
+
+//	now execute model-specific custom validations
+
+	self->validate;
+
+	$fw_debugTimers ? $fw_timer->(stop:'sqlXtraInputs');
+
+	(self->'validationResults') = $fw_validator->getResults;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->validate
+//
+//	Description:
+//
+//	An empty method intended to be overloaded
+//	Needs to set value of ->'rulesAreInvalid' as boolean result
+//
+//............................................................................
+
+define_tag:'validate';
+
+//	rulesAreValid is true by default
+//	unless this method is overloaded
+	
+	($fw_debug >= fw_kVerbose)? $fw_tagTracer->(add:'fwp_recordData->validate');
+
+	(self->'rulesAreInvalid') = true;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->insertAppError
+//
+//
+//............................................................................
+
+define_tag:'insertAppError',
+	-required = 'input';
+
+	((self->'validationResults')->(find:'errorMsgs'))->(insert:#input);
+	((self->'validationResults')->(find:'appCodes'))->(insert:#input->first = 'model_error');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->showMsgsForInput
+//
+//	displays all error messages for a single input name
+//
+//............................................................................
+
+define_tag:'showMsgsForInput',
+	-required = 'input',
+	-optional = 'class',
+	-optional = 'withP',
+	-optional = 'withoutBR';
+
+	local:
+		'fw_myMsgs' 		= ((self->'validationResults')->(find:'errorMsgs'))->(find:#input),
+		'fw_thisMsg'		= string,
+		'fw_msgStr'			= string,
+		'fw_markupStart'	= string,
+		'fw_markupEnd'		= string,
+		'fw_markupClass'	= string;
+
+	(params >> '-class')
+		? #fw_markupClass = ((params->find:'-class')->get:1)->second
+		| #fw_markupClass = 'inputerrmsg';
+	
+	(params >> '-withP')
+		? #fw_markupStart = '<p class="' + #fw_markupClass + '">'
+		| #fw_markupStart = '<span class="' + #fw_markupClass + '">';
+	
+	(params >> '-withP')
+		? #fw_markupEnd = '</p>'
+		| #fw_markupEnd = '</span>';
+
+	(params >> '-withoutBR')
+		? #fw_markupEnd += ''
+		| #fw_markupEnd += '<br />';
+	
+	iterate: #fw_myMsgs, #fw_thisMsg;
+		#fw_msgStr += #fw_markupStart;
+		#fw_msgStr += #fw_thisMsg->second;
+		#fw_msgStr += #fw_markupEnd;
+	/iterate;
+
+	return: @#fw_msgStr;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->errorExistsForInput
+//
+//
+//............................................................................
+
+define_tag:'errorExistsForInput',
+	-required = 'input';
+
+	((self->'validationResults')->(find:'errorMsgs'))->(find:#input)
+		? return: true
+		| return: false;
+
+/define_tag;
+
+
+/define_type;
+?>

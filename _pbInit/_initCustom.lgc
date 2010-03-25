@@ -1,0 +1,47 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		_initCustom.lgc }
+	{rsrcType=		file }
+	{rsrcName=		_initCustom }
+	{rsrcHTTP=		www.pageblocks.org/refc/_initCustom }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Use this file to declare app-specific setup vars }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+
+//============================================================================
+//
+//	(T)..... initialize Template, Page, and App vars for this site .....
+//
+//	in order to enable this file be sure fw_gUseInitCustom is true
+//
+//............................................................................
+
+
+	var:'fw_pageInitSection'	= 'T';
+
+//	****** ------------------------------------------------ ******
+//	****** ------- put app-specific var defaults here ----- ******
+//	****** ------------------------------------------------ ******
+
+
+?>

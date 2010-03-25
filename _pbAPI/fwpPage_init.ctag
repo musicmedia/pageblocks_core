@@ -1,0 +1,867 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_init.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpPage_init }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_init }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			The bootstrap process for each page. }
+
+
+	{maintvsrn=		1.5.5 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2008-07-30 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	removed $fw_myUrl completely }
+
+	{maintvsrn=		1.5.4 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2008-03-05 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	added ->disablePrototype, ->disableScriptaculous and ->disableJquery }
+
+	{maintvsrn=		1.5.3 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-07-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_logoutPagePath }
+	
+	{maintvsrn=		1.5.2 }
+	{maintrelease=	5.2.5 }
+	{maintdate=		2007-07-24 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added ->disableJSLibrary,
+	 				changed fw_http vars to fw_headContent,
+	 				moved fw_sPath init earlier in process to allow 
+	 				using them in _initMasters }
+	
+	{maintvsrn=		1.5.1 }
+	{maintrelease=	5.2.4 }
+	{maintdate=		2007-07-12 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added some tracer statements }
+	
+	{maintvsrn=		1.5 }
+	{maintrelease=	5.2 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated to new error handling systems,
+	 				broke out init vars for each fwpAAAA tag/type set,
+	 				changed fw_tempUser from $ to #,
+	 				added useMVSDataTable }
+	
+	{maintvsrn=		1.4 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-04-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added deployment vars }
+	
+	{maintvsrn=		1.3.3 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-03-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	extended the anti-caching headers }
+	
+	{maintvsrn=		1.3.2 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-12-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	renamed pageMapper to pageRouter, this seems to be
+	 				more consistent with the naming and functionality 
+	 				in other frameworks }
+
+	{maintvsrn=		1.3.1 }
+	{maintrelease=	5.1.1 }
+	{maintdate=		2006-10-15 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added default fw_s declaration if userAuth disabled }
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added functionality for _pageMapper }
+
+	{maintvsrn=		1.2.7 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed some bugs in A
+					changes to C for EDP vars and autoRestoreSesion }
+
+	{maintvsrn=		1.2.6 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	modified the params conversions in A to create
+					single vars with multiple values delimited by \r.
+					Added fw_customValidatorsReset, fw_edpSubmittedForm }
+
+	{maintvsrn=		1.2.5 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	expanded section M to apply to all caches 
+					added fw_resetAllCaches
+					removed fw_dvlprDebug
+					added fw_requestURL
+					changed fw_myURL to fw_requestPage }
+
+	{maintvsrn=		1.2.3 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-22 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_pageInitParams to fix catch-22 that prevented
+					stub files from being used in authenticated roles }
+
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-28 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added to conditionals in re-auth of a user (v)
+					to prevent a bug that caused internal error when 
+					logging	out after a session had expired }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-28 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace,
+					changed fw_error to fwp_errorController,
+					removed fw_debugStackPageBlocks,
+					minor sytax tweaks to section A iterates,
+					added en as the default language for the error 
+					controller which has to have a default value }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.0.3 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed all timers to fwp_timer ctype }
+
+	{maintvsrn=		1.1.2 }
+	{maintrelease=	5.0.2 }
+	{maintdate=		2006-04-11 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_debugStackPageBlocks }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.0.0 b9 }
+	{maintdate=		2006-03-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_edpFormWasPosted }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 b6 }
+	{maintdate=		2006-02-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	eliminated fw_imageRoot }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed fw_gPageMethod to fw_pageMethod }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+//	UNLESS YOU ARE CHANGING HOW PAGEBLOCKS WORKS
+//	THIS FILE HAS NO USER SERVICABLE PARTS
+//	DO NOT EDIT THIS FILE UNLESS YOU KNOW WHAT YOU ARE DOING
+
+//	this is essentially the bootstrap file for every page
+//	it handles the secure auto conversion of form data to vars
+//	it initializes the pageblocks environment and app-specific vars
+//	it initializes the page configuration and assembly process 
+//	it engages the user authentication and session system
+
+//	there is nothing that should be edited in this file
+//	it is expected that when updating to newer versions of pageblocks
+//	that this whole file can be replaced
+//	without adverse affect on the application
+//	the _initXXX files are for app-specific code
+
+//............................................................................
+
+define_tag:'fwpPage_init', -autooutput;
+
+//	it would be more secure to have this in (C), but the timer accuracy 
+//	for the whole page is important, and this data is not critical
+//	to the operation of the page, so it wouldn't be harmful even if the 
+//	value was overriden
+	
+	var:'fw_timer' = fwp_timer;
+	$fw_timer->freezeType;
+	$fw_timer->(start:'pageTotal');
+	$fw_timer->(start:'initConfigAll');
+
+//=============================================================================
+
+//:	(A)..... convert form inputs to vars .....
+
+	$fw_timer->(start:'initConvertForm');
+
+//	manual trigger of whether to auto generate page vars of inputs or not
+//	use true to generate page vars
+//	use false to generate single object for pure OOP applications
+
+	if: true;
+		local:'fw_thisInput' = string;
+		iterate: client_postParams, #fw_thisInput;
+			(!((#fw_thisInput->first)->(beginsWith: '__')) && !((#fw_thisInput->first)->(beginswith: '-')))
+				? ((var_defined:(#fw_thisInput->first))
+					? (var:(#fw_thisInput->first)) += ('\r' + (#fw_thisInput->second))
+					| (var:(#fw_thisInput->first)) = (#fw_thisInput->second));
+		/iterate;
+	else;
+		var:'fw_formPostInputs' = @client_postParams;
+	/if;
+
+	if: true;
+		iterate: client_getParams, #fw_thisInput;
+			(!((#fw_thisInput->first)->(beginswith: '__')) 
+			&& !((#fw_thisInput -> first)->(beginswith: '-')))
+				? ((var_defined:(#fw_thisInput->first))
+					? (var:(#fw_thisInput->first)) += ('\r' + (#fw_thisInput->second))
+					| (var:(#fw_thisInput->first)) = (#fw_thisInput->second));
+		/iterate;
+	else;
+		var:'fw_formGetInputs' = @client_getParams;
+	/if;
+
+	var:
+		'fw_pageInitSection' 		= 'A',
+		'fw_debug_formPostInputs' 	= @client_postparams,
+		'fw_debug_formGetInputs' 	= @client_getparams;
+
+	local:'fw_pageInitParams' = (params);
+
+	$fw_timer->(stop:'initConvertForm');
+
+
+//	--------------------------------------------------------------------------
+//:	(B)..... declare fw_requestPage, fw_requestURL and style .....
+
+	var:'fw_pageInitSection' = 'B';
+
+//	note that any vars coming in from the URL via 
+//	fwpPage_urlParamsFile or fwpPage_urlParamsFldrs
+//	are created in this step
+
+	var('fw_requestURL'			= fwp_requestURLElements); 
+	
+	var(
+		'fw_requestPage'		= fwp_requestPageElements(var('fw_indexRedirect')),
+		'fw_myStyle'			= string,
+		'fw_mySubHostID'		= string
+	);
+
+//	declare default paths without a style attribute
+
+	var('fw_sPath' 				= fwp_sitePaths(''));
+	var('fw_mPath' 				= fwp_modulePaths('', $fw_requestPage->'module'));
+	
+
+//	--------------------------------------------------------------------------
+//:	(C)..... load site-specific and pageblocks master vars .....
+
+
+	var:'fw_pageInitSection' = 'C';
+
+	$fw_timer->(start:'initLoadConfig');
+
+//	these are framework vars which are reset each page, so they are not in _fwpAPI_initVars
+//	some are determined by the developer (via the _initMasters file)
+//	some should not be touched by the developer (if the var is not in _initMasters)
+
+//	......................................
+//	these are a part of _initMasters (H)
+
+//	fw_templateActive		set to true by fwpPage_templateHead
+//	$fw_pageModes			see documentation
+
+//	$fw_client
+//	->decimalChar			('.') default character for decimal in fwpNum and fwpMath tags
+//	->thousandsChar			(',') default character for thousands grouping in fwpNum and fwpMath tags
+//	->language				('en') default language 
+//	->media					('all') default media browser type
+//	->variant				('default') default strings variant
+
+//	fw_HTTPexpires			(empty) default string for HTTP meta tag data (Wed, 01 Jan 2003 00:00:01 GMT)
+//	fw_HTTPauthor			(empty) default string for HTTP meta tag data
+//	fw_HTTPdesc				(empty) default string for HTTP meta tag data
+//	fw_HTTPkeyWords			(empty) default string for HTTP meta tag data
+
+	var:
+		'fw_templateActive'	= false,
+		'fw_pageModes' 		= fwp_pageModes;
+	
+	$fw_pageModes->disableJSPerPage;
+	$fw_pageModes->disableJSLibrary;
+	$fw_pageModes->disablePrototype;
+	$fw_pageModes->disableScriptaculous;
+	$fw_pageModes->disableJquery;
+	$fw_pageModes->disablePageStrings;
+	$fw_pageModes->disablePageRouter;
+	$fw_pageModes->disableBlockTemplates;
+	$fw_pageModes->disableRepeatBlocks;
+	$fw_pageModes->disableMultiLanguageBlocks;
+	$fw_pageModes->disableAutoErrorDisplay;
+	$fw_pageModes->disableAutoRestoreSession;
+	$fw_pageModes->disablePreventCache;
+
+	var:'fw_client' = fwp_client;
+
+	$fw_client->(setDecimalChar: 	'.');
+	$fw_client->(setThousandsChar:	',');
+	$fw_client->(setLanguage:		$fw_gCoreLanguage);
+	$fw_client->(setMedia:			'all');
+	$fw_client->(setVariant:		'default');
+
+	var:'fw_serverMode'	= 'http';
+
+	var:'fw_headContent' = fwp_headContent;
+
+//	......................................
+//	these are a part of _initMasters (I)
+
+//	fw_maintenance			(false) a flag to toggle the display of the maintenance message
+//	fw_construction			(false) a flag to toggle the display of the under construction message
+//	fw_dataOffline			(false) a flag to toggle the display of the data offline message
+//	fw_disableLogin			(false) a flag to toggle the availability of the login form
+//	for fw_maintenance, set it to false, or to activate it
+//		use two Lasso DateTime (24-hr time!) values as in this example:
+//		08/14/2004 15:00:00```08/14/2004 17:00:00
+//		this will activate the maintenance message and will also
+//		automatically switch on fw_disableLogin during that time
+
+//	fw_debug				(false) a flag to toggle display of debugging info
+//	fw_debugTimers			(false) a flag to toggle display of timer results
+//	fw_debugIPFilter		(127.0.0.1) defines what terminals debug data can be displayed on (a comma separated list of IP addresses)
+//	fw_gDeploymentHosts		stores the mapping of URL to deployment modes
+//	fw_gDeploymentMode		store current deployment mode
+
+	var:
+		'fw_resetAllCaches'		= false,
+		'fw_maintenance'		= false,
+		'fw_construction'		= false,
+		'fw_dataOffline'		= false,
+		'fw_disableLogin'		= false,
+
+		'fw_debug'				= false,
+		'fw_criticalLog'		= false,
+		'fw_debugTimers'		= false,
+		'fw_debugIPFilter'		= '127.0.0.1',
+		'fw_debugTopVars'		= string,
+		'fw_debugClearVars'		= string,
+
+		'fw_deploymentHosts'	= map,
+		'fw_deploymentMode'		= string;
+
+//	......................................
+//	these are a part of _initMasters (J)
+
+//	fw_pgTitle				(empty) the string to display in the browser title bar
+//	fw_pgTemplate			(empty) the abbreviate name of the template file to use for the page
+//	fw_pgAuthRequired		(false) sets whether the page requires authorization (which refreshed the user session) {true|false}
+//	fw_pgPrivilege			(empty) the user authorization privilege required for page access (see docs for formatting rules)
+//	fw_pgHeader				(empty) the name of the file to use for the page header
+//	fw_pgFooter				(empty) the name of the file to use for the page footer
+//	fw_jsBodyOnload
+//	fw_mnuDefns				(empty) the menu names array for AutoRollover to initialize rollover menus
+
+	var:
+		'fw_pgTitle'			= string,
+		'fw_pgTemplate'			= string,
+		'fw_pgAuthRequired'		= false,
+		'fw_pgPrivilege'		= string,
+		'fw_pgHeader'			= string,
+		'fw_pgFooter'			= string,
+		'fw_jsBodyOnload'		= string,
+		'fw_mnuDefns'			= string;
+
+
+//	......................................
+//	load all other framework inits
+//	must be loaded before _initMasters
+
+// we have no eror management systems yet, so we have to store errors temporarily
+
+	local:
+		'fw_errorTemp' 		= array,
+		'fw_apiErrorTemp' 	= array,
+		'fw_tagTracerTemp'	= array;
+
+	local:
+		'frameworkID' 			= pair,
+		'thisFramework' 		= string,
+		'thisFrameworkInitTag'	= null;
+
+	iterate: $fw_gInstalledFrameWorks, #frameworkID;
+		#thisFramework = #frameworkID->first;
+		#thisFrameworkInitTag = (tags->find:(#thisFramework+'_init'));
+		if: #thisFrameworkInitTag === null;
+			#fw_errorTemp->(insert:'5201'='fwpPage_init');
+			#fw_apiErrorTemp->(insert:'5204'=#thisFramework);
+			#fw_tagTracerTemp->(insert:'fwpPage_init #ERROR : could not load Init ctag for ' + #thisFramework);
+			log_critical:'pbError : fwpPage_init could not load Init ctag for' + #thisFramework;
+		else;
+			#thisFrameworkInitTag->run;
+		/if;
+	/iterate;
+
+//	......................................
+//	before we can do anything meaningful
+//	we have to collect app-specific Lasso user name and pswd info
+//	which just so happens to be in the _initMasters file 
+//	which is where we keep user-adjustable config vars
+//	(D...K)
+
+	include:'/_pbInit/_initMasters.lgc';
+
+//	no point in instantiating the tracer if debugging is not on
+//	so we wait to instantiate it until after _initMasters is loaded
+
+	$fw_debug ? var:'fw_tagTracer' 	= fwp_tagTracer;
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init');
+
+//	it would be nice to have these vars before (A)
+//	but we will suffer a little inaccuracy from their position here
+//	in order to init them after all debug systems are ready
+
+	var:'fw_mvsLoader'	= fwp_mvsLoader;
+	var:
+		'fw_error' 		= (fwp_errorManager: -mvsLoader='fw_mvsLoader'),
+		'fw_apiError' 	= (fwp_errorManager: -mvsLoader='fw_mvsLoader'),
+		'fw_validator' 	= (fwp_validator: -mvsLoader='fw_mvsLoader'),
+		'fw_appStrings'	= (fwp_appStrings: -mvsLoader='fw_mvsLoader');
+
+//	now that we have error management
+//	let's add any errors we've accumulated so far
+
+	local:'thisItem' = string;
+
+	iterate: #fw_errorTemp, #thisItem;
+		$fw_error->(insert:#thisItem);
+	/iterate;
+	
+	iterate: #fw_apiErrorTemp, #thisItem;
+		$fw_apiError->(insert:#thisItem);
+	/iterate;
+
+	iterate: #fw_tagTracerTemp, #thisItem;
+		$fw_tagTracer->(add:#thisItem);
+	/iterate;
+
+	$fw_timer->(stop:'initLoadConfig');
+
+
+//	--------------------------------------------------------------------------
+//:	(L)..... load the core library of custom tags .....
+
+
+	var:'fw_pageInitSection' = 'L';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : L');
+
+//	this section will not run if the API LassoApp was already loaded
+//	in the absence of the LassoApp, the API tags & types 
+//	can be loaded as source code from webroot/_pbAPI/ for API development work
+
+	if: !(lasso_tagexists:'fwpAPI_version');
+		inline:
+			-username = $fw_gFilesUser,
+			-password = $fw_gFilesPswd;
+			local:'fw_apiLibraryList' = file_listdirectory: '/_pbAPI/';
+		/inline;
+		
+		local:'temp' = (#fw_apiLibraryList->(findindex:'.DS_Store'))->last;
+		if: #temp;
+		   #fw_apiLibraryList->(remove:#temp);
+		/if;
+		
+		local:'fw_thisFile' = string;
+		iterate: #fw_apiLibraryList, #fw_thisFile;
+			library: ('/_pbAPI/' + #fw_thisFile);
+		/iterate;
+	/if;
+
+
+//	--------------------------------------------------------------------------
+//:	(M)..... clear config file cache .....
+
+
+	var:'fw_pageInitSection' = 'M';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : M');
+
+//	reset the global var cache if necessary
+//	the cache for fw_gDbTableModels is still primitive procedural code
+
+	if: $fw_resetAllCaches;
+		$fw_gDbTableModels = map;
+		$fw_gConfigCache->reset;
+		$fw_error->cacheReset;
+		$fw_validator->cacheReset;
+		$fw_customValidatorsReset = true;
+		$fw_appStrings->cacheReset;
+	/if;
+
+
+//	--------------------------------------------------------------------------
+//:	(N)..... acquire site or user profile information .....
+
+
+	var:'fw_pageInitSection' = 'N';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : N');
+
+//	fw_myStyle augments the paths and file names for master templates 
+//		to select from multiple site styles based on user, subdomain, 
+//		or whatever as determined by the _initProfile routine
+//	fw_mySubHostID is used to tie queries by fwpActn tags to a specific 
+//		subdomain for hosted apps which use multi-subdomains for
+//		separation of customers/sites
+//	use the code in _initProfile to generate values 
+//		for fw_myStyle and fw_mySubHostID
+
+//:	(O)
+
+	$fw_debugTimers ? $fw_timer->(start:'initLoadConfig');
+
+	$fw_gUseInitProfiles
+		? library:'/_pbInit/_initProfile.lgc';
+
+	$fw_debugTimers ? $fw_timer->(stop:'initLoadConfig');
+
+
+//	--------------------------------------------------------------------------
+//:	(P)..... initialize style profile pageblocks paths .....
+
+
+	var:'fw_pageInitSection' = 'P';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : P');
+
+//	redefine paths if profiles are active
+//	this has to be after acquiring profile info which uses fw_myStyle
+//	to determine the final names of masthead path names
+
+	if: $fw_gUseInitProfiles
+		$fw_sPath = (fwp_sitePaths: $fw_myStyle);
+		$fw_mPath = (fwp_modulePaths: $fw_myStyle, $fw_requestPage->'module');
+	/if;
+
+//	--------------------------------------------------------------------------
+//:	(Q)..... load app-specific custom tags and types .....
+
+
+	var:'fw_pageInitSection' = 'Q';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : Q');
+
+//	to do this we needed the paths above defined otherwise it could have been in (B)
+//	intentionally not reporting files that do not have correct extensions so that 
+//	other files can be here w/o causing problems
+
+	local:'fileName' = string;
+
+	if: $fw_gLoadCTags;
+		($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpPage_init : Q - loading tags');
+		inline:
+			-username=$fw_gFilesUser,
+			-password=$fw_gFilesPswd;
+			local:'fw_ctagList' = file_listdirectory: ($fw_sPath->'tags');
+		/inline;
+		iterate: #fw_ctagList, #fileName;
+			if: ('.' + (#fileName->split:'.')->last) == fw_kCTagExt;
+				($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpPage_init : Q - loading tag ' + #fileName);
+				library: ($fw_sPath->'tags') + #fileName;
+			/if;
+		/iterate;
+	/if;
+
+	if: $fw_gLoadCTypes;
+		($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpPage_init : Q - loading types');
+		inline:
+			-username=$fw_gFilesUser,
+			-password=$fw_gFilesPswd;
+			local:'fw_ctypeList' = file_listdirectory: ($fw_sPath->'types');
+		/inline;
+		iterate: #fw_ctypeList, #fileName;
+			if: ('.' + (#fileName->split:'.')->last) == fw_kCTypExt;
+				($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpPage_init : Q - loading type ' + #fileName);
+				library: ($fw_sPath->'types') + #fileName;
+			/if;
+		/iterate;
+	/if;
+
+
+//	--------------------------------------------------------------------------
+//:	(R)..... get sessionVars from user .....
+
+
+	var:'fw_pageInitSection' = 'R';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : R');
+
+//	need vars so modConfig and pageConfig can be used to instantiate objects
+//	based on values which may have been passed in the session
+//	we don`t auth until later, but in order to centralize object creation
+//	in modConfig and pageConfig we need to have session data now
+//	it`s catch-22 unless we pull vars out as a separate act
+//	yes, vars get created before user is auth`d, but no harm
+//	we only need data from auth table, so no need to spec priv & filters tables
+
+	if: $fw_gUsePbUserAuth && (var:'fw_s') && ($fw_pageModes->'useAutoRestoreSession');
+
+		$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : R', -status = 'create temporary user to restore vars/keepers');
+
+		(local:'fw_tempUser')=(fwp_user: 
+			-fws		= $fw_s, 
+			-authTbl	= $fw_gTables->(find:'userauth'),
+			-config		= 'default');
+		#fw_tempUser->restoreVarsKeepers;
+	/if;
+
+
+//	--------------------------------------------------------------------------
+//:	(S)..... initialize custom config info .....
+
+
+	var:'fw_pageInitSection' = 'S';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : S');
+
+//	include universal app-specific declarations here
+//	if any of the vars in the _initMstrs file needs to be 
+//	based on processed LDML code rather than a simple text declaration, 
+//	then put that code in _initCustom
+
+//	if there are declarations unique to a module or page
+//	then use the modConfig and pageConfig files for those
+
+//	this is located specifically after we get session vars just in
+//	case some of the app-specific code needs session data for decision making
+
+//:	(T)
+
+	$fw_debugTimers ? $fw_timer->(start:'initLoadConfig');
+
+	$fw_gUseInitCustom
+		? library:'/_pbInit/_initCustom.lgc';
+
+	$fw_debugTimers ? $fw_timer->(stop:'initLoadConfig');
+
+
+//	--------------------------------------------------------------------------
+//:	(U)..... initialize Page config info using OneFile .....
+
+
+	var:'fw_pageInitSection' = 'U';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : U');
+
+	$fw_debugTimers ? $fw_timer->(start:'initLoadConfig');
+
+//	if we did not come through atBegin for some reason
+//	fw_pageMethod will be undefined, so better deal with that
+
+	!(var_defined:'fw_pageMethod')
+		? var:'fw_pageMethod'='selfConfig';
+
+	if: ($fw_pageModes->'usePageRouter') && ($fw_pageMethod == 'pageConfig');
+		inline:
+			-username=$fw_gFilesUser,
+			-password=$fw_gFilesPswd;
+			if: file_exists: ('/_pageRouter' + fw_kLogicExt);
+				library: ('/_pageRouter' + fw_kLogicExt);
+			/if;
+		/inline;
+	/if;
+
+	if: ($fw_pageMethod == 'pageConfig');
+		inline:
+			-username=$fw_gFilesUser,
+			-password=$fw_gFilesPswd;
+
+			if: file_exists: ($fw_requestPage->'module') + '_pageConfig' + fw_kLogicExt;
+				library: ($fw_requestPage->'module') + '_pageConfig' + fw_kLogicExt;
+			else;
+				if: file_exists: '/_pageConfig' + fw_kLogicExt;
+					library: '/_pageConfig' + fw_kLogicExt;
+				/if;
+			/if;
+		/inline;
+	else;
+
+//	convert available params fed directly to fwpPage_init to vars
+
+		local:
+			'thisParam' = string,
+			'varName' 	= string;
+			
+		iterate: #fw_pageInitParams, #thisParam;
+			#varName = #thisParam->first;
+			#varName->(removeLeading:'-');
+			(var:(#varName)) = (#thisParam->second);
+		/iterate;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'initLoadConfig');
+
+
+//	--------------------------------------------------------------------------
+//:	(V)..... restore authentication if pageConfig requested it .....
+
+
+	var:'fw_pageInitSection' = 'V';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : V');
+
+
+	if: $fw_gUsePbUserAuth;
+
+//	if we have a session variable
+//	and 
+//	based on pageConfig declaration of fw_pgAuthRequired
+//	or we`re trying to logout
+//	try to re-establish the session
+
+		if: (var:'fw_s') 
+			&& ($fw_pgAuthRequired == true || (var:'fw_logout')=='Y');
+	
+//	the restore operation includes an embedded test for session validity
+//	so we use the temporary user object to perform that test, then if it passes the test
+//	the restore method will populate our real user object 
+//	with previously serialized profile data captured at login
+	
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_init(v - restoreUser)');
+
+			if: $fw_gUsePbUserAuth && (var:'fw_s') && ($fw_pageModes->'useAutoRestoreSession');
+				#fw_tempUser->(restoreUser:$fw_userVarName);
+			/if;
+	
+// 	if aggressive ID changing mode is active
+//	we need to update the sessionID
+	
+			if: $fw_gUseSessionEachPage;
+				var:'fw_s' = (var:$fw_userVarName)->'sessionID';
+			/if;
+		/if;
+	
+//	we need the user defined even if it is empty
+	
+		if: ((var:$fw_userVarName)->type != 'fwp_user');
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_init(v - createEmptyUser)');
+			(var:$fw_userVarName)=(fwp_user: -config='default');
+		/if;
+	
+//	any button or link designed to logout should pass a form param
+//	named fw_logout with a `Y` value
+//	::HACK:: haven't come up with a reliable alternative
+	
+		if: ((var:'fw_logout')=='Y')
+			&& (var:$fw_userVarName)->(getProfile:'loginValid') == 'Y';
+	
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_init(v - logout)');
+
+			if: (var:$fw_userVarName)->type == 'fwp_user';
+
+				$fw_debug ? $fw_tagTracer->(add:'fwpPage_init(v - clearUser)');
+
+				(var:$fw_userVarName)->clearVars;
+				(var:$fw_userVarName)->killSession;
+				(var:$fw_userVarName)=(fwp_user: -config='default');
+				var:'fw_s' = string;
+				redirect_url: $fw_logoutPagePath;
+			else;
+
+				$fw_debug ? $fw_tagTracer->(add:'fwpPage_init(v - clearUser2)');
+
+				(var:$fw_userVarName)=(fwp_user: -config='default');
+			/if;	
+		/if;
+	else;
+		var:'fw_s' = string;
+	/if;
+
+
+//	--------------------------------------------------------------------------
+//:	(W)..... build the JS and HTML code for AutoRollover menus .....
+
+
+	var:'fw_pageInitSection' = 'W';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : W');
+
+//	automate the code to manage rollover menus on the page
+//	using configuration files (see docs)
+//	fw_mnuDefns can be defined in siteConfig, modConfig, or pageConfig
+
+	$fw_debugTimers ? $fw_timer->(start:'initRollover');
+
+	if: (var_defined:'fw_mnuDefns') && ((var:'fw_mnuDefns')->type == 'array');
+		if: var:'fw_s';
+			var:'fw_rollovers'=(autorollover_menus: -menus=$fw_mnuDefns, -paramsGET='fw_s', -xhtml);
+		else;
+			var:'fw_rollovers'=(autorollover_menus: -menus=$fw_mnuDefns, -xhtml);
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'initRollover');
+
+
+//	--------------------------------------------------------------------------
+//:	(X)..... prevent caching for all admin pages or if config`d to .....
+
+
+	var:'fw_pageInitSection' = 'X';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : X');
+
+//	to take advantage of better cache control and login dialogs, 
+//	let`s update the HTTP protocol version
+
+	$__http_header__->(replace: 'HTTP/1.0', 'HTTP/1.1');
+//	$__http_header__ += 'Content-type: text/html; charset=UTF-8\r\n';
+
+	if: (response_filepath >> '_admin') || ($fw_pageModes->'usePreventCache' == true);
+		$__http_header__ += 'Expires: ' + (($fw_headContent->'httpEquivTags')->find:'expires') + '\r\n'; 
+		$__http_header__ += 'Last-Modified: ' + (date_localtogmt: (date))->(format: '%a, %d %b %Y %H:%M:%S GMT') + '\r\n'; 
+		$__http_header__ += 'Cache-Control: no-store, no-cache, must-revalidate\r\n'; 
+		$__http_header__ += 'Cache-Control: post-check=0, pre-check=0\r\n'; 
+        $__http_header__ += 'Vary: *\r\n';
+        $__http_header__ += 'ETag: "' + lasso_uniqueID + '"\r\n';
+		$__http_header__ += 'Pragma: no-cache\r\n'; 
+	/if;
+
+//	--------------------------------------------------------------------------
+//:	(Y)..... initialize the Template if using OneFile .....
+
+
+	var:'fw_pageInitSection' = 'Y';
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_init : Y');
+
+	$fw_timer->(stop:'initConfigAll');
+
+	if: ($fw_pageMethod == 'pageConfig') || (#fw_pageInitParams->find:'-fw_pgTemplate');
+		fwpPage_loadTemplate:
+			-pgTitle		= $fw_pgTitle,
+			-pgTemplate		= $fw_pgTemplate,
+			-pgPrivilege	= $fw_pgPrivilege;
+	/if;
+	
+/define_tag;
+
+?>

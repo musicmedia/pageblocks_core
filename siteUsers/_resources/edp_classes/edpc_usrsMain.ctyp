@@ -1,0 +1,132 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		edpc_usrsMain.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		 }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			A factory pattern to create the objects needed for
+					the current form }
+
+	{maintvsrn=		1.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'edpc_usrsMain', 'fwp_edpMain',
+	-namespace = '_global_';
+
+	local:
+		'formModels' = (map:
+			'home'			= 'edpm_usrsHome',
+			'begin'			= 'edpm_usrsBegin',
+			'profile'		= 'edpm_usrsProfile',
+			'privileges'	= 'edpm_usrsPrivileges',
+			'filters'		= 'edpm_usrsFilters',
+			'summary'		= 'edpm_usrsSummary',
+			'search'		= 'edpm_usrsSearch'),
+	
+		'formControllers' = (map:
+			'home'			= 'edpc_usrsHome',
+			'begin'			= 'edpc_usrsBegin',
+			'profile'		= 'edpc_usrsProfile',
+			'privileges'	= 'edpc_usrsPrivileges',
+			'filters'		= 'edpc_usrsFilters',
+			'summary'		= 'edpc_usrsSummary',
+			'search'		= 'edpc_usrsSearch');
+
+
+//============================================================================
+//
+//	->handleButton
+//
+//	method for EDP system
+//
+//	this method is called to process custom buttons
+//	(use overload methods to customize standard buttons)
+//
+//
+
+define_tag:'handleButton';
+
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->storeSelection
+//
+//	trap some info about the selected (or newly created) user
+//	and store to session for recall on other pages
+//
+//
+
+define_tag:'storeSelection';
+
+	if: (var:'btnListView.x') || 
+		(var:'btnListEdit.x') || 
+		(var:'btnListDelete.x') || 
+		((var:'fw_edpNewRcrdFlag') == 'Y');
+
+		var:'selectedRecord' = (fwp_collection:
+			-nameFirst	= var:'m_uNameF',
+			-nameLast	= var:'m_uNameL',
+			-rcrdNo		= var:'edp_selectedRcrdID');
+
+	/if;
+
+//	for new records we need to create an empty object
+
+	if: (var:'btnMainNewRcrd.x');
+		var:'selectedRecord' = (fwp_collection:
+			-nameFirst 	= '',
+			-nameLast 	= '',
+			-rcrdNo		= '');
+	/if;
+
+//	reset the Filters tab list info object
+
+	var:'userFiltersListInfo' = null;
+
+	(var:$fw_userVarName)->(addVars:'selectedRecord');
+	(var:$fw_userVarName)->(addVars:'userFiltersListInfo');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->clearSelection
+//
+//	clears the var of a stored selection
+//
+//
+
+define_tag:'clearSelection';
+
+	var:'selectedRecord' = fwp_collection;
+	(var:$fw_userVarName)->(addVars:'selectedRecord');
+
+/define_tag;
+
+
+/define_type;
+?>
+

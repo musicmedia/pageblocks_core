@@ -1,0 +1,132 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		edpm_usrsHome.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		 }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			 }
+
+	{maintvsrn=		1.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'edpm_usrsHome', 'fwp_edpModel', -namespace = '_global_';
+
+	
+//=============================================================================
+//
+//	->onCreate
+//
+//	
+//
+
+define_tag:'onCreate';
+
+	(self->'edp_rootTable')			= @$fw_gTables->find:'userauth';
+	(self->'edp_inputFields')		= '';
+	(self->'edp_deletePrepSelect')	= '';
+	(self->'edp_updatePrepSelect')	= '';
+
+	// (self->init);
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->validate
+//
+//	method for EDP system
+//
+//	Use this method to test input validity, create/modify vars based on inputs.
+//	To perform other actions, code that action as a member tag or custom tag, then
+//	call the tag from here (this makes those actions available to other models
+//	and controllers if needed).
+//
+
+define_tag:'validate';
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->postProcess
+//
+//	method for EDP system
+//
+//	Use this method to manage logic flow of when to trigger post processess, but
+//	to perform those processes, code them as a separate member tag or custom tag.
+//	Call the tag from here (this makes those actions available to other models
+//	and controllers if needed).
+//
+
+define_tag:'postProcess';
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->displayPrep
+//
+//	method for EDP system
+//
+//	Use this method to control logic for preparing display data and 
+//	display control flags, but if that prep requires db access calls
+//	code them as a separate member tag or custom tag.
+//	Call the tag from here (this makes those actions available to other models
+//	and controllers if needed).
+//
+
+define_tag:'displayPrep';
+
+	local:'searchInputs' = 'm_rStat, m_uNameL, m_uNameF, m_uIns, m_rSessTime';
+
+	var:'edp_homeFilterInputs' = (fwpCnfg_splitComma:#searchInputs);
+	$edp_homeFilterInputs->(insert:'m_uNameLOp');
+	$edp_homeFilterInputs->(insert:'m_uNameFOp');
+	$edp_homeFilterInputs->(insert:'m_uInsOp');
+	$edp_homeFilterInputs->(insert:'m_rSessTimeOp');
+
+	fwpActn_unlock;
+
+	(var:'btnMainShowAll.x')
+		? $fw_edpIgnoreListCache = true
+		| $fw_edpIgnoreListCache = false;
+
+	var:'usersList'= (fwp_listRcrds:
+		-ignoreCache	= $fw_edpIgnoreListCache,
+		-name			= 'usersList',
+		-config			= 'fwpUserAdmin',
+		-inputs 		= #searchInputs,
+		-table			= @$fw_gTables->find:'userauth',
+		-select			= 'm_rNo, m_rStat, m_uNameL, m_uNameF, m_uLastIn, m_uIns',
+		-sort			= 'm_uNameL```asc```alphabetically by name',
+		-keyfld 		= 'rcrdNo',
+		-where			= 'form');
+
+	$edpMainController->clearSelection;
+
+/define_tag;
+
+/define_type;
+?>

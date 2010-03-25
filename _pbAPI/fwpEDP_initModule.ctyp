@@ -1,0 +1,254 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpEDP_initModule.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_edpModule }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_edpModule }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Initializes the EDP logic workflow for each page }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_edpModule', -prototype;
+
+	local:
+		'fw_mainController'	= string,
+		'fw_defaultPage'	= string,
+		'fw_rcrdsListName'	= string;
+
+//=============================================================================
+//
+//	->onCreate
+//
+//	
+//
+//
+
+define_tag:'onCreate';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModule->onCreate');
+
+	self->'fw_mainController' = ((params->find:'-mainController')->last)->second;
+
+	if: (params->find:'-rcrdsListName');
+		self->'fw_rcrdsListName' = ((params->find:'-rcrdsListName')->last)->second;
+	/if;
+
+	if: (params->find:'-defaultPage');
+		self->'fw_defaultPage' = ((params->find:'-defaultPage')->last)->second;
+	/if;
+
+	self->init;
+	self->setDefault;
+	self->makeMain;
+	self->submitForm;
+	self->prepForm;
+	self->makeView;
+
+/define_tag;
+
+
+
+//=============================================================================
+//
+//	->init
+//
+//	internal use, or for overloaded methods in sub-classed module objects
+//
+//
+
+define_tag:'init';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModule->init');
+
+//	(A) clear out stuff if we know we`re getting here fresh from a menu click
+//		or from the advanced search panel
+
+	if: (var:'sctnreset' == '1') || (var:'fw_srch' == 'new');
+	
+//	clear locks
+//	reset the main list (change the name to match the list object)
+//	use this spot to clear any residual info from previous modules
+	
+		fwpActn_unlock;
+
+		if:(self->'fw_rcrdsListName');
+			var:((self->'fw_rcrdsListName') + 'Info') = (string);
+		/if;
+	
+	/if;
+
+/define_tag;
+
+
+
+//=============================================================================
+//
+//	->setDefault
+//
+//	internal use, or for overloaded methods in sub-classed module objects
+//
+//
+
+define_tag:'setDefault';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModule->setDefault');
+
+//	(B) define default setup for forms
+//	fw_edpSubmittedForm = hidden input submitted by each form to identify itself
+
+if: !var_defined:'fw_edpSubmittedForm';
+	var:'fw_edpSubmittedForm' = (self->'fw_defaultPage');
+/if;
+
+/define_tag;
+
+
+
+//=============================================================================
+//
+//	->makeMain
+//
+//	internal use, or for overloaded methods in sub-classed module objects
+//
+//
+
+define_tag:'makeMain';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModule->makeMain');
+
+	var:'edpMainController' = (\(self->'fw_mainController'))->asType;
+
+/define_tag;
+
+
+
+//=============================================================================
+//
+//	->submitForm
+//
+//	internal use, or for overloaded methods in sub-classed module objects
+//
+//
+
+define_tag:'submitForm';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModule->submitForm');
+
+//	(D) submit the previous page form
+//	generally you do not want to edit this
+//	this stays pretty consistent for most solutions
+//	if more than one form has to be active at one time
+//	multiple ->loadFormClasses can be used, but each
+//	must have unique -model/-controller var names
+
+	$edpMainController->(loadFormClasses: 
+		-form		= $fw_edpSubmittedForm,
+		-model		= 'edpSubmitModel',
+		-controller	= 'edpSubmitController');
+
+//	edpSubmitController declared by above mainController
+//	recordID and lockID are submitted by form/session
+//	and automatically trapped
+
+	$edpSubmitController->(submitHandler: 
+		-submitForm		= $fw_edpSubmittedForm,
+		-submitModel	= 'edpSubmitModel',
+		-mainController	= 'edpMainController');
+
+/define_tag;
+
+
+
+//=============================================================================
+//
+//	->prepForm
+//
+//	internal use, or for overloaded methods in sub-classed module objects
+//
+//
+
+define_tag:'prepForm';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModule->prepForm');
+
+//	(E) prep the current page form
+//	generally you do not want to edit this
+//	this stays pretty consistent for most solutions
+
+	$edpMainController->(loadFormClasses: 
+		-form		= ($edpSubmitController->'prepForm'),
+		-model		= 'edpPrepModel',
+		-controller	= 'edpPrepController');	
+
+//	recordID and lockID are submitted by form/session
+//	and automatically trapped
+
+
+	if: ($edpPrepController->type) != 'null';
+
+		$edpPrepController->(prepHandler: 
+			-prepForm	= ($edpSubmitController->'prepForm'),
+			-prepModel	= 'edpPrepModel');
+	
+	/if;
+
+/define_tag;
+
+
+
+//=============================================================================
+//
+//	->makeView
+//
+//	internal use, or for overloaded methods in sub-classed module objects
+//
+//
+
+define_tag:'makeView';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpModule->makeView');
+
+//	(F) load the current page view
+//	generally you do not want to edit this
+//	this stays pretty consistent for most solutions
+
+	if: ($edpPrepController->type) != 'null';
+
+		var:'edpView' = (fwp_edpView: 
+							-prepForm	= ($edpPrepController->'prepForm'), 
+							-prepModel	= ($edpPrepController->'prepModel')); 
+							
+	/if;
+
+/define_tag;
+
+/define_type;
+?>
+

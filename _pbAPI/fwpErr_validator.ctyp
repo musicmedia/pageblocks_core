@@ -1,0 +1,1511 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpErr_validator.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_validator }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_validator }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Wilits, Bil Corry }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			validates form inputs to standardized filters,
+					replaces fwpErr_validateInputs.ctag. Significant portions
+					of the validation code itself was written by Bil Corry 
+					for our original AutoValidate code. }
+
+	{maintvsrn=		1.5 }
+	{maintrelease=	5.5.0 }
+	{maintdate=		2008-08-01 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	added validation codes extd, extds and flnm }
+
+	{maintvsrn=		1.4 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-03 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added ->resetResults
+					added ->getResults
+					fixed a bug that made -usingPairs not work, 
+					fixed a bug where null values would cause crashes }
+
+	{maintvsrn=		1.3 }
+	{maintrelease=	5.2.4 }
+	{maintdate=		2007-07-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -formSpec option as means to supply both 
+					inputs and valCodes in a single data structure }
+
+	{maintvsrn=		1.2.7 }
+	{maintrelease=	5.1.7 }
+	{maintdate=		2007-05-28 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added date|isDate=euroDate so eurodate could be
+	 				enabled through tableModel config files. Eliminated
+	 				-euroDate as a tag parameter. Added -doNotTrim }
+
+	{maintvsrn=		1.2.6 }
+	{maintrelease=	5.1.7 }
+	{maintdate=		2007-05-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added more trace statements to show loading of custom validators }
+
+	{maintvsrn=		1.2.5 }
+	{maintrelease=	5.1.6 }
+	{maintdate=		2007-05-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added trace statements to show loading of custom validators }
+
+	{maintvsrn=		1.2.4 }
+	{maintrelease=	5.1.6 }
+	{maintdate=		2007-05-15 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed thisMsgFirstWord to msgFirstWord to be 
+					consistent with documentation }
+
+	{maintvsrn=		1.2.3 }
+	{maintrelease=	5.1.6 }
+	{maintdate=		2007-05-14 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed hasLabel code to be processed if it starts
+	 				with a [ so MVS code can be used to display multi-
+	 				language strings for field names }
+
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-03-15 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed lack of hasLabel from being removed as a prefix }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-02-21 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated test code for isWebLink }
+
+	{maintvsrn=		1.2 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-02-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added isAlphaNumericHyphen, isAlphaNumericSpace }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.3 }
+	{maintdate=		2006-10-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added natural-language-like codes
+	 				fixed a bug in the integer validation, 
+	 				rewrote the positiveInteger validation to cure problems }
+
+	{maintvsrn=		1.0.3 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-10-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Fixed bug in fw_validator where loop_continue should have 
+					been used instead of loop_abort. }
+
+	{maintvsrn=		1.0.2 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Changed main validation loop from using client params to
+					the explicit -inputs list. Fixed some bugs relative to the 
+					custom validator processing. }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-05 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Fixed a bug where the input value was not being trimmed
+					causing non-required validations to happen. 
+					Added ipos valcode. 
+					Added insertErrMsg tag.
+					Fixed a bug that generated wrong error messages for
+					valcodes that included an = in them.
+					Added -withP and -withoutBR options to showMsgs }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+/*
+	HOW TO USE:
+
+	$fw_validator = fwp_inputValidator;
+
+	$fw_validator->(validate: 
+		{-usingPostForm,}
+		{-usingGetForm,}
+		{-usingPairs,}
+		-inputs		= {array of allowed inputs},
+		-valCodes	= {map of val code arrays});
+
+	//	the -using params are optional and can be combined
+	//	defaults to usingPostForm if none are specified
+		
+	[$fw_validator->(showMsg:'fieldName')]
+
+*/
+//............................................................................
+//: code descriptions
+/*
+
+a			isAlpha					field must contain alpha characters only (a...z and A...Z) 
+n			isNumeric				field must contain numeric characters (0...9) 
+d			isDecimal				field must contain numeric characters, period, hyphen only
+i			isInteger				field must contain numeric characters and hyphen only
+ipos		isPositiveInteger		field must contain positive integer only
+an			isAlphaNumeric			field must contain alpha characters (a...z and A...Z) or numeric characters (0...9) only
+aspc		isAlphaSpace 			field must contain characters a...z, A...Z and spaces only
+anu			isAlphaNumericUnderscore field must contain characters a...z, A...Z, 0...9, and underscores only
+anh			isAlphaNumericHyphen	field must contain characters a...z, A...Z, 0...9, and hyphens only
+ans			isAlphaNumericSymbol	field must contain characters a...z, A...Z, 0...9, and !@#$%^&* only
+anspc		isAlphaNumericSpace		field must contain characters a...z, A...Z, 0...9, and spaces only
+extd		isExtended				field must contain numbers, characters including a set of extended unicode chars and the symbols hyphen, point, question mark, single quote, ampersand and colon
+extds		isExtendedSymbols		field must contain alphanum characters including a set of extended unicode chars and the symbols "'.,-_;:?!=%&()/{}\r\n\t
+flnm		isFileName				field must contain small letters from English alfabet, numbers and - and _'
+req			isRequired				the field must contain at least a single character, it cannot be of length 0
+vreq		isRequiredSelection		the field must contain at least a single character, it cannot be of length 0
+			hasRequiredSelection
+			requiredSelection
+nospc		hasNoSpaces				must not contain any whitespace (space, tab, linefeed or return)
+			hasNoSpace
+eq=			isEqualTo				the field must be equal to another specified field
+			hasExactValue
+regex=		matchesRegex			the field must match the regex pattern specified
+min=N		hasMinValue				minimum numeric value - must be equal to or greater than N (integer or decimal)
+max=N		hasMaxValue				maximum numeric value - cannot be greater than N (integer or decimal)
+len=N		hasLength				exact string length - length of the field must be equal to N (integer)
+			hasExactLength
+minlen=N	hasMinLength			minimum string length - must be greater than or equal to N (integer)
+maxlen=N	hasMaxLength			maximum string length - must be less than or equal to N (integer)
+email		isEmail					email address - must contain an @ symbol, at least one period after the @, and one letter in each segment )
+			isEmailAddress			
+cc			isCreditCard			valid credit card number (uses the LDML tag Valid_CreditCard)
+link		isLink					href link - a safe URL (does not contain the word \'javascript:\') 
+			isWebLink
+date		isDate					date - accepts numerous date formats and converts the date to an ISO string yyyy-mm-dd
+										use the =usaDate option or =euroDate option to force a specific format
+pw			isPassword				password - a macro for req.an.nospc.lenmin=6
+pws			isPasswordStrong		strong password - min length is 8, requires one A...Z, one a...z, one 0...9, one symbol from !@#$%^&*
+			isStrongPassword
+day			isDay					numerical day of the month - a macro for i.min=1.max=31
+month		isMonth					numerical month number - a macro for i.min=1.max=12
+year		isYear					four digit year in the range of 1900-2020 - a macro for i.min=1900.max=2020
+label=		usesLabel				friendly field name - allows the definition of a friendly name for the field to display in the error message (unquoted string)
+			hasLabel
+notrim		isNotTrimmed    whitespace is removed from beginning and end of field unless notrim is specified
+			doNotTrim
+htmlok		isHTML					angle brackets are converted into entities unless html is specified
+			hasHTML
+			usesHTML
+scriptok	isJavaScript			'javascript:' and '<script' are modified to use entity substitutions unless scriptok is specified
+			hasJavaScript	
+			usesJavaScript
+*/
+//............................................................................
+
+define_type:'fwp_validator', -prototype;
+
+	local:
+		'configFileName'	= 'ValErrors',
+		'globalCacheVar'	= 'fw_gValidatorMVSConfigs',
+		'globalCacheLock'	= 'fw_gValidatorMVSConfigs_rwlock',
+		'stringsLoader'		= string,
+		'coreCodes'			= array,
+		'appCodes'			= array,
+		'errorMsgs'			= array;
+
+	local:
+		'errorMsg'				= array,
+		'fw_unknownCodeConfig'	= map;
+
+//============================================================================
+//
+//	->onCreate
+//
+//
+//
+//............................................................................
+
+define_tag:'onCreate',
+	-optional = 'mvsLoader';
+
+	(local_defined:'mvsLoader')
+		? self->'stringsLoader' = #mvsLoader;
+
+	!(global_defined:(self->'globalCacheVar'))
+		? self->cacheReset;
+
+	(self->'fw_unknownCodeConfig')->(insert:
+		'msg_all' = (map: 'default' =
+		'The entry in this field caused Error Code [#thisValCode], but a description for that code could not be found.'));
+
+	(self->'errorMsg') = @(self->'errorMsgs');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->resetResults
+//
+//
+//............................................................................
+
+define_tag:'resetResults';
+
+	(self->'coreCodes')			= array;
+	(self->'appCodes')			= array;
+	(self->'errorMsgs')			= array;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->cacheReset
+//
+//	builds an error mesage based on a single error code
+//
+//
+//............................................................................
+
+define_tag:'cacheReset';
+
+	$fw_gErrorMVSConfigs_rwlock->readUnlock;
+	$fw_gErrorMVSConfigs_rwlock->writeLock;
+	
+	(global:(self->'globalCacheVar')) = map;
+	(global:(self->'globalCacheVar'))->(insert:'modulesLoaded' = map);
+	
+	$fw_gErrorMVSConfigs_rwlock->writeUnlock;
+	$fw_gErrorMVSConfigs_rwlock->readLock;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//
+
+define_tag:'validate',
+	-optional = 'inputs',
+	-optional = 'valCodes',
+	-optional = 'formSpec';
+
+	$fw_debugTimers ? $fw_timer->(start:'tagValidateInputs');
+
+	self->resetResults;
+
+	if: params >> '-formSpec';
+		local:
+			'inputs' 		= array,
+			'valCodes' 		= map,
+			'thisInput'		= pair,
+			'theseCodes'	= array;
+
+		#inputs = #formSpec->keys;
+		#inputs = #inputs->(join:',');
+		
+		iterate: #formSpec, #thisInput;
+			#theseCodes = #thisInput->second;
+			#theseCodes = fwpCnfg_splitComma:#theseCodes;
+			#valCodes->(insert: (#thisInput->first) = #theseCodes);
+		/iterate;
+	/if;
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_validator->validate', 
+		-inputs = #inputs,
+		-valCodes = #valCodes);
+
+	local:
+		'fw_usePostForm'	= false,
+		'fw_getValidator' 	= false,
+		'fw_postValidator' 	= false,
+		'fw_theseValidator' = false;
+
+	(!(params->contains:'-usingGETForm') 
+		&& !(params->contains:'-usingPOSTForm') 
+		&& !(params->contains:'-usingPairs'))
+		? #fw_usePostForm = true;
+
+//	::BUG::
+//	if multiple modes are specified
+//	error messages get duplicated
+
+//	-source   = an array of name-value pairs to be validated
+//	-inputs   = comma separated list of allowed names
+//	-valcodes = map where keys = input names, and values = array of valCodes to test
+
+	((params->contains:'-usingPOSTForm') || #fw_usePostForm)
+		? #fw_postValidator = self->(fw_validator:
+			-source   = @client_postParams,
+			-inputs   = @#inputs,
+			-valCodes = @#valCodes);
+
+	(params->contains:'-usingGETForm')
+		? #fw_getValidator = self->(fw_validator:
+			-source   = @client_getParams,
+			-inputs   = @#inputs,
+			-valCodes = @#valCodes);
+	
+	(params->contains:'-usingPairs')
+		? #fw_theseValidator = self->(fw_validator:
+			-source   = ((params->find:'-usingPairs')->first)->second,
+			-inputs   = @#inputs,
+			-valCodes = @#valCodes);
+
+	$fw_debugTimers ? $fw_timer->(stop:'tagValidateInputs');
+
+	#fw_getValidator || #fw_postValidator || #fw_theseValidator
+		? return: true
+		| return: false;
+
+/define_tag;
+
+
+
+
+//=============================================================================
+//
+//
+
+define_tag:'fw_validator',
+	-required = 'source',
+	-required = 'inputs', -copy,
+	-required = 'valCodes';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_validator->fw_validator', -inputs = #inputs);
+
+	$fw_debugTimers ? $fw_timer->(start:'tagValidator');
+
+	local:
+		'fw_sourcePairs'		= #source,
+		'fw_allowedInputs'		= #inputs,
+		'fw_valCodes'			= #valCodes,
+		'fw_euroDate'			= false,
+		'fw_usaDate'			= false,
+		'fw_thisInput'			= pair,
+		'fw_inputName'			= string,
+		'fw_inputValue'			= string,
+		'fw_thisCode'			= string,
+		'fw_validateTasks'		= array,
+		'fw_thisTask'			= pair,
+		'fw_inputCodes'			= array,
+		'fw_taskCode'			= string,
+		'fw_taskValue'			= null,
+		'fw_friendlyNames'		= array;
+
+	(#fw_allowedInputs->type == 'string')
+		? #fw_allowedInputs = (fwpCnfg_splitComma:#fw_allowedInputs);
+
+	(params >> '-euroDate')
+		? #fw_euroDate = true;
+		
+	(params >> '-usaDate')
+		? #fw_usaDate = true;
+		
+
+//	--------------------------------------------------------------
+//	
+//	outer iterate steps through allowed inputs
+//	inner iterate steps through codes for the current field
+//
+//
+
+
+	$fw_debug ? $fw_tagTracer->(add:'validator : allowedInputs', 
+		-fw_allowedInputs=#fw_allowedInputs,
+		-fw_sourcePairs=#fw_sourcePairs);
+ 	
+
+	iterate: #fw_allowedInputs, #fw_thisInput;
+
+		if: #fw_sourcePairs >> #fw_thisInput;
+			#fw_inputName 		= #fw_thisInput;
+			#fw_inputValue 		= ((#fw_sourcePairs->find:#fw_thisInput)->get:1)->second;
+		else;
+			loop_continue;
+		/if;
+	
+		#fw_validateTasks 	= array;
+
+		#fw_valCodes->(contains:#fw_inputName)
+			? #fw_inputCodes = #fw_valCodes->(find:#fw_inputName);
+		
+		(#fw_inputCodes->type != array)
+			? #fw_inputCodes = array;
+
+		($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'validator : allowedInput', 
+			-fw_inputName = #fw_inputName, 
+			-fw_inputValue = #fw_inputValue,
+			-fw_inputCodes = #fw_inputCodes);
+
+//	validation macros
+//	here we are expanding macros codes into the individual codes they represent
+//	there is no need to remove the macro code because we'll just ignore them
+//	as we read them in the sections below
+
+		if: #fw_inputCodes->(contains:'pw')
+			|| #fw_inputCodes->(contains:'isPassword');
+			#fw_inputCodes->(insert:'req');
+			#fw_inputCodes->(insert:'an');
+			#fw_inputCodes->(insert:'nospc');
+			#fw_inputCodes->(insert:'lenmin=6');
+		/if;
+
+		if: #fw_inputCodes->(contains:'month')
+			|| #fw_inputCodes->(contains:'isMonth');
+			#fw_inputCodes->(insert:'n');
+			#fw_inputCodes->(insert:'min1');
+			#fw_inputCodes->(insert:'max12');
+		/if;
+
+		if: #fw_inputCodes->(contains:'day')
+			|| #fw_inputCodes->(contains:'isDay');
+			#fw_inputCodes->(insert:'n');
+			#fw_inputCodes->(insert:'min1');
+			#fw_inputCodes->(insert:'max31');
+		/if;
+
+		if: #fw_inputCodes->(contains:'year')
+			|| #fw_inputCodes->(contains:'isYear');
+			#fw_inputCodes->(insert:'n');
+			#fw_inputCodes->(insert:'min1900');
+			#fw_inputCodes->(insert:'max2020');
+		/if;
+
+//	fill the validation map
+//	look at every validation code
+
+		iterate: #fw_inputCodes, #fw_thisCode;
+
+			select: #fw_thisCode;
+				case:'isAlpha';
+					#fw_validateTasks->(insert:'a'=true);
+				case:'a';
+					#fw_validateTasks->(insert:'a'=true);
+
+				case:'isNumeric';
+					#fw_validateTasks->(insert:'n'=true);
+				case:'n';
+					#fw_validateTasks->(insert:'n'=true);
+
+				case:'isInteger';
+					#fw_validateTasks->(insert:'i'=true);
+				case:'i';
+					#fw_validateTasks->(insert:'i'=true);
+
+				case:'isPositiveInteger';
+					#fw_validateTasks->(insert:'ipos'=true);
+				case:'ipos';
+					#fw_validateTasks->(insert:'ipos'=true);
+
+				case:'isDecimal';
+					#fw_validateTasks->(insert:'d'=true);
+				case:'d';
+					#fw_validateTasks->(insert:'d'=true);
+
+				case:'isAlphaSpace';
+					#fw_validateTasks->(insert:'aspc'=true);
+				case:'aspc';
+					#fw_validateTasks->(insert:'aspc'=true);
+
+				case:'isAlphaNumeric';
+					#fw_validateTasks->(insert:'an'=true);
+				case:'an';
+					#fw_validateTasks->(insert:'an'=true);
+
+				case:'isAlphaNumericSymbol';
+					#fw_validateTasks->(insert:'ans'=true);
+				case:'ans';
+					#fw_validateTasks->(insert:'ans'=true);
+
+				case:'isAlphaNumericUnderscore';
+					#fw_validateTasks->(insert:'anu'=true);
+				case:'anu';
+					#fw_validateTasks->(insert:'anu'=true);
+
+				case:'isAlphaNumericHyphen';
+					#fw_validateTasks->(insert:'anh'=true);
+				case:'anh';
+					#fw_validateTasks->(insert:'anh'=true);
+
+				case:'isAlphaNumericSpace';
+					#fw_validateTasks->(insert:'anspc'=true);
+				case:'anspc';
+					#fw_validateTasks->(insert:'anspc'=true);
+					
+				case:'isExtended';
+					#fw_validateTasks->(insert:'extd'=true);
+					
+				case:'isExtendedSymbols';
+					#fw_validateTasks->(insert:'extds'=true);
+					
+				case:'isFileName';
+					#fw_validateTasks->(insert:'flnm'=true);
+
+				case:'isRequired';
+					#fw_validateTasks->(insert:'req'=true);
+				case:'req';
+					#fw_validateTasks->(insert:'req'=true);
+
+				case:'isRequiredSelection';
+					#fw_validateTasks->(insert:'vreq'=true);
+				case:'hasRequiredSelection';
+					#fw_validateTasks->(insert:'vreq'=true);
+				case:'requiresSelection';
+					#fw_validateTasks->(insert:'vreq'=true);
+				case:'vreq';
+					#fw_validateTasks->(insert:'vreq'=true);
+
+				case:'isCreditCard';
+					#fw_validateTasks->(insert:'cc'=true);
+				case:'cc';
+					#fw_validateTasks->(insert:'cc'=true);
+
+				case:'hasNoSpaces';
+					#fw_validateTasks->(insert:'nospc'=true);
+				case:'hasNoSpace';
+					#fw_validateTasks->(insert:'nospc'=true);
+				case:'nospc';
+					#fw_validateTasks->(insert:'nospc'=true);
+
+				case:'isEmail';
+					#fw_validateTasks->(insert:'email'=true);
+				case:'isEmailAddress';
+					#fw_validateTasks->(insert:'email'=true);
+				case:'email';
+					#fw_validateTasks->(insert:'email'=true);
+
+				case:'isWebLink';
+					#fw_validateTasks->(insert:'link'=true);
+				case:'isLink';
+					#fw_validateTasks->(insert:'link'=true);
+				case:'link';
+					#fw_validateTasks->(insert:'link'=true);
+
+				case:'doNotTrim';
+					#fw_validateTasks->(insert:'notrim'=true);
+				case:'isNotTrimmed';
+					#fw_validateTasks->(insert:'notrim'=true);
+				case:'notrim';
+					#fw_validateTasks->(insert:'notrim'=true);
+
+				case:'isPasswordStrong';
+					#fw_validateTasks->(insert:'pws'=true);
+				case:'isStrongPassword';
+					#fw_validateTasks->(insert:'pws'=true);
+				case:'pws';
+					#fw_validateTasks->(insert:'pws'=true);
+
+				case:'pw';
+					//	macro code
+					//	trap but ignore it, it was expanded above
+				case:'month';
+					//	macro code
+					//	trap but ignore it, it was expanded above
+				case:'day';
+					//	macro code
+					//	trap but ignore it, it was expanded above
+				case:'year';
+					//	macro code
+					//	trap but ignore it, it was expanded above
+				case;
+				
+					// do the ones not compatible with case
+				
+					if: #fw_thisCode->(beginsWith:'date') 
+						  || #fw_thisCode->(beginsWith:'isDate');
+						#fw_validateTasks->(insert:'date'=true);
+						#fw_thisCode->(removeLeading:'date=');
+						#fw_thisCode->(removeLeading:'isDate=');
+						(#fw_thisCode == 'euroDate')
+							? #fw_euroDate = true;
+						(#fw_thisCode == 'usaDate')
+							? #fw_usaDate = true;
+
+					else: #fw_thisCode->(beginsWith:'regex=')
+						  || #fw_thisCode->(beginsWith:'matchesRegExp=');
+						#fw_thisCode->(removeLeading:'regex=');
+						#fw_thisCode->(removeLeading:'matchesRegExp=');
+						#fw_validateTasks->(insert:'regex'=(string: #fw_thisCode));
+	
+					else: #fw_thisCode->(beginsWith:'len=')
+						  || #fw_thisCode->(beginsWith:'hasExactLength=')
+						  || #fw_thisCode->(beginsWith:'hasLength=');
+						#fw_thisCode->(removeLeading:'len=');
+						#fw_thisCode->(removeLeading:'hasLength=');
+						#fw_validateTasks->(insert:'length'=(integer: #fw_thisCode));
+	
+					else: #fw_thisCode->(beginsWith:'minlen=')
+						  || #fw_thisCode->(beginsWith:'hasMinLength=');
+						#fw_thisCode->(removeLeading:'minlen=');
+						#fw_thisCode->(removeLeading:'hasMinLength=');
+						#fw_validateTasks->(insert:'minlen'=(integer: #fw_thisCode));
+	
+					else: #fw_thisCode->(beginsWith:'maxlen=')
+						  || #fw_thisCode->(beginsWith:'hasMaxLength=');
+						#fw_thisCode->(removeLeading:'maxlen=');
+						#fw_thisCode->(removeLeading:'hasMaxLength=');
+						#fw_validateTasks->(insert:'maxlen'=(integer: #fw_thisCode));
+	
+					else: #fw_thisCode->(beginsWith:'eq=')
+						  || #fw_thisCode->(beginsWith:'hasExactValue=')
+						  || #fw_thisCode->(beginsWith:'isEqualTo=');
+						#fw_thisCode->(removeLeading:'eq=');
+						#fw_thisCode->(removeLeading:'isEqualTo=');
+						#fw_validateTasks->(insert:'eq'=(string: #fw_thisCode));
+	
+					else: #fw_thisCode->(beginsWith:'min=')
+						  || #fw_thisCode->(beginsWith:'hasMinValue=');
+						#fw_thisCode->(removeLeading:'min=');
+						#fw_thisCode->(removeLeading:'hasMinValue=');
+						#fw_validateTasks->(insert:'min'=(decimal: string: #fw_thisCode));
+
+					else: #fw_thisCode->(beginsWith:'max=')
+						  || #fw_thisCode->(beginsWith:'hasMaxValue=');
+						#fw_thisCode->(removeLeading:'max=');
+						#fw_thisCode->(removeLeading:'hasMaxValue=');
+						#fw_validateTasks->(insert:'max'=(decimal: string: #fw_thisCode));
+	
+					else: #fw_thisCode->(beginsWith:'label=')
+						  || #fw_thisCode->(beginsWith:'hasLabel=')
+						  || #fw_thisCode->(beginsWith:'usesLabel=');
+						#fw_thisCode->(removeLeading:'label=');
+						#fw_thisCode->(removeLeading:'hasLabel=');
+						#fw_thisCode->(removeLeading:'usesLabel=');
+						#fw_friendlyNames->(insert:#fw_inputName=(string: #fw_thisCode));
+
+					else;
+						//	not trapped by case options or else options
+						//	so, this is an unknown validation code
+						(self->'appCodes')->(insert:#fw_inputName=#fw_thisCode);
+					/if;
+			/select;
+		/iterate;
+
+//	if the field was not submitted or submitted as empty
+//	then don't bother modifying it
+
+		if: #fw_inputValue != null;
+
+//	trim value unless notrim was specified
+
+			if: !(#fw_validateTasks->(find:'notrim')) && !(#fw_validateTasks->(find:'isNotTrimmed'));
+				(var:#fw_inputName)->trim;
+				#fw_inputValue->trim;
+			/if;
+
+//	convert < and > to entities unless htmlok was specified
+
+			if: !(#fw_validateTasks->(find:'htmlok') 
+				|| #fw_validateTasks->(find:'isHTML')
+				|| #fw_validateTasks->(find:'hasHTML')
+				|| #fw_validateTasks->(find:'usesHTML'));
+				(var:#fw_inputName)->(replace: '>', '&gt;');
+				(var:#fw_inputName)->(replace: '<', '&lt;');
+				
+				// reverse the effects if scriptok was specified
+				if: !(#fw_validateTasks->(find:'scriptok') 
+					|| #fw_validateTasks->(find:'isJavaScript')
+					|| #fw_validateTasks->(find:'hasJavaScript')
+					|| #fw_validateTasks->(find:'usesJavaScript'));
+					(var:#fw_inputName)->(replace: '&lt;script', '<script');
+				/if;
+			/if;
+
+//	modify javascript: and <script to entities unless scriptok was specified
+//	to allow <script requires both scriptok and htmlok codes specified
+
+			if: !(#fw_validateTasks->(find:'scriptok') 
+				|| #fw_validateTasks->(find:'isJavaScript')
+				|| #fw_validateTasks->(find:'hasJavaScript')
+				|| #fw_validateTasks->(find:'usesJavaScript'));
+				(var:#fw_inputName)->(replace: 'javascript:', 'javascript&#58;');
+				(var:#fw_inputName)->(replace: '<script', '&lt;script');
+			/if;
+		/if;  // end null test
+
+//	if the field was not submitted or submitted as empty
+//	then don't bother validating it
+//	but if it was not submitted and it is required
+//	then we have to gripe about that and add it to errors list
+
+		if: !#fw_inputValue;
+			if: #fw_validateTasks->(find:'req')
+				|| #fw_validateTasks->(find:'isRequired');
+				(self->'coreCodes')->(insert: #fw_inputName = 'req');
+			/if;
+			if: #fw_validateTasks->(find:'vreq')
+				|| #fw_validateTasks->(find:'isRequiredSelection')
+				|| #fw_validateTasks->(find:'hasRequiredSelection');
+				(self->'coreCodes')->(insert: #fw_inputName = 'vreq');
+			/if;
+
+		else;
+
+//	the input was submitted, so we have to go through the validation tasks
+
+			iterate: #fw_validateTasks, #fw_thisTask;
+
+				#fw_taskCode	= #fw_thisTask->first;
+				#fw_taskValue	= #fw_thisTask->second;
+
+				select: #fw_taskCode;
+
+				case: 'a';
+
+					!(string_isalpha:#fw_inputValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'd';
+
+					!(string_isnumeric:#fw_inputValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'n';
+
+					!(string_isnumeric:#fw_inputValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode)
+						| ((#fw_inputValue >> '.') || (#fw_inputValue >> '-'))
+							? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'i';
+
+					!(string_isnumeric:#fw_inputValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode)
+						| #fw_inputValue >> '.'
+							? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'ipos';
+
+					!(string_isnumeric:#fw_inputValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode)
+						| (#fw_inputValue >> '.') || (#fw_inputValue >> '-')
+							? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode)
+							| #fw_inputValue < 1
+								? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'aspc';
+
+					((string_findRegExp: #fw_inputValue, -find='[^a-zA-Z ]*')->size != 0)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'an';
+
+					!(string_isalphanumeric:#fw_inputValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'ans';
+
+					((string_findRegExp: #fw_inputValue, -find='[^a-zA-Z0-9!@#$%^&*]*')->size != 0)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'anu';
+					((string_findRegExp: #fw_inputValue, -find='[^a-zA-Z0-9_]*')->size != 0)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'anh';
+					((string_findRegExp: #fw_inputValue, -find='[^a-zA-Z0-9\-]*')->size != 0)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'anspc';
+					((string_findRegExp: #fw_inputValue, -find='[^a-zA-Z0-9 ]*')->size != 0)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+						
+				case: 'extd';
+					string_findregexp(#fw_inputValue, -find='[^a-zA-Z\\x{00C0}-\\x{00FF}0-9\\\'\\.\\,\\-\\&\\:\\? ]*')->size != 0
+						? self->('coreCodes')->(insert(#fw_inputName = #fw_taskCode));
+				
+				case: 'extds';
+					string_findregexp(#fw_inputValue, -find='[^a-zA-Z\\x{00C0}-\\x{00FF}0-9\\\'\\"\\.\\,\\-\\_\\;\\:\\?\\!\\=\\%\\&\\(\\)\\/\\{\\}\\r\\n\\t ]*')->size != 0
+						? self->('coreCodes')->(insert(#fw_inputName = #fw_taskCode));
+				
+				case: 'flnm';
+					string_findregexp(#fw_inputValue, -find='[^abcdefghijklmnopqrstuvwxyz0-9\\_\\-]*')->size != 0
+						? self->('coreCodes')->(insert(#fw_inputName = #fw_taskCode));
+
+				case: 'pws';
+					local:'vfpwsinvalid'=false;
+					// no white spaces
+					((string_findregexp: #fw_inputValue, -find='[\\s]')->size)
+						? #vfpwsinvalid = true;
+					// min length
+					((string_length: #fw_inputValue) < 8)
+						? #vfpwsinvalid = true;
+					//	contain an uppercase
+					!((string_findregexp: #fw_inputValue, -find='[A-Z]')->size)
+						? #vfpwsinvalid = true;
+					//	contain a lowercase
+					!((string_findregexp: #fw_inputValue, -find='[a-z]')->size)
+						? #vfpwsinvalid = true;
+					//	contain a numeral
+					!((string_findregexp: #fw_inputValue, -find='[0-9]')->size)
+						? #vfpwsinvalid = true;
+					//	contain a symbol from keys 1-8
+					!((string_findregexp: #fw_inputValue, -find='[\\*\\&\\^\\%\\$\\#\\@\\!]')->size)
+						? #vfpwsinvalid = true;
+					#vfpwsinvalid
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'cc';
+
+					!(valid_creditcard:#fw_inputValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'req';
+
+					//	already took care of this above
+					//	still have to handle it here so it doesn't get included in custom codes
+
+				case: 'vreq';
+
+					//	already took care of this above
+					//	still have to trap it here so it doesn't get included in custom codes
+
+				case: 'nospc';
+
+					(#fw_inputValue->(contains:' ') || #fw_inputValue->(contains:'\t') || #fw_inputValue->(contains:'\r') || #fw_inputValue->(contains:'\n'))
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'regex';
+
+					((string_findRegExp: #fw_inputValue, -find=#fw_taskValue)->size == 0)
+						? (self->'coreCodes')->(insert: #fw_inputName = (#fw_taskCode + string:#fw_taskValue));
+
+				case: 'eq';
+
+					local:'eqvalue' = (#action_params->find:#fw_taskValue)->last;
+					(#eqvalue->type == 'pair')
+						? #eqvalue = #eqvalue->second;
+
+					(#fw_inputValue != #eqvalue)
+						? (self->'coreCodes')->(insert: #fw_inputName = (#fw_taskCode + string:#fw_taskValue));
+
+				case: 'min';
+
+					((decimal:#fw_inputValue) < (decimal:#fw_taskValue))
+						? (self->'coreCodes')->(insert: #fw_inputName = (#fw_taskCode + string:#fw_taskValue));
+
+				case: 'max';
+
+					((decimal:#fw_inputValue) > (decimal:#fw_taskValue))
+						? (self->'coreCodes')->(insert: #fw_inputName = (#fw_taskCode + string:#fw_taskValue));
+
+				case: 'length';
+
+					(#fw_inputValue->length != integer:#fw_taskValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = (#fw_taskCode + string:#fw_taskValue));
+
+				case: 'minlen';
+
+					(#fw_inputValue->length < integer:#fw_taskValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = (#fw_taskCode + string:#fw_taskValue));
+
+				case: 'maxlen';
+
+					(#fw_inputValue->length > integer:#fw_taskValue)
+						? (self->'coreCodes')->(insert: #fw_inputName = (#fw_taskCode + string:#fw_taskValue));
+
+				case: 'email';
+
+					((string_findRegExp: #fw_inputValue, -find='[A-Z0-9._%-]+@[A-Z0-9._%-]+\\.[A-Z]{2,4}', -ignorecase)->size == 0)
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'link';
+
+					local:'fw_inputTemp' = string;
+					(#fw_inputValue >> '://')
+						? #fw_inputTemp = #fw_inputValue
+						| #fw_inputTemp = ('http://' + #fw_inputValue);
+
+					!(valid_url:#fw_inputTemp) || #fw_inputTemp->(contains:'javascript:')
+						? (self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				case: 'date';
+
+					local:
+						'inputDate'		= #fw_inputValue,
+						'lassoDate'		= string,
+						'dateParts'		= array,
+						'thisMonth'		= pair,
+						'monthNames' 	= (map:
+    										'01' = ('jan, january'),
+    										'02' = ('feb, february'),
+    										'03' = ('mar, march'),
+    										'04' = ('apr, april'),
+    										'05' = ('may'),
+    										'06' = ('jun, june'),
+    										'07' = ('jul, july'),
+    										'08' = ('aug, august'),
+    										'09' = ('sep, september'),
+    										'10' = ('oct, october'),
+    										'11' = ('nov, november'),
+    										'12' = ('dec, december'));
+						
+				//	normalize date input format for internal use
+				
+					#inputDate->(replace:'.','/');
+					#inputDate->(replace:'-','/');
+					#inputDate->(replace:'_','/');
+					#inputDate->(replace:' ','/');	
+				
+					#dateParts = #inputDate->split:'/';
+				
+					if: #dateParts->size == 3;
+						local:
+							'datePartA' = #dateParts->get:1,
+							'datePartB' = #dateParts->get:2,
+							'datePartC' = #dateParts->get:3;
+				
+						if: #datePartA != string:(integer:#datePartA);
+							iterate: #monthNames, #thisMonth;
+								if: (#thisMonth->second) >> #datePartA; 
+									#datePartA = (#thisMonth->first);
+									#inputDate = #datePartA + '/' + #datePartB + '/' + #datePartC;
+									// if we know this is the month, then we don't really have a euro numeric date
+									#fw_usaDate = true;
+									#fw_euroDate = false;
+									loop_abort;
+								/if;
+							/iterate;
+						/if;
+
+						if: #datePartB != string:(integer:#datePartB);
+							iterate: #monthNames, #thisMonth;
+								if: (#thisMonth->second) >> #datePartB; 
+									#datePartB = (#thisMonth->first);
+									#inputDate = #datePartA + '/' + #datePartB + '/' + #datePartC;
+									// if we know this is the month, then we have a euro numeric date
+									#fw_usaDate = false;
+									#fw_euroDate = true;
+									loop_abort;
+								/if;
+							/iterate;
+						/if;
+
+						if: (#datePartA->size == 4);
+							#inputDate	= #datePartA + '-' + #datePartB + '-' + #datePartC;
+							#lassoDate = #datePartA + '-' + #datePartB + '-' + #datePartC;
+						else;
+							(#datePartA > 12) || #fw_euroDate
+								? #lassoDate = (#datePartB + '/' + #datePartA + '/' + #datePartC)
+								| #lassoDate = (#datePartA + '/' + #datePartB + '/' + #datePartC);
+						/if;
+					/if;
+
+					//	validate the date value
+				
+					if: #fw_usaDate && !(valid_date:#inputDate, -format='%m/%d/%Y') && !(valid_date:#inputDate);
+						(self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+					else: #fw_euroDate && !(valid_date:#inputDate, -format='%d/%m/%Y') && !(valid_date:#inputDate);
+						(self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+					else: !(valid_date:#inputDate, -format='%m/%d/%Y') && !(valid_date:#inputDate, -format='%d/%m/%Y') && !(valid_date:#inputDate);
+						(self->'coreCodes')->(insert: #fw_inputName = #fw_taskCode);
+					/if;
+
+					// convert to standardized yyyy-mm-dd date string
+					
+					(self->'coreCodes') !>> #fw_inputName
+						? (var:#fw_inputName) = (date_format: #lassoDate, -format='%Q');
+
+				case: 'notrim';
+
+					//	handled under data manipulation above
+					//	still handled here so it doesn't get added to custom codes
+
+				case;
+
+					//	unknown or custom validation item
+
+					(self->'appCodes')->(insert: #fw_inputName = #fw_taskCode);
+
+				/select;
+			/iterate; 	// validation codes
+		/if;			// submitted value validation task test
+			
+	/iterate;				// inputs
+
+
+//=============================================================================
+//: Handle Custom Val Codes
+//	
+//
+//.............................................................................
+
+	if: (self->'appCodes');
+
+		$fw_debug ? $fw_tagTracer->(add:'fwp_validator->validateCustomCodes');
+
+		local:
+			'fw_appModValidatorFile' 		= (($fw_mPath->'libs') + 'validator_appModule' + fw_kCTypExt),
+			'fw_appSiteValidatorFile' 		= (($fw_sPath->'libs') + 'validator_appSite' + fw_kCTypExt),
+			'fw_appModValidatorSrc' 		= string,
+			'fw_appSiteValidatorSrc' 		= string,
+			'fw_appModValidatorClass'		= 'validator_appModule' + ($fw_requestPage->'moduleNm'),
+			'fw_appSiteValidatorClass'		= 'validator_appSite',
+			'fw_appModValidator' 			= string,
+			'fw_appSiteValidator' 			= string,
+			'fw_appValidatorTagRefc'		= null;
+
+		local:
+			'fw_thisInputIndx'				= integer,
+			'thisInputName'					= string,
+			'thisInputCode'					= string,
+			'thisInputParam'				= string,
+			'inputIsValid'					= string;
+
+//	load custom validators 
+//	load site first so it can serve as parent class for module validator
+
+		inline:
+			-username = $fw_gFilesUser,
+			-password = $fw_gFilesPswd;
+
+			if: !(lasso_tagExists:#fw_appSiteValidatorClass) || $fw_customValidatorsReset;
+				if: (file_exists: #fw_appSiteValidatorFile);
+					$fw_debug ? $fw_tagTracer->(add:'fwp_validator : site validator found');
+					#fw_appSiteValidatorSrc = (include_raw: #fw_appSiteValidatorFile);
+				else;
+					$fw_debug ? $fw_tagTracer->(add:'fwp_validator : site validator NOT found');
+				/if;
+			/if;
+
+			if: !(lasso_tagExists:#fw_appModValidatorClass) || $fw_customValidatorsReset;
+				if: (file_exists: #fw_appModValidatorFile);
+					$fw_debug ? $fw_tagTracer->(add:'fwp_validator : module validator found');
+					#fw_appModValidatorSrc = (include_raw: #fw_appModValidatorFile);
+				else;
+					$fw_debug ? $fw_tagTracer->(add:'fwp_validator : module validator NOT found');
+				/if;
+			/if;
+		/inline;
+
+// load into Lasso's tags map and instantiate a local implementation
+		if: #fw_appSiteValidatorSrc;
+			$fw_debug ? $fw_tagTracer->(add:'fwp_validator : site validator loaded');
+			process:#fw_appSiteValidatorSrc; 
+			#fw_appSiteValidator = (\#fw_appSiteValidatorClass)->astype;
+		/if;
+
+// dynamically assign module-specific ctype class name
+// so that each module's ctype declaration does not have to be specialized
+// load into Lasso's tags map and instantiate a local implementation
+		if: #fw_appModValidatorSrc;
+			$fw_debug ? $fw_tagTracer->(add:'fwp_validator : module validator loaded');
+			#fw_appModValidatorSrc->(replace:'\'validator_appModule\'', ('\'' + #fw_appModValidatorClass + '\''));
+			process:#fw_appModValidatorSrc; 
+			#fw_appModValidator = (\#fw_appModValidatorClass)->astype;
+		/if;
+
+//	use the custom validators to process custom val codes
+
+		loop: -from=(self->'appCodes')->size, -to=1, -by=(-1);
+
+			#fw_thisInputIndx	= loop_count;
+			#thisInputName		= ((self->'appCodes')->(get:loop_count))->first;
+			#thisInputCode		= ((self->'appCodes')->(get:loop_count))->second;
+			
+//	#thisInputCode will be equal to the tag name in the validator ctype
+
+			$fw_debug ? $fw_tagTracer->(add:'validator : process custom code', 
+				-thisInputName = #thisInputName,
+				-thisInputCode = #thisInputCode);
+
+			if: #thisInputCode->contains:'=';
+				#thisInputParam = (#thisInputCode->split:'=')->get:2;
+				#thisInputCode = (#thisInputCode->split:'=')->get:1;
+			/if;
+
+//	use the validation code as the name of the tag to be executed to run the validation 
+//	logic in the app-specific validator ctype
+//	a bit messy because the tags map of a subclassed type does not include the tags of the parent
+
+//  ::BUG::
+//	this has serious problems if there is no parent ctype (no site ctype)
+
+//	see if the mod or site validator ctype has a tag named equal to the val code
+
+			if: #fw_appModValidatorSrc;
+				if: (#fw_appModValidator->properties->second)->contains:#thisInputCode;
+				
+					#fw_appValidatorTagRefc = 
+						#fw_appModValidator->properties->second->(find:#thisInputCode);
+	
+				else: (#fw_appModValidator->parent->properties->second)->contains:#thisInputCode;
+			
+					#fw_appValidatorTagRefc = 
+						#fw_appModValidator->parent->properties->second->(find:#thisInputCode);
+	
+				/if;
+			/if;			
+
+			if: #fw_appSiteValidatorSrc;
+				if: (#fw_appSiteValidator->properties->second)->contains:#thisInputCode;
+
+					#fw_appValidatorTagRefc = 
+						#fw_appSiteValidator->properties->second->(find:#thisInputCode);
+				/if;
+			/if;
+
+//	if we find a tag name then run it
+
+			if: #fw_appValidatorTagRefc != null;
+
+				#inputIsValid = #fw_appValidatorTagRefc->(run:
+					-params	= (array:
+								-inputName	= #thisInputName, 
+								-inputValue = (var:#thisInputName), 
+								-inputParam = #thisInputParam),
+					-owner	= #fw_appModValidator,
+					-name	= #thisInputCode);
+
+				if: #inputIsValid;
+					(self->'appCodes')->(remove:#fw_thisInputIndx);
+				/if;
+			/if;
+		/loop;
+
+	/if;
+
+//=============================================================================
+//
+//	create error messages from the standard task codes
+//
+//.............................................................................
+
+	local:
+		'fw_thisError' 		= string,
+		'fw_inputName'		= string,
+		'thisValCode'		= string,
+		'fw_inputFriendly'	= string,
+		'fw_thisErrMsg'		= string,
+		'inputLabel'		= string,
+		'msgFirstWord'	= string,
+		'inputParam'		= string;
+
+	iterate: (self->'coreCodes'), #fw_thisError;
+
+		#fw_inputName		= #fw_thisError->first;
+		#thisValCode		= #fw_thisError->second;
+		#inputLabel			= ' ';
+		#msgFirstWord	= ($fw_appStrings->valFirstWordThis);
+		#fw_inputFriendly	= #fw_friendlyNames->(find:#fw_inputName);
+
+		if: (#fw_inputFriendly->size);
+		
+			local:'labelFriendlyName' = (#fw_inputFriendly->(get:1)->second);
+			#labelFriendlyName->(beginsWith:'[')
+				? #labelFriendlyName = (process: #labelFriendlyName);
+			#inputLabel 	= ' <span class="inputerrfldnm">' + #labelFriendlyName + '</span> ';
+			#msgFirstWord	= ($fw_appStrings->valFirstWordThe);
+		/if;
+
+//	these codes have values that need to be passed into the message
+//	but first the value prefixes added during task handling need to be removed
+
+		#inputParam = string;
+
+		if: #thisValCode->(beginsWith:'regex');
+
+			#inputParam = (string_removeLeading: #thisValCode, -pattern='regex');
+			#thisValCode = 'regex';
+	
+		else: #thisValCode->(beginsWith:'eq');
+
+			#inputParam = (string_removeLeading: #thisValCode, -pattern='eq');
+			#thisValCode = 'eq';
+	
+		else: #thisValCode->(beginsWith:'length');
+
+			#inputParam = (string_removeLeading: #thisValCode, -pattern='length');
+			#thisValCode = 'length';
+	
+		else: #thisValCode->(beginsWith:'minlen');
+
+			#inputParam = (string_removeLeading: #thisValCode, -pattern='minlen');
+			#thisValCode = 'minlen';
+	
+		else: #thisValCode->(beginsWith:'maxlen');
+
+			#inputParam = (string_removeLeading: #thisValCode, -pattern='maxlen');
+			#thisValCode = 'maxlen';
+
+		else: #thisValCode->(beginsWith:'min');
+
+			#inputParam = (string_removeLeading: #thisValCode, -pattern='min');
+			#thisValCode = 'min';
+	
+		else: #thisValCode->(beginsWith:'max');
+
+			#inputParam = (string_removeLeading: #thisValCode, -pattern='max');
+			#thisValCode = 'max';
+		/if;
+
+		#fw_thisErrMsg = process:(self->(setErrorMsg: #thisValCode));
+
+		$fw_debug ? $fw_tagTracer->(add:'validator.insertMsgs', 
+			-thisValCode = #thisValCode,
+			-inputParam = #inputParam);
+
+		(self->'errorMsgs')->(insert: #fw_inputName = #fw_thisErrMsg);
+
+	/iterate;
+
+//=============================================================================
+//
+//	create error messages from the custom codes left over and not handled
+//
+//.............................................................................
+
+	iterate: (self->'appCodes'), #fw_thisError;
+
+		#fw_inputName		= #fw_thisError->first;
+		#thisValCode		= #fw_thisError->second;
+		#inputLabel			= ' ';
+		#msgFirstWord	= ($fw_appStrings->valFirstWordThis);
+		#fw_inputFriendly	= #fw_friendlyNames->(find:#fw_inputName);
+
+		if: #thisValCode->contains:'=';
+			#inputParam = (#thisValCode->split:'=')->get:2;
+			#thisValCode = (#thisValCode->split:'=')->get:1;
+		/if;
+
+		if: (#fw_inputFriendly->size);
+			local:'labelFriendlyName' = (#fw_inputFriendly->(get:1)->second);
+			#labelFriendlyName->(beginsWith:'[')
+				? #labelFriendlyName = (process: #labelFriendlyName);
+			#inputLabel 	= ' <span class="inputerrfldnm">' + #labelFriendlyName + '</span> ';
+			#msgFirstWord	= ($fw_appStrings->valFirstWordThe);
+		/if;
+
+		#fw_thisErrMsg = process:(self->(setErrorMsg: #thisValCode));
+
+		(self->'errorMsgs')->(insert: #fw_inputName = #fw_thisErrMsg);
+
+	/iterate;
+
+//.............................................................................
+
+	$fw_debugTimers ? $fw_timer->(stop:'tagValidator');
+
+	if: !(self->'coreCodes') && !(self->'appCodes');
+		return: false;	// there are no errors, the form IS valid
+	else;
+		return: true;	// there are errore, the form IS NOT valid
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->insertErrorMsg
+//
+//	adds an error message to the results messages based on manual entry
+//
+//
+//............................................................................
+
+define_tag:'insertErrorMsg',
+	-required = 'input',
+	-required = 'valcode',
+	-optional = 'label',
+	-optional = 'paramValue',
+	-optional = 'language',
+	-optional = 'media',
+	-optional = 'variant';
+
+	local:
+		'fw_thisErrMsg'	= string,
+		'msgFirstWord'	= ($fw_appStrings->valFirstWordThis),
+		'inputLabel' 	= local:'label',
+		'inputParam'	= @local:'paramValue',
+		'thisValCode'	= string;
+
+	if: #inputLabel;
+		#inputLabel 	= ' <span class="inputerrfldnm">' + #inputLabel + '</span> ';
+		#msgFirstWord	= ($fw_appStrings->valFirstWordThe);
+	/if;
+
+	#fw_thisErrMsg = process:(self->(setErrorMsg: #valcode));
+
+	(self->'errorMsgs')->(insert: #input = #fw_thisErrMsg);
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->setErrorMsg
+//
+//	adds an error message to the results messages based on a single error code
+//
+//
+//............................................................................
+
+define_tag:'setErrorMsg',
+	-required = 'code',
+	-optional = 'language',
+	-optional = 'media',
+	-optional = 'variant';
+
+	local:
+		'fw_errCnfg'	= map,
+		'fw_language'	= @(local:'language'),
+		'fw_media'		= @(local:'media'),
+		'fw_variant'	= @(local:'variant');
+
+	!#fw_language
+		? #fw_language = ($fw_client->'language');
+
+	!#fw_media
+		? #fw_media = ($fw_client->'media');
+
+	!#fw_variant
+		? #fw_variant = ($fw_client->'variant');
+
+	#fw_errCnfg = (var:(self->'stringsLoader'))->(getConfigMap: 
+					-cachevar	= (self->'globalCacheVar'),
+					-cachelock	= (self->'globalCacheLock'),
+					-file		= (self->'configFileName'),
+					-code 		= #code,
+					-language	= #fw_language);
+
+	(#fw_errCnfg->type != 'map')
+		? #fw_errCnfg = (self->'fw_unknownCodeConfig');
+
+	!(#fw_errCnfg->contains:('msg_' + #fw_media))
+		? #fw_media = 'all';
+
+	!(#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant
+		? #fw_variant = 'default';
+
+	return: ((#fw_errCnfg->find:('msg_' + #fw_media))->find:#fw_variant);
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->showMsgs
+//
+//	displays all error messages for a single input name
+//
+//
+//............................................................................
+
+define_tag:'showMsgs',
+	-required = 'input',
+	-optional = 'class',
+	-optional = 'withP',
+	-optional = 'withoutBR';
+
+	local:
+		'fw_myMsgs' 		= (self->'errorMsgs')->(find:#input),
+		'fw_thisMsg'		= string,
+		'fw_msgStr'			= string,
+		'fw_markupStart'	= string,
+		'fw_markupEnd'		= string,
+		'fw_markupClass'	= string;
+	
+	(params >> '-class')
+		? #fw_markupClass = ((params->find:'-class')->get:1)->second
+		| #fw_markupClass = 'inputerrmsg';
+	
+	(params >> '-withP')
+		? #fw_markupStart = '<p class="' + #fw_markupClass + '">'
+		| #fw_markupStart = '<span class="' + #fw_markupClass + '">';
+	
+	(params >> '-withP')
+		? #fw_markupEnd = '</p>'
+		| #fw_markupEnd = '</span>';
+
+	(params >> '-withoutBR')
+		? #fw_markupEnd += ''
+		| #fw_markupEnd += '<br />';
+	
+	iterate: #fw_myMsgs, #fw_thisMsg;
+		#fw_msgStr += #fw_markupStart;
+		#fw_msgStr += #fw_thisMsg->second;
+		#fw_msgStr += #fw_markupEnd;
+	/iterate;
+
+	return: @#fw_msgStr;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->setLabelClass
+//
+//
+//............................................................................
+
+define_tag:'setLabelClass',
+	-required = 'input';
+
+	(self->'errorMsgs') >> #input
+		? return:' inputerrlabel';
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->errorExistsFor
+//
+//
+//............................................................................
+
+define_tag:'errorExistsFor',
+	-required = 'input';
+
+	(self->'errorMsgs') >> #input
+		? return: true
+		| return: false;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->getResults
+//
+//
+//............................................................................
+
+define_tag:'getResults';
+
+	local:'results' = map;
+
+	#results->(insert:'coreCodes'	= (self->'coreCodes'));
+	#results->(insert:'appCodes'	= (self->'appCodes'));
+	#results->(insert:'errorMsgs'	= (self->'errorMsgs'));
+
+	(params >> '-withReset')
+		? self->reset;
+
+	return: #results;
+
+/define_tag;
+
+
+/define_type;
+?>

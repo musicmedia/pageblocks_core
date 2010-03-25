@@ -1,0 +1,121 @@
+﻿<?lassoscript 
+
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//.............................................................................
+
+//	
+//	modConfig
+//
+
+//	modCode is used to build a number of internal references
+
+	var('fw_modCode'	= 'mngr');
+	
+	//	fw_pgAuth triggers whether the page needs authorization
+	//	fw_mnuDefns is the array that defines the rollover menus for the page
+	
+	if($fw_requestPage->('path') >> '_admin');
+	
+		$fw_pageModes->enablePreventCache;
+		
+		var('fw_pgAuthRequired'	= true, 
+			'fw_mnuDefns'		= '', 
+			'fw_pgHeader'		= 'hdr_sitemngr.dsp', 
+			'fw_pgFooter'		= 'ftr_sitemngr.dsp'
+		);
+		
+	else;
+	
+		var('fw_pgAuthRequired'	= false,
+			'fw_mnuDefns'		= '', 
+			'fw_pgHeader'		= 'hdr_sitemngr.dsp', 
+			'fw_pgFooter'		= 'ftr_sitemngr.dsp'
+		);
+		
+	/if;
+	
+//	---------------------------------------------------------------------------
+//	pageConfig
+//
+	
+	if($fw_requestPage->('path') >> '_admin');
+	
+		//	we expect to at least have a session parameter passed to
+		//	any page in _admin, so don`t even bother looking for a page
+		//	if fw_s is not defined
+		
+		if(var_defined('fw_s'));
+		
+			select($fw_requestPage->('name'));
+			
+				case('mngr_menu');
+					$fw_pgTitle		= 'pageblocks SiteManager : Menu';
+					$fw_pgTemplate	= '2colwn';
+					$fw_pgPrivilege	= 'fw_user->prof.loginValid';
+					
+				case('mngr_restartPB');
+					$fw_pgTemplate	= fw_kPageIsAjaxHandler;
+					$fw_pgPrivilege	= 'fw_user->prof.loginValid';
+					
+				case('test');
+					$fw_pgTitle		= 'pageblocks SiteManager : Testing';
+					$fw_pgTemplate	= '2colwn';
+					$fw_pgPrivilege	= 'fw_user->prof.loginValid';
+					
+				case;
+					fwpPage_pageNotFound;
+					
+			/select;
+			
+		else;
+		
+			$fw_pgTitle		= 'pageblocks SiteManager';
+			$fw_pgTemplate	= '2colwn';
+			$fw_error->insert('5011'='not logged in');
+			
+		/if;
+		
+	else;
+	
+		select($fw_requestPage->('name'));
+
+			case('mngr_login');
+				$fw_pgTitle		= 'SiteManager : Login';
+				$fw_pgTemplate	= '2colwn';
+				//	can`t use case for login2
+				//	for some reason it only works if there is a real page stub
+				//	I need to investigate this
+				
+			case('mngr_login2');
+				$fw_pgTitle		= 'pageblocks SiteManager';
+				$fw_pgTemplate	= '2colwn';
+				
+			case('mngr_logout');
+				$fw_pgTitle		= 'pageblocks SiteManager : Logout';
+				$fw_pgTemplate	= '2colwn';
+				$fw_pgAuthRequired	= true;
+				$fw_pgPrivilege	= 'fw_user->loginValid';
+				
+			case('mngr_pswdCnfrm');
+				$fw_pgTitle 	= 'SiteManager : Send Password';
+				$fw_pgTemplate	= '1col';
+				
+			case('status');
+				$fw_pgTitle		= 'SiteManager : Server Status';
+				$fw_pgTemplate	= '2colwn';
+				
+			case;
+				fwpPage_pageNotFound;
+
+		/select;
+
+	/if;
+
+?>

@@ -1,0 +1,160 @@
+# valueLists_time english
+
+# in case of localisation save a copy of this file with the language
+# code needed and translate the strings
+
+{{daysLong:
+Sunday
+Monday
+Tuesday
+Wednesday
+Thursday
+Friday
+Saturday
+}}
+
+{{daysShort:
+Sun
+Mon
+Tue
+Wed
+Thu
+Fri
+Sat
+}}
+
+{{daysLongShort:
+Sunday___ Sun
+Monday___ Mon
+Tuesday___ Tue
+Wednesday___ Wed
+Thursday___ Thu
+Friday___ Fri
+Saturday___ Sat
+}}
+
+
+{{monthLong:
+January
+February
+March
+April
+May
+June
+July
+August
+September
+October
+November
+December
+}}
+
+{{monthShort:
+Jan
+Feb
+Mar
+Apr
+May
+Jun
+Jul
+Aug
+Sep
+Oct
+Nov
+Dec
+}}
+
+{{monthNmbrs:
+01
+02
+03
+04
+05
+06
+07
+08
+09
+10
+11
+12
+}}
+
+{{monthLongShort:
+January___ Jan
+February___ Feb
+March___ Mar
+April___ Apr
+May___ May
+June___ Jun
+July___ Jul
+August___ Aug
+September___ Sep
+October___ Oct
+November___ Nov
+December___ Dec
+}}
+
+{{monthLongNmbr:
+January___ 01
+February___ 02
+March___ 03
+April___ 04
+May___ 05
+June___ 06
+July___ 07
+August___ 08
+September___ 09
+October___ 10
+November___ 11
+December___ 12
+}}
+
+{{monthShortNmbr:
+Jan___ 01
+Feb___ 02
+Mar___ 03
+Apr___ 04
+May___ 05
+Jun___ 06
+Jul___ 07
+Aug___ 08
+Sep___ 09
+Oct___ 10
+Nov___ 11
+Dec___ 12
+}}
+
+
+{{days:
+01
+02
+03
+04
+05
+06
+07
+08
+09
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+}}

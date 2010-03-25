@@ -1,0 +1,57 @@
+﻿<?lassoscript 
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_loadAlerts.lgc }
+	{rsrcType=		include }
+	{rsrcName=		fwpPage_loadAlerts.lgc }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_loadAlerts }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+	
+	{desc=			This file checks whether an alert flag condition
+	 				exists, and if an alerts file is found, includes it }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.5.0 }
+	{maintdate=		2008-08-08}
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	added return(), otherwise there was no output!
+					added language dependency }
+	
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2007-06-20 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+	define_tag('fwpPage_loadAlerts');
+	
+		inline(-username = $fw_gFilesUser, -password = $fw_gFilesPswd);
+		
+			if(
+				($fw_construction || $fw_dataOffline || $fw_maintenance) && 
+				file_exists($fw_sPath->('msthd') + 'alerts_' + $fw_client->language + '.dsp')
+			);
+
+				return(include($fw_sPath->('msthd') + 'alerts_' + $fw_client->language + '.dsp'));
+
+			/if;
+		
+		/inline;
+	
+	/define_tag;
+	
+?>

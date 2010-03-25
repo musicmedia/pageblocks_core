@@ -1,0 +1,109 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		rankEngine_wordcount.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		rankEngine_wordcount }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			implements one particular Nemoy Rank Engine }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-05-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type: 'rankEngine_wordcount';
+
+
+//==============================================================================
+//	->calcRelevanceOf
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'calcRelevanceOf',
+	-required = 'records',
+	-required = 'allCount',
+	-required = 'searchTerms',
+	-required = 'contentFields',
+	-required = 'contentWeights',
+	-required = 'lemmaWeight';
+	
+
+	$fw_timer->(start:'calcRanking');
+
+	local:
+		'recordCount'	= #records->size,
+		'searchWords'	= #searchTerms->find:'searchWords',
+		'lemmaWords'	= #searchTerms->find:'lemmaWords';
+		
+	local:'searchAndLemmaWords' = #searchTerms->(find:'searchWords');
+	#searchAndLemmaWords->(merge: #lemmaWords);
+
+	#contentFields 	= (fwpCnfg_splitComma:#contentFields);
+
+	if: #recordCount;
+
+		local:
+			'localFactor'		= decimal,
+			'termFactor'		= decimal,
+			'importance'		= integer,
+			'thisRecord' 		= pair,
+			'termCount'			= integer,
+			'thisWord'			= string,
+			'fieldName'			= string,
+			'fieldContent'		= string,
+			'fieldweight'		= integer,
+			'words' 			= array,
+			'wordsCount' 		= integer;
+			
+		iterate: #records, #thisRecord;
+	
+			#termCount = 0;
+			#termFactor = 0;
+	
+			iterate: #contentFields, #fieldName;
+	
+				#fieldContent 		= (#thisRecord->second)->find:#fieldName;
+				#words 				= (string_findRegExp: #fieldContent, -find='\\b\\w+?\\b');
+				#wordsCount 		= #words->size;
+
+				#fieldWeight = #contentWeights->(find:#fieldName);
+		
+				iterate: #searchWords, #thisWord;
+					// prevent regex injection/crashes by escaping special characters
+					('!@#$%^&*()-[{<.,:;|`' >> #thisWord) ? #thisWord = '\\' + #thisWord;
+		
+					#termCount += (string_findRegExp:
+						#fieldContent,
+						-find = #thisWord,
+						-ignorecase)->size;
+				/iterate;
+			/iterate;
+			#thisRecord->first = #termCount;
+		/iterate;
+
+		$fw_timer->(stop:'calcRanking');
+	/if;
+
+/define_tag;
+
+/define_type;
+?>

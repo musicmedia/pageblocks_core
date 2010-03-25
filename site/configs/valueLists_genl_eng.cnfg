@@ -1,0 +1,104 @@
+﻿# valueLists_genl - english
+# this value list config file contains a number of typical values
+# which can be used for value lists throughout the application
+# in case of localisation save a copy of this file with the language
+# code needed and translate the strings
+
+{{sortOrderShort:
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+}}
+
+{{srchOpShort:
+eq
+cn
+bw
+ew
+lt
+lte
+gt
+gte
+btw
+}}
+
+{{srchOpLG:
+lte
+gte
+}}
+
+{{srchOpLong:
+is exactly___ eq
+contains___ cn
+begins with___ bw
+ends with___ ew
+less than___ lt
+less than or equal to___ lte
+greater than___ gt
+greater than or equal to___ gte
+between___ btw
+}}
+
+{{yesno:
+Yes___ Y
+No___ N
+}}
+
+{{activeLongShort:
+Active___ Y
+Inactive___ N
+}}
+
+{{onlineLongShort:
+Online___ Y
+Offline___ N
+}}
+
+{{genderLongShort:
+Male___ M
+Female___ F
+}}
+
+{{genderLong:
+Male
+Female
+}}
+
+{{genderShort:
+M
+F
+}}
+
+{{genderShortLong:
+M___ Male
+F___ Female
+}}
+
+{{andOr:
+AND___ AND
+OR___ OR
+}}
+
+{{showLimit:
+15
+30
+45
+60
+}}

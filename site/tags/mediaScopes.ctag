@@ -1,0 +1,5 @@
+﻿<?lassoscript 
+
+	var('mediaScopes' = (:(pair('1'='Page Illustration')),(pair('2'='Gallery Photo')),(pair('3'='CD Cover')),(pair('4'='HR Press Photo')),(pair('5'='Other Downloadable File')),(pair('6'='Sound File')))); 
+	
+?>

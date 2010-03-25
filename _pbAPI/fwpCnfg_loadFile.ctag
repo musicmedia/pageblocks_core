@@ -1,0 +1,182 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_loadFile.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpCnfg_loadFile }
+	{rsrcHTTP=		www.pageblocks.org/reference/fwpCnfg_loadFile }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag loads a configuration file }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems,
+	 				changed some internal vars for better readability }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-11-19 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed file not found error handling to simply return false }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype,
+					add tagTrace }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.3 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added removal of leading BOM after file_read }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpCnfg_loadFile', -priority='replace',
+	-required='file',
+	-optional='username',
+	-optional='password';
+
+//	-withoutMerging (-nomerge deprecated)
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpCnfg_loadFile', -file = #file);
+
+	((var_defined:'fw_timer') && $fw_debugTimers) ? $fw_timer->(start:'cnfgTagLoadFile');
+
+	local:
+		'fileName'			= @#file,
+		'configData'		= string,
+		'configLine'		= string,
+		'configPath'		= string,
+		'fw_sCnfgPath'		= string,
+		'fw_mCnfgPath'		= string,
+		'fw_sFilePath'		= string,
+		'fw_mFilePath'		= string,
+		'fileNotFound'		= false,
+		'fileError'			= false,
+		'triedToLoad'		= array,
+		'withoutMerging'	= true;
+
+//	look for inputs for pageblocks mode or full spec mode
+//	username and password for file tags
+
+	if: !(local:'username');
+		local:'fw_nm' = $fw_gFilesUser;
+		local:'fw_pw' = $fw_gFilesPswd;
+	else;
+		local:'fw_nm' = @local:'username';
+		local:'fw_pw' = @local:'password';
+	/if;
+
+//	location and type of config files
+
+	if: (#fileName >> '/');
+		//	use supplied file name as complete pathname
+		#configPath	= #fileName;
+	else;
+		//	convert file name to a PB config paths
+		#fw_sCnfgPath	= (var:'fw_sPath')->'configs';
+		#fw_mCnfgPath	= (var:'fw_mPath')->'configs';
+	/if;
+
+//	set behavior for when both global and local files are found
+
+	(params >> '-withoutMerging') || (params >> '-nomerge')
+		? #withoutMerging = false;
+
+//	load the file data
+
+	inline:
+		-username = #fw_nm,
+		-password = #fw_pw;
+
+		if: #fw_sCnfgPath;
+			//	framework files
+	
+			#fw_sFilePath = #fw_sCnfgPath + #fileName;
+			#fw_mFilePath = #fw_mCnfgPath + #fileName;
+
+			if: file_exists: #fw_sFilePath || file_exists: #fw_mFilePath;
+				if: (file_exists: #fw_sFilePath);
+					#configData = (file_read:#fw_sFilePath);
+					(file_currentError: -errorCode) != 0 ? #fileError = file_currentError;
+				/if;
+				if: #withoutMerging && (file_exists: #fw_mFilePath);
+					#configData += (file_read:#fw_mFilePath);
+					(file_currentError: -errorCode) != 0 ? #fileError = file_currentError;
+				else: !(#withoutMerging) && (file_exists: #fw_mFilePath);
+					#configData = (file_read:#fw_mFilePath);
+					(file_currentError: -errorCode) != 0 ? #fileError = file_currentError;
+				/if;
+			else;
+				#fileNotFound = true;
+				#triedToLoad->(insert: #fw_sFilePath);
+				#triedToLoad->(insert: #fw_mFilePath);
+			/if;
+	
+		else;
+			//	manually specified files
+	
+			if: file_exists: #configPath;
+				#configData = (file_read: #configPath);
+				(file_currentError: -errorCode) != 0 ? #fileError = file_currentError;
+			else;
+				#fileNotFound = true;
+				#triedToLoad->(insert: #configPath);
+			/if;
+		/if;
+		
+		#configData->(removeleading:bom_utf8);
+		#configData->(removeleading:bom_utf16BE);
+		#configData->(removeleading:bom_utf16LE);
+		#configData->(removeleading:bom_utf32BE);
+		#configData->(removeleading:bom_utf32LE);
+
+	/inline;
+
+	$fw_debugTimers ? $fw_timer->(stop:'cnfgTagLoadFile');
+
+	if: #fileError;
+		$fw_error->(insert:'5201'='fwpCnfg_loadFile');
+		$fw_debug ? $fw_apiError->(insert:'5203'=#fileName + '```' + #fileError);
+		$fw_debug ? $fw_tagTracer->(add:'fwpCnfg_loadFile', -ERROR = 'file error ' + #fileError, -file = #fileName);
+		$fw_criticalLog ? log_critical:('pbError : fwpCnfg_loadFile got error reading file ' + #fileName);
+		return: string;
+	/if;
+
+	if: #fileNotFound;
+		$fw_error->(insert:'5201'='fwpCnfg_loadFile');
+		$fw_debug ? $fw_apiError->(insert:'5202'=#fileName);
+		$fw_debug ? $fw_tagTracer->(add:'fwpCnfg_loadFile', -ERROR = 'file not found or access not allowed. Tried to load: ' + (#triedToLoad->join));
+		$fw_criticalLog ? log_critical:('pbError : fwpCnfg_loadFile could not find, or could not access, file ' + #fileName);
+		return: string;
+	/if;
+
+	return: #configData;
+
+/define_tag;
+
+?>

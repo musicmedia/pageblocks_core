@@ -1,0 +1,121 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_urlParamsFldrs.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpPage_urlParamsFldrs }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_urlParamsFldrs }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates a URL in the form of:
+					sub.domain.com/folder/subfolder/-/name/value/page.lasso
+					to embed name/value pairs in a URL. }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+//
+//	Usage:
+//
+//	fwpPage_urlParamsFldrs:
+//		-folder='/folder/subfolder/',
+//		-page='page.lasso',
+//		-vars='cat,size,color';
+//
+//	-domain -- with or without slashes
+//	-folder -- with or without slashes
+//	-page -- without slashes
+//	-vars -- comma separated list of variable names
+//		can be comma or comma-space (red,blue, green)
+//
+//	Insantiation of (fwp_corralPaths) in siteConfig will
+//	automatically create vars from the name/value pairs.
+//
+//.............................................................................
+
+define_tag:'fwpPage_urlParamsFldrs', -priority='replace',
+	-optional='domain',
+	-optional='folder',
+	-required='page',
+	-required='vars';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_urlParamsFldrs');
+
+	local:
+		'fw_urlDomain'=@local:'domain',
+		'fw_urlFolder'=@local:'folder',
+		'fw_urlPage'=@local:'page',
+		'fw_urlVars'=local:'vars',
+		'fw_urlStr'=(string),
+		'fw_urlParam'=(string);
+
+//	remove leading and trailing slashes from
+//	path names to standardize their format
+//	add them back in below
+
+	if:	local:'fw_urlDomain';
+		#fw_urlDomain->removetrailing:'/';
+	/if;
+	if:	local:'fw_urlFolder';
+		#fw_urlFolder->removeleading:'/';
+		#fw_urlFolder->removetrailing:'/';
+	/if;
+
+//	get rid of any spaces in the list so the split is more reliable
+
+	#fw_urlVars = (fwpCnfg_splitComma: #fw_urlVars);
+
+//	start the url string
+
+	if:	local:'fw_urlDomain';
+		#fw_urlStr += #fw_urlDomain;
+	/if;
+	if:	local:'fw_urlFolder';
+		#fw_urlStr += '/' + #fw_urlFolder + '/';
+	/if;
+	#fw_urlStr += '-';
+
+//	add name-value pairs with separator after each,
+//	fw_kUrlParamsChar is a siteConfig var that sets
+//	what the separation character is
+
+	iterate: #fw_urlVars, #fw_urlParam;
+		if: var:#fw_urlParam;
+			#fw_urlStr += 
+				('/' + 
+				#fw_urlParam + 
+				'/' +
+				(var:#fw_urlParam));
+		/if;
+	/iterate;
+
+//	add page name and we`re done
+
+	#fw_urlStr += ('/' + #fw_urlPage);
+
+	return: #fw_urlStr;
+
+/define_tag;
+?>

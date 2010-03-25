@@ -1,0 +1,76 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpFile_showSize.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpFile_showSize }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpFile_showSize }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits, inspired by Chris Corwin }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Reads a file and converts bytes to KB, MB, GB format
+					also allows input of bytes value integer }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpFile_showSize', -priority='replace',
+	-optional='file',
+	-optional='size';
+
+	if: !(local_defined:'file') && !(local_defined:'size');
+		$fw_error->(insert:'5201'='fwpFile_showSize');
+		$fw_debug ? $fw_tagTracer->(add:'fwpFile_showSize', -ERROR = 'neither -file nor -size were specified');
+		$fw_criticalLog ? log_critical:'pbError : fwpFile_showSize neither -file nor -size were specified';
+		return: string;
+	/if;
+
+	inline:
+		-username=$fw_gFilesUser,
+		-password=$fw_gFilesPswd;
+
+		if: local_defined:'file';
+			local:'fw_bytes'=(decimal: (file_getSize:#file));
+		else;
+			local:'fw_bytes'=(decimal: #size);
+		/if;
+
+		if: (#fw_bytes) > 1073741824;
+			local:'gb'=((#fw_bytes)/1073741824);
+			#gb-> (setformat: -precision=2);
+			return: #gb + ' GB';
+		else: (#fw_bytes) > 1048576;
+			local:'mb'=((#fw_bytes)/1048576);
+			#mb-> (setformat: -precision=2);
+			return: #mb + ' MB';
+		else;
+			local:'kb'=((#fw_bytes)/1024);
+			#kb-> (setformat: -precision=0);
+			return: #kb + ' KB';
+		/if;
+	/inline; 
+
+/define_tag;
+?>

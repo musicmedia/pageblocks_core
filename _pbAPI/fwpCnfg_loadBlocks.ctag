@@ -1,0 +1,91 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_loadBlocks.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpCnfg_loadBlocks }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpCnfg_loadBlocks }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag loads a configuration file,
+					removes comment lines, and 
+					splits the lined into an array }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.2 }
+	{maintdate=		2007-07-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpCnfg_loadBlocks', -priority='replace',
+	-required='file',
+	-optional='username',
+	-optional='password';
+
+//	-asArray
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpCnfg_loadBlocks');
+
+	local:
+		'fileName' 			= @#file,
+		'withoutCaching' 	= false,
+		'asArray'			= false,
+		'configData' 		= string;
+
+//	pull from cache if available
+//	else pull from disk (and store to cache)
+
+	#configData = $fw_gConfigCache->(restore:#fileName);
+
+	if: #configData->size > 0;
+
+		// pulled from cache, so we're done
+
+	else;
+	
+//	load file data
+
+		(params->find:'-withoutCaching') || (params->find:'-nocache')
+			? #withoutCaching = true;
+
+		(params->find:'-asArray')
+			? #asArray = true;
+
+		#configData = (fwpCnfg_loadFile:
+			-file		= #fileName,
+			-username 	= local:'username',
+			-password 	= local:'password');
+
+		if: #asArray;
+			#configData = (fwpCnfg_splitBlocks: #configData, -asArray);
+		else;
+			#configData = (fwpCnfg_splitBlocks: #configData);
+		/if;
+		
+//	cache or not?
+//	cached as an array
+
+		!#withoutCaching
+			? $fw_gConfigCache->(add:
+				-name  = #fileName,
+				-value = #configData);
+	/if;
+
+	return: #configData;
+
+/define_tag;
+?>

@@ -1,0 +1,60 @@
+<?lassoscript 
+
+	if($fw_user->('loginValid') == 'Y');
+	
+		var('tableDataObject'	= fwp_recordData('appstrings'));
+	
+		var('fw_edvFormInputs'	= 'm_rStat, m_strPath, m_strName, m_strLang, m_strValue, m_strMedia, m_strVariant');
+	
+	//-----------------------------------------------------------------------------
+	
+		if(var('btnFormCancel.x'));
+	
+			redirect_url('list?fw_s=' + $fw_s);
+	
+		else(var('btnFormSave.x'));
+	
+	//	attempt normal save and redirect steps
+	//	validation steps are automatically called by the ->add tag
+	//	I'm using a generic name here, but obviously you can use meaningful names
+	//	a generic name makes it easier to reuse all these pages for another module
+	
+	//	when adding a new string it is added with the application core language
+		var('m_strLang'	= $fw_gCoreLanguage);
+	
+			$tableDataObject->(add(
+				-inputs		= $fw_edvFormInputs,
+				-keyval		= $fw_edvNewRcrdID
+			));
+	
+	//	if there was a validation error, 
+	//	then the table object would have a true 'error'
+	//	so we do not redirect when that is the case
+	//	otherwise, the ->add member tag will have automatically
+	//	built the validation errors messages, and the showMsgs tags
+	//	in the form handles displaying them
+	//	so, pretty much all the details are automated except
+	//	handling the redirect if there are no errors
+	
+	//	of course an alternative is to use the form action to go to another page, etc.
+	
+			!$tableDataObject->('error')
+				? redirect_url('updateForm?fw_s=' + $fw_s + '&fw_r=' + $fw_edvNewRcrdID);
+	
+		else;
+		
+	// initialize display form
+		
+			!var('fw_edvNewRcrdID') 
+				? var('fw_edvNewRcrdID' = fwpStr_randomID(16));
+				
+			fwpCnfg_makeVars(-varList = $fw_edvFormInputs);
+			
+			!$m_strMedia->size ? $m_strMedia		= 'all';
+			!$m_strVariant->size ? $m_strVariant	= 'default';
+	
+		/if;
+	
+	/if;
+
+?>

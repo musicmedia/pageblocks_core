@@ -1,0 +1,133 @@
+﻿[output_none]
+#
+# version:	3.0
+# released: 2006-01-16
+#
+# do not use literal { or } characters except for config file parsing
+# use entities to display them as data if needed
+#------------------------------------------------------------------------------
+# general table config
+#
+
+{tableConfig:
+
+# table tag
+
+listCellSpacePx===1
+#listCellPadPx===0
+#listTableBorderPx===0
+#listTableWidth===
+
+# css style selectors to use 
+
+listDivClass===stdlist
+listHdrClass===hdr
+listAltRowAClass===altrowA
+listAltRowBClass===altrowB
+listHdrSortClass===sorted
+listDataSortClass===sorted
+
+# location and size of asc|desc buttons
+
+listSortAscBtn===[$fw_sPath->'controls']ibtn_sortAsc.gif
+listSortDescBtn===[$fw_sPath->'controls']ibtn_sortDesc.gif
+
+# location of list navigation panel
+
+listTopNavPanel===[$fw_mPath->'edp_cntlbars']cntlbar_listnav.dsp
+#listBtmNavPanel===[$fw_mPath->'edp_cntlbars']cntlbar_listnav.dsp
+
+}
+
+
+#--------------------------------------------------------
+# data columns config
+#
+
+{column:
+	lblName===View
+	lblStyle===cntr
+	cellType===form
+	cellWidth===32
+	cellSortDefault===
+	cellContent===
+	cellStyle===cntr
+	formAction===usrsAdmin
+	formHidden===fw_s
+	formButton===[$fw_sPath->'controls']ibtn_view_grn.gif
+	formBtnName===btnListView
+	formPrvlg===
+}
+
+{column:
+	lblName===Edit
+	lblStyle===cntr
+	cellType===form
+	cellWidth===32
+	cellSortDefault===
+	cellContent===
+	cellStyle===cntr
+	formAction===usrsAdmin
+	formHidden===fw_s
+	formButton===[$fw_sPath->'controls']ibtn_edit_org.gif
+	formBtnName===btnListEdit
+	formPrvlg===
+}
+
+{column:
+	lblName===Name
+	lblStyle===cntr
+	cellType===field
+	cellWidth===304
+	cellSortDefault===m_uNameL```asc```alphabetically by name
+	cellContent===[var:'m_uNameL'], [var:'m_uNameF']
+	cellStyle===left
+}
+	
+{column:
+	lblName===Last Login
+	lblStyle===cntr
+	cellType===field
+	cellWidth===112
+	cellSortDefault===m_uLastIn```desc```Last Login date (recent at top)
+	cellContent===[fwpDate_mmShort4:(var:'m_uLastIn')]
+	cellStyle===cntr
+}
+
+{column:
+	lblName===Logins
+	lblStyle===cntr
+	cellType===field
+	cellWidth===92
+	cellSortDefault===m_uIns```desc```number of logins
+	cellContent===[var:'m_uIns']
+	cellStyle===cntr
+}
+
+{column:
+	lblName===Apvd
+	lblStyle===cntr
+	cellType===field
+	cellWidth===32
+	cellSortDefault===
+	cellContent===[var:'m_rStat']
+	cellStyle===cntr
+}
+
+
+{column:
+	lblName===Del
+	lblStyle===cntr
+	cellType===form
+	cellWidth===32
+	cellSortDefault===
+	cellContent===
+	cellStyle===cntr
+	formAction===usrsAdmin
+	formHidden===fw_s
+	formButton===[$fw_sPath->'controls']ibtn_trash_red.gif
+	formBtnName===btnListDelete
+	formPrvlg===
+}
+
+[/output_none]

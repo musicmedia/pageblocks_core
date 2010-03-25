@@ -1,0 +1,11 @@
+<?lassoscript 
+	
+	if($fw_user->('loginValid') == 'Y');
+	
+		var('loadErrors'	= fwpInit_loadAPI('/_pbAPI/', -refresh = true));
+	
+		redirect_url('/siteMngr/_admin/mngr_menu?fw_s=' + $fw_s + '&loadErrors=' + $loadErrors + '&sctnreset=1');
+		
+	/if;
+	
+?>

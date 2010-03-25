@@ -1,0 +1,43 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_encodeLIKE.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_encodeLIKE }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpActn_encodeLIKE }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			escapes additional things that encode_sql does not
+					primarily for the benefit of LIKE clauses }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpActn_encodeLIKE',
+	-required = 'queryTerm', -copy;
+
+	#queryTerm = encode_sql:#queryTerm;
+	#queryTerm->(replace:'\\','\\\\');
+	#queryTerm->(replace:'%','\\%');
+	#queryTerm->(replace:'_','\\_');
+	return: #queryTerm;
+
+/define_tag;
+?>

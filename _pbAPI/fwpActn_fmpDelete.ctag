@@ -1,0 +1,267 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_fmpDelete.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_fmpDelete }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpActn_fmpDelete }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Deletes a record from a FileMaker database }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpActn_fmpDelete', -priority='replace',
+	-optional='inlineName',
+	-optional='db',
+	-optional='tbl',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='confirm',
+	-optional='makevars',
+	-optional='reactn',
+	-optional='continue';
+
+$fw_debugTimers ? $fw_timer->(start:'fmpTagDelete');
+
+local:
+	'fw_actnInlineNm'	= @(local:'inlineName'),
+	'fw_actnDb'			= @(local:'db'),
+	'fw_actnTbl'		= @(local:'tbl'),
+	'fw_actnKeyFld'		= @(local:'keyfld'),
+	'fw_actnKeyVal'		=  (local:'keyval'),
+	'fw_actnCnfrmFld'	=  (local:'confirm'),
+	'fw_actnMakeVars'	= @(local:'makevars'),
+	'fw_actnReactn'		= @(local:'reactn'),
+	'fw_actnContinue'	= @(local:'continue');
+
+//	don`t split these yet so we can use them in a SELECT
+if:	#fw_actnCnfrmFld;
+	#fw_actnCnfrmFld = (fwpCnfg_splitComma: #fw_actnCnfrmFld, -nosplit=true);
+/if;
+
+//	Local variables generated within this include file 
+
+//	fw_lockDelta 	= the result of subtracting the rcrdLockTime from the current time
+//	fw_sqlActn 		= the constructed SQL statement string 
+//	fw_actnCnfrmVal = the value returned from the field defined by fw_cnfrmFld
+//	fw_cookieNm 	= cookie name to contain fw_lokInfo
+
+local:
+	'fw_tableConfig'	= (fwp_tableConfig: #fw_actnDb),
+	'fw_reactInfo'		= (fwp_collection),
+	'fw_usrName'		= (string),
+	'fw_usrRcrd'		= (string),
+	'fw_r'				= (string),
+	'fw_lockDelta'		= (string),
+	'fw_lokInfo'		= (string),
+	'fw_fmpActionPairs'	= (array),
+	'fw_fmpRcrdID'		= (string),
+	'fw_thisItem'		= (string),
+	'fw_indx'			= 0,
+	'fw_actnCnfrmVal'	= (string),
+	'fw_cookieNm'		= ($fw_gAppPrefix + '_lokInfo');
+
+if: ((var:$fw_userVarName)->'loginValid') == 'Y';
+	#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+	#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+else;
+	#fw_usrName = 'Anonymous';
+	#fw_usrRcrd = 'Anonymous';
+/if;
+
+//	............................................................................
+
+//	make sure there`s a rcrdNo, or data gets messed up 
+
+if: #fw_actnKeyVal;
+
+//	construct the statement
+//	return the lock fields so we can also assess the record`s lock status
+//	include the confirmation fields now if there are any
+
+	#fw_fmpActionPairs->(insert:  (pair: #fw_actnKeyFld = ('==' + #fw_actnKeyVal)));
+
+	if: $fw_gUseSubdomains;
+		#fw_fmpActionPairs->(insert:  (pair:'rcrdSubHost' = ('==' + $fw_requestPage->'subhost')));
+	/if;
+
+	$fw_debug
+		? var:'api_fwpActn_fmpUpdate_getLock' = #fw_fmpActionPairs;
+
+	$fw_debugTimers ? $fw_timer->(start:'fmpQryDeleteGet');
+
+	inline: 
+		(#fw_fmpActionPairs),
+		-search,
+		-inlinename=#fw_actnInlineNm,
+		-username=$fw_gQueryUser,
+		-password=$fw_gQueryPswd,
+		-database=#fw_actnDb,
+		-table=#fw_actnTbl,
+		-layout='fwproRcrdFields';
+		
+		$fw_debugTimers ? $fw_timer->(stop:'fmpQryDeleteGet');
+
+//	test for any Lasso errors, datasource problems, etc. 
+
+		if: (found_count) > 0;
+
+//	get FMP internal recordID
+
+			#fw_fmpRcrdID = keyfield_value;
+			#fw_r = field:'rcrdNo';
+
+//	convert field data to vars
+
+		if: #fw_actnMakeVars;
+			iterate: #fw_actnSlct, #fw_thisItem;
+				#fw_indx = ((#fw_tableConfig->'fieldNames')->findindex:#fw_thisItem)->last;
+				if: #fw_indx;
+					var:((#fw_tableConfig->'inputNames')->get:#fw_indx) = field:((#fw_tableConfig->'fieldNames')->get:#fw_indx);
+				/if;
+			/iterate;
+		/if;
+
+//	let`s verify that the record is locked (it`s supposed to be)
+//	and that the current session is the same one that locked the record.
+//	fw_lock is esentially a session ID that the record was stamped with when it ws locked
+//	we also have to test that this update occurs before the alloted lockout time expires
+//	otherwise another user may have accessed the record to start updating
+
+			#fw_lockDelta=(Date_Difference: 
+				(date), 
+				(field:'rcrdLockTime'), 
+				-minute);
+
+			if: 
+				((field:'rcrdLock') == 'Y') &&
+				((field:'rcrdLockID') == #fw_actnKeyVal) &&
+				((integer:#fw_lockDelta < integer:$fw_rcrdLockDelay));
+
+//	all is good, let`s go ahead and delete
+
+				#fw_fmpActionPairs = (array);
+				#fw_fmpActionPairs->(insert:  (pair:'-keyvalue'=#fw_fmpRcrdID));
+
+				if: $fw_gUseSubdomains;
+					#fw_fmpActionPairs->(insert:  (pair:'rcrdSubHost' = ('==' + $fw_requestPage->'subhost')));
+				/if;
+
+				$fw_debug
+					? var:'api_fwpActn_fmpDelete_pairs' = #fw_fmpActionPairs;
+
+//	perform the database action
+
+				$fw_debugTimers ? $fw_timer->(start:'fmpQryDelete');
+				
+				inline: 
+					(#fw_fmpActionPairs),
+					-delete,
+					-username=$fw_gQueryUser,
+					-password=$fw_gQueryPswd,
+					-database=#fw_actnDb,
+					-table=#fw_actnTbl,
+					-layout=#fw_actnTbl;
+					
+					$fw_debugTimers ? $fw_timer->(stop:'fmpQryDelete');
+
+					if: (error_currenterror: -errorcode) == 0;
+
+//	we completed the action, and there`s no need for the lock cookie, so delete it
+
+						cookie_set:(#fw_cookieNm)='', -path='/';
+
+//	log the action
+
+						if: $fw_gLogDb;
+							fwpLog_data: 
+								-usrName=#fw_usrName,
+								-usrRcrd=#fw_usrRcrd,
+								-table=#fw_actnTbl,
+								-rcrd=#fw_r,
+								-action='delete',
+								-pageInfo=$fw_logPageInfo,
+								-fwpInfo=$fw_logFWPInfo;
+						/if;
+
+
+//	here are all the error trapping switches
+
+					else;
+						if: ((error_currenterror: -errorcode) == -1728);
+							$fw_error->(insert:'5021' = '(a) Record number ' + #fw_actnKeyVal + ' not found in table ' + #fw_actnTbl);
+						else;
+							$fw_error->(insert: '5025' = ('Record could not be deleted due to Lasso error: ' + 
+								(error_currentError) + ' (' + (error_currentError: -errorCode) + ')'));
+						/if;
+					/if;
+				/inline;
+
+			else;
+				$fw_error->(insert: '5112' = 'Record is not locked');
+			/if;
+
+		else;
+			if: (error_currenterror: -errorcode) == -1728;
+				$fw_error->(insert:'5021' = '(b) Record number ' + #fw_actnKeyVal + ' not found in table ' + #fw_actnTbl);
+			else;
+				$fw_error->(insert: '5022' = ('Record could not be found due to Lasso error: ' + 
+					(error_currentError) + ' (' + (error_currentError: -errorCode) + ')'));
+			/if;
+		/if;
+	/inline;
+
+else;
+	$fw_error->(insert: '5022' = 'Record number empty');
+/if;
+
+
+//	if requested, store data needed to build a response using data from the record
+
+if: local_defined:'fw_actnReactn';
+
+	if: #fw_actnCnfrmFld;
+		#fw_actnCnfrmFld = #fw_actnCnfrmFld->split:',';
+	/if;
+
+	#fw_reactInfo=(fwp_collection:
+		-type='delete',
+		-error=$fw_error,
+		-again=referrer_url,
+		-continue=#fw_actnContinue,
+		-confirmFields=#fw_actnCnfrmFld,
+		-inlineName=#fw_actnInlineNm);
+
+	return: #fw_reactInfo;
+
+/if;
+
+$fw_debugTimers ? $fw_timer->(stop:'fmpTagDelete');
+
+/define_tag;
+?>

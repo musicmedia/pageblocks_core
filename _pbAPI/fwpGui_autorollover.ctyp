@@ -1,0 +1,625 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGui_menuRollover.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_rollovermenus }
+	{rsrcHTTP=		www.pageblocks.org }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+	
+	{desc=			Parses one or more menu configuration files and writes 
+					the required JavaScript and HTML source code to display 
+					and manage rollover image menus. Multiple menus per 
+					page are supported. The JavaScript code is available 
+					as ->'jsCode' and each menu's HTML code is availble 
+					by its configuration name as ->'{name}'. Menu config
+					files from global and module folders can be combined. }
+	
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -imgsPath as an input }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.3 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added removal of leading BOM after file_read }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+//
+//	The code is divided into three sections. The first section reads
+//	the config files and consolidates the data into some arrays. The
+//	second section writes the JavaScript code. The third section writes
+//	the HTML code for each menu on the page.
+//
+//	Instantiate the custom type and supply the parameters:
+//
+//	var:'rollovers'=(fwp_rollovermenu:
+//		-menus=(array:'msthd```top```mdl```btm','prod```widgets```sprockets');
+//
+//	-menus 		= one array of delimited items per menu set on the page
+//	
+//.............................................................................
+
+define_type:'autorollover_menus';
+
+	$fw_debugTimers ? $fw_timer->(start:'rolloverTagAll');
+
+	iterate: params, local:'thisParam';
+		if: #thisParam->type == 'pair';
+			local:'fw_pName' = #thisParam->first;
+			#fw_pName->removeleading:'-';
+			local: #fw_pName = #thisParam->second;
+		else;
+			#thisParam->(removeleading:'-');
+			local: #thisParam = true;
+		/if;
+	/iterate;
+	
+	local:
+		'fw_mnuGroups'		= @local:'menus',
+		'fw_paramsGET'		= @local:'paramsGET',
+		'fw_paramsFile'		= @local:'paramsFile',
+		'fw_paramsFldrs'	= @local:'paramsFldrs',
+		'fw_imgspath'		= @local:'imgsPath',
+		'fw_mnuSets'		= string,
+		'fw_mnuItemsJS'		= array,
+		'fw_mnuItemsHTML'	= array,
+		'fw_mnuHTMLtemp'	= array,
+		'fw_mnuGroupNm'		= string,
+		'fw_mnuNames'		= array,
+		'fw_setCnfgAll'		= string,
+		'fw_setCnfgHTML'	= string,
+		'fw_setCnfgLine'	= string;
+
+	!#fw_imgspath
+		? #fw_imgspath = $fw_sPath->'msthdImgs';
+
+
+	local:'c_myName'=((response_filepath)->split:'/')->last;
+	local:'c_myPath'=(response_filepath) - #c_myName;
+	
+	if: #fw_paramsGET;
+		#fw_paramsGET->(replace: ' ','');
+		#fw_paramsGET=(#fw_paramsGET->split:',');
+	/if;	
+
+
+
+	inline:
+		-username=$fw_gFilesUser,
+		-password=$fw_gFilesPswd;
+
+//	loop for each menu array in fw_mnuGroups
+//	each array is a delimited list starting with a menu name, then one or more menu sets
+//	i.e. array: ('msthd```top```mdl```btm', 'prod```widgets```sprockets')
+//	where msthd is the menu name or group name, and top, mdl, btm are the menu sets
+//	each menu set points to a config file which defines each menu item
+//	each page can have one or more groups (i.e. msthd and prod above)
+//	each group has one name and one or more sets (i.e. msthd group has 3 sets, prod group has 2 sets)
+
+//	this iteration repeats for each group
+//	within each group all the config files are split to consolidate the config lines
+//	needed to write JS and HTML code
+//	fw_mnuItemsJS consolidates all JS * config lines into a single array
+//	fw_mnuItemsHTML consolidates all HTML config lines into a single array of \r delimited lines
+//	fw_mnuItemsJS and fw_mnuItemsHTML are used exclusively to write the JavaScript code
+
+//	fw_mnuHTMLtemp is used to consolidate just the HTML config lines from each group then
+//	store it to a separate local variable with the name of the group
+
+//	fw_mnuHTMLtemp is reset for each group
+
+
+		loop: #fw_mnuGroups->size; 
+		
+			#fw_mnuGroupNm=((#fw_mnuGroups->get:loop_count)->split:'```')->get:1;
+			#fw_mnuNames->(insert: #fw_mnuGroupNm);
+			#fw_mnuSets=#fw_mnuGroups->get:loop_count;
+			#fw_mnuHTMLtemp=(array);
+
+//	loop for as many rows defined in #fw_mnuSets delimited by ```
+//	loop starts at 2 to skip the menu name which the  first item in the delimited list
+
+			loop: -loopfrom=2, -loopto=(#fw_mnuSets->split:'```')->size;
+
+				#fw_setCnfgAll=(string);
+				#fw_setCnfgHTML=(string);
+
+//	create file path mnuRover_{name}_{set}.ext
+//	create paths to both global and module configs folders
+//	try one then the other so either is automatically located
+//	module automatically overrides global
+//	stuff the file into a temporary var just to make it easier to work with in the loop below
+
+				local:'fw_gFilePath'=
+					$fw_sPath->'configs' + 'mnuRover_' + 
+					((#fw_mnuSets->split:'```')->get:1) + '_' + 
+					((#fw_mnuSets->split:'```')->get:loop_count) + fw_kCnfgExt;
+	
+				local:'fw_mFilePath'=
+					$fw_mPath->'configs' + 'mnuRover_' + 
+					((#fw_mnuSets->split:'```')->get:1) + '_' + 
+					((#fw_mnuSets->split:'```')->get:loop_count) + fw_kCnfgExt;
+	
+				if: file_exists: #fw_gfilePath || file_exists: #fw_mfilePath;
+
+					if: file_exists: #fw_gfilePath;
+						#fw_setCnfgAll=(file_read: #fw_gfilePath);
+						#fw_setCnfgAll = (string_replace: #fw_setCnfgAll, -find='\r\n', -replace='\r');
+						#fw_setCnfgAll = (string_replace: #fw_setCnfgAll, -find='\n', -replace='\r');
+					/if;
+					if: file_exists: #fw_mfilePath;
+						#fw_setCnfgAll=(file_read: #fw_mfilePath);
+						#fw_setCnfgAll = (string_replace: #fw_setCnfgAll, -find='\r\n', -replace='\r');
+						#fw_setCnfgAll = (string_replace: #fw_setCnfgAll, -find='\n', -replace='\r');
+					/if;
+
+//	consolidate js definitions (lines with *) from all files into fw_mnuItemsJS array
+//	consolidate html config lists from all files into fw_mnuItemsHTML array
+//	This allows a direct correlation of the horizonal index into the JSwrtr fields
+//	to the vertical index of the HTML lines (\r)
+//	This correlation allows the JSwrtr routine to acquire image definition info 
+//	from the HTML config lines
+
+					#fw_setCnfgAll->(removeleading:bom_utf8);
+
+					#fw_setCnfgAll = #fw_setCnfgAll->split:'\r';
+
+					iterate: #fw_setCnfgAll, #fw_setCnfgLine;
+
+						if:	(#fw_setCnfgLine->(beginswith:'*')) == true;
+
+							#fw_setCnfgLine->removeLeading:'*';
+							#fw_mnuItemsJS->(insert:  #fw_setCnfgLine);
+
+						else: 
+
+							((#fw_setCnfgLine->(beginswith:'#')) == true) || 
+							(#fw_setCnfgLine == '');
+
+						else;
+
+							#fw_setCnfgHTML += #fw_setCnfgLine + '\r';
+
+						/if;
+					/iterate;
+
+//	fw_mnuItemsHTML has every line from every menu config file (used by the JS code writer)
+//	fw_mnuHTMLtemp collects every line from config files belonging to a specific group
+//	and is then stored into a var by group name fw_mnuHTML_{group}
+
+					#fw_mnuItemsHTML->(insert:  #fw_setCnfgHTML);
+					#fw_mnuHTMLtemp->(insert:  #fw_setCnfgHTML);
+
+				/if;
+			/loop;
+
+//	for each loop through the group arrays create a new var specific to the group name
+
+			local:('fw_mnuHTML_' + #fw_mnuGroupNm) = #fw_mnuHTMLtemp;
+		/loop;
+
+	/inline;
+
+
+//............................................................................
+//
+//	This section writes the JS code needed to respond the menu rollover effects
+//
+//	This routine creates six javascript lines per menu item in this format
+//	(the actual path is defined by the input -imgs)
+//	
+//	comptourOvr = new Image();
+//	comptourOvr.src = "/site/msthd/imgs/menu_comp_tour_ovr.gif";
+//	comptourOff = new Image();
+//	comptourOff.src = "/site/msthd/imgs/menu_comp_tour_off.gif";
+//	comptourOn = new Image();
+//	comptourOn.src = "/site/msthd/imgs/menu_comp_tour_on.gif";
+//
+//............................................................................
+
+
+	local:
+		'fw_mnuRowIndx' = 0,
+		'fw_imgItemIndx' = 0,
+		'fw_mnuDefn'=(string),
+		'fw_mnuName'=(string),
+		'fw_mnuList'=(string),
+		'fw_mnuItem'=(string),
+		'jsCode' = (string);
+	
+	
+	iterate: #fw_mnuItemsJS, #fw_mnuDefn;
+
+		#fw_mnuRowIndx += 1;
+	
+//	get one menu definition line of the array to work with ("row" = "menu")
+//	the first item is the menu name
+//	if there is a dash, then there is no menu, so skip ahead
+//	turn the row data into a simple list, and remove the menu name field
+//	now for each row item, create the six javascript lines
+//	unless the item is a dash in which case there`s no rollover, so skip ahead
+		
+		#fw_mnuName=(#fw_mnuDefn->split:'```')->get:1;
+	
+		if: #fw_mnuName != '-';
+	
+			#fw_mnuDefn->removeLeading:(#fw_mnuName + '```');
+			#fw_mnuDefn = #fw_mnuDefn->split:'```';
+			#fw_imgItemIndx = 0;
+	
+			iterate: #fw_mnuDefn, #fw_mnuItem;
+	
+				#fw_imgItemIndx += 1;
+
+				if: #fw_mnuItem != '-';
+
+//	now, to know whether this item should have a default highlight state
+//	we need to read the graphic item definition and determine if the image
+//	highlight is based on a pathname or on a filename
+//	by knowing how many row items we are across in the JSwrtr index
+//	we can count down the HTMLwrtr list to acquire the right line
+//	this is why the dash markers were needed
+//	(I need to change these vars to have fw_ prefixes)
+	
+					local:'fw_mnuImgLineItems'=(((#fw_mnuItemsHTML->get:#fw_mnuRowIndx)->split:'\r')->get:#fw_imgItemIndx)->split:'```';
+					local:
+						'fw_mnuImgName'=(#fw_mnuImgLineItems->(get:1)),
+						'fw_mnuImgType'=(#fw_mnuImgLineItems->(get:2)),
+						'fw_mnuImgHref'=(#fw_mnuImgLineItems->(get:5)),
+						'fw_mnuImgMatch'=(#fw_mnuImgLineItems->(get:9));
+					local:'fw_mnuImgMatchStr'=#fw_mnuImgMatch;
+					#fw_mnuImgMatchStr->removeleading:'cn:';
+					local:'fw_mnuImgJSname'=(#fw_mnuImgName->(split:'_')->(get:2)) + (#fw_mnuImgName->(split:'_')->(get:3));
+					local:'fw_mnuImgURLitems'=(#fw_mnuImgHref->(split:'/'));
+					local:'fw_mnuImgURLname'=((#fw_mnuImgURLitems->last)->split:'?')->get:1; 
+					local:'fw_mnuImgURLpath'=((#fw_mnuImgHref)->split:'?')->get:1;
+					#fw_mnuImgURLpath->removeTrailing:#fw_mnuImgURLname;
+
+//	create the line {name}{item}Ovr = new Image();
+
+					local:'fw_jsCode1'=
+						#fw_mnuName + 
+						#fw_mnuItem + 
+						'Ovr = new Image();\r';
+			
+//	create the line {name}{item}Ovr.src = ``/{path}/menu_{name}_{item}_ovr.{typ}``;
+
+					local:'fw_jsCode2'=
+						#fw_mnuName + 
+						#fw_mnuItem + 
+						'Ovr.src = \"' + 
+						#fw_imgsPath + 
+						'menu_' + 
+						#fw_mnuName + '_' + 
+						#fw_mnuItem + 
+						'_ovr' + #fw_mnuImgType + '\";\r';
+						
+//	create the line {name}{item}Off = new Image();
+//	however, on the current page, set the default off image to the `on` graphic
+
+					local:'fw_jsCode3'=
+						#fw_mnuName + 
+						#fw_mnuItem + 
+						'Off = new Image();\r';
+	
+
+//	now we need to determine the default highight state of the graphic image to match the
+//	highlighting preference specified in the config file by comparing our current location
+//	if the highlight method is path, then check if we`re in that path now and set the highlight to on
+//	if the highlight method is page, then check if we`re on that page now and set the highlight to on
+//	if the highlight method is cn:, then check if the page contains this text and set the highlight to on
+//	otherwise set the highlight to off
+	
+					
+					if: 
+						((#fw_mnuImgMatch == 'path') && (($fw_requestPage->'path')->beginswith:#fw_mnuImgURLpath)) ||
+						((#fw_mnuImgMatch == 'page') && (($fw_requestPage->'file') == #fw_mnuImgURLname)) ||
+						((#fw_mnuImgMatch >> 'cn:') && (($fw_requestPage->'file') >> #fw_mnuImgMatchStr));
+	
+//	create the line {name}{item}Off.src = ``/site/msthd/imgsCntrls/menu_{name}_{item}_on.{typ}``;
+
+						local:'fw_jsCode4'=
+							#fw_mnuName + 
+							#fw_mnuItem + 
+							'Off.src = \"' + 
+							#fw_imgsPath + 
+							'menu_' + 
+							#fw_mnuName + '_' + 
+							#fw_mnuItem + 
+							'_on' + #fw_mnuImgType + '\";\r';
+	
+					else;
+	
+//	create the line {name}{item}Off.src = ``/site/msthd/imgsCntrls/menu_{name}_{item}_off.{typ}``;
+
+						local:'fw_jsCode4'=
+							#fw_mnuName + 
+							#fw_mnuItem + 
+							'Off.src = \"' + 
+							#fw_imgsPath + 
+							'menu_' + 
+							#fw_mnuName + '_' + 
+							#fw_mnuItem + 
+							'_off' + #fw_mnuImgType + '\";\r';
+					/if;
+
+	
+//	create the line {name}{item}On = new Image();
+
+					local:'fw_jsCode5'=
+						#fw_mnuName + 
+						#fw_mnuItem + 
+						'On = new Image();\r';
+				
+//	create the line {name}{item}On.src = ``/site/msthd/imgsCntrls/menu_{name}_{item}_on.{typ}``;
+
+					local:'fw_jsCode6'=
+						#fw_mnuName + 
+						#fw_mnuItem + 
+						'On.src = \"' + 
+						#fw_imgsPath + 
+						'menu_' + 
+						#fw_mnuName + '_' + 
+						#fw_mnuItem + 
+						'_on' + #fw_mnuImgType + '\";\r';
+			
+//
+//	this is public attribute to call for the JavaScript code
+//
+	
+					#jsCode += #fw_jsCode1;
+					#jsCode += #fw_jsCode2;
+					#jsCode += #fw_jsCode3;
+					#jsCode += #fw_jsCode4;
+					#jsCode += #fw_jsCode5;
+					#jsCode += #fw_jsCode6 + '\r';
+				/if;	
+			/iterate;
+		/if;
+	/iterate;
+
+//	Demo Expiration
+//	local:'now'=date_getcurrentdate;
+//	local:'expires'=(date:-month=8, -day=1, -year=2003);
+//	if: (date_difference: #expires, #now, -daysbetween) < 0;
+//		#jsCode='AutoRollover has expired.  Please visit http://www.lassoware.com/ for the latest version.\r';
+//	/if;
+
+	local:'jsCode' = 
+		'\r<!-- \r' + 
+		'\tRollover menus by AutoRollover(tm) \r' + 
+		'\t(c) 2002,2003 Greg Willits \r' + 
+		'\thttp://www.lassoware.com/ \r' +
+		'-->\r\r' + 
+		'<script type=\"text/javascript\">' + '\r' +
+		'<!-- \r' + 
+		'function imgOvr(imgName) {\r' +
+		'\tdocument[imgName].src=eval(imgName + \"Ovr.src\");\r' +
+		'}\r\r' +
+		'function imgOut(imgName) {\r' +
+		'\tdocument[imgName].src=eval(imgName + \"Off.src\");\r' +
+		'}\r\r' + 
+		'function imgOn(imgName) {\r' +
+		'\tdocument[imgName].src=eval(imgName + \"On.src\");\r' +
+		'}\r\r' + 
+		#jsCode + 
+		'-->\r' + 
+		'</script>\r\r';
+
+
+//............................................................................
+//
+//	This section writes the HTML code needed to display the menu
+//	and trigger the JavaScript routines for drawing the rollover effects
+//
+//............................................................................
+
+
+local:
+	'fw_temp'=(string),
+	'fw_mnuMyNm'=(string),
+	'fw_setCnfgList'=(array),
+	'fw_setIndx'=0,
+	'fw_setCnfgLine'=(array),
+	'fw_linkCode'=(string),
+	'fw_linkPath'=(string),
+	'fw_linkFile'=(string),
+	'fw_thisParam'=(string),
+	'fw_mnuHTMLsrc'=(string);
+
+
+//	iterate for each menu group name
+	
+iterate: #fw_mnuNames, #fw_mnuMyNm;
+
+	local:(#fw_mnuMyNm)=(string);
+
+
+//	for each menu group, iterate through each set of config data
+
+	iterate: local:('fw_mnuHTML_' + #fw_mnuMyNm), #fw_setCnfgList;
+	
+		#fw_setIndx = 0;
+		#fw_setCnfgList->trim;
+		#fw_setCnfgList = #fw_setCnfgList->split:'\r';
+	
+//	for each menu configuration set, iterate through each line and set the HTML source code
+
+
+		iterate: #fw_setCnfgList, #fw_setCnfgLine;
+	
+			#fw_setIndx = (integer:#fw_setIndx);
+			#fw_setIndx += 1;
+			#fw_setIndx = (string:#fw_setIndx);
+				
+			if: #fw_setCnfgLine == '!';
+	
+				local:('fw_imgHTML' + #fw_setIndx) = '<br>';
+	
+			else;
+	
+				local:'fw_imgCnfgItems'=#fw_setCnfgLine->split:'```';
+				local:
+					'fw_imgName'=#fw_imgCnfgItems->get:1,
+					'fw_imgType'=#fw_imgCnfgItems->get:2,
+					'fw_imgWidth'=#fw_imgCnfgItems->get:3,
+					'fw_imgHeight'=#fw_imgCnfgItems->get:4,
+					'fw_imgHref'=#fw_imgCnfgItems->get:5,
+					'fw_imgOvr'=#fw_imgCnfgItems->get:6,
+					'fw_imgOut'=#fw_imgCnfgItems->get:7,
+					'fw_imgClk'=#fw_imgCnfgItems->get:8,
+					'fw_imgMatch'=#fw_imgCnfgItems->get:9;
+				local:'fw_imgMatchStr'=#fw_imgMatch;
+				#fw_imgMatchStr->removeleading:'cn:';
+				local:'fw_imgJSname'=((#fw_imgName->split:'_')->get:2) + ((#fw_imgName->split:'_')->get:3);
+				local:'fw_imgURLitems'=#fw_imgHref->split:'/';
+				local:'fw_imgURLname'=((#fw_imgURLitems->last)->split:'?')->get:1;
+				local:'fw_imgURLpath'=((#fw_imgHref)->split:'?')->get:1;
+				#fw_imgURLpath->removeTrailing:#fw_imgURLname;
+
+	
+				if: #fw_imgHref;
+
+					local:('fw_imgHTML' + #fw_setIndx) = (string);
+
+//	..... start the href assuming there are no parameters .....
+
+					#fw_linkCode = #fw_imgHref;
+										
+//	..... add the href parameters .....
+
+					if: #fw_paramsGET->type == 'array';
+	
+						#fw_linkCode += '?';
+						iterate: #fw_paramsGET, #fw_thisParam;
+							#fw_linkCode += #fw_thisParam + '=' + (var:#fw_thisParam) + '&';
+						/iterate;
+						#fw_linkCode->removetrailing:'&';
+	
+					else: #fw_paramsFile;
+	
+						#fw_linkFile = (#fw_linkCode->split:'/')->last;
+						#fw_linkPath = #fw_linkCode - #fw_linkFile;
+						#fw_linkCode = (fwpPage_urlParamsFile: -folder=#fw_linkPath, -page=#fw_linkFile, -vars=#fw_paramsFile);
+	
+					else: #fw_paramsFldrs;
+	
+						#fw_linkFile = (#fw_linkCode->split:'/')->last;
+						#fw_linkPath = #fw_linkCode - #fw_linkFile;
+						#fw_linkCode = (fwpPage_urlParamsFldrs: -folder=#fw_linkPath, -page=#fw_linkFile, -vars=#fw_paramsFldrs);
+	
+					/if;
+					
+					(local:('fw_imgHTML' + #fw_setIndx)) += '<a href="' + (#fw_linkCode) + '"';
+
+						
+//	..... add the href javascript commands as flagged .....
+
+					if: #fw_imgOvr =='Y';
+						(local:('fw_imgHTML' + #fw_setIndx)) +=  ' onmouseover="imgOvr(\'' + #fw_imgJSname + '\')"';
+					/if;
+	
+					if: #fw_imgOut =='Y';
+						(local:('fw_imgHTML' + #fw_setIndx)) += ' onmouseout="imgOut(\'' + #fw_imgJSname + '\')"';
+					/if;
+	
+					if: #fw_imgClk =='Y';
+						(local:('fw_imgHTML' + #fw_setIndx)) += ' onclick="imgOn(\'' + #fw_imgJSname + '\')"';
+					/if;
+	
+					(local:('fw_imgHTML' + #fw_setIndx)) += '>';
+	
+	
+//	..... Now determine whether to display the _on or _off image as the default image .....
+//	..... An _on image might come from a path match or from a page name match, so .....
+//	..... there are two if statements to determine whether to start with _on .....
+//	..... and the default is _off .....
+//	..... If there is not to be any rollover status the image must be flagged as plain .....
+				
+
+					if: 
+						(#fw_imgMatch == 'path')  && (($fw_requestPage->'path')->beginswith:#fw_imgURLpath) ||
+						(#fw_imgMatch == 'page') && (($fw_requestPage->'file') == #fw_imgURLname) ||
+						(#fw_imgMatch >> 'cn:') && (($fw_requestPage->'file') >> #fw_imgMatchStr);
+	
+						(local:('fw_imgHTML' + #fw_setIndx)) += 
+							'<img src="' + #fw_imgsPath + #fw_imgName + '_on' + #fw_imgType + '"' + 
+							' alt="' + #fw_imgJSname + '"' + 
+							' width="' + #fw_imgWidth + '"' + 
+							' height="' + #fw_imgHeight + '"' + 
+							' border="0"' + 
+							' name="' + #fw_imgJSname + '"></a>';
+		
+					else: #fw_imgMatch == 'plain';
+	
+						(local:('fw_imgHTML' + #fw_setIndx)) +=
+							'<img src="' + #fw_imgsPath + #fw_imgName + #fw_imgType + '"' + 
+							' alt="' + #fw_imgJSname + '"' + 
+							' width="' + #fw_imgWidth + '"' + 
+							' height="' + #fw_imgHeight + '"' + 
+							' border="0"' + 
+							' name="' + #fw_imgJSname + '"></a>';
+	
+					else;
+	
+						(local:('fw_imgHTML' + #fw_setIndx)) += 
+							'<img src="' + #fw_imgsPath + #fw_imgName + '_off' + #fw_imgType + '"' + 
+							' alt="' + #fw_imgJSname + '"' + 
+							' width="' + #fw_imgWidth + '"' + 
+							' height="' + #fw_imgHeight + '"' + 
+							' border="0"' + 
+							' name="' + #fw_imgJSname + '"></a>';	
+					/if;
+					
+				else;
+	
+					(local:('fw_imgHTML' + #fw_setIndx))=
+						'<img src="' + #fw_imgsPath + #fw_imgName + #fw_imgType + '"' + 
+						' alt=""' + 
+						' width="' + #fw_imgWidth + '"' + 
+						' height="' + #fw_imgHeight + '">';
+				/if;
+			/if;
+		/iterate;
+			
+		loop: #fw_setIndx;
+			(local:#fw_mnuMyNm) += (local:('fw_imgHTML' + loop_count));
+		/loop;
+		(local:#fw_mnuMyNm) += '<br>';
+		
+	/iterate;
+/iterate;
+
+$fw_debugTimers ? $fw_timer->(stop:'rolloverTagAll');
+
+/define_type;
+
+?>

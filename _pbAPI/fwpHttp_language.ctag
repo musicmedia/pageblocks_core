@@ -1,0 +1,42 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpHttp_language.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpHttp_language }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpHttp_language }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			returns the first element of the Accept-Language field 
+					of the HTTP header }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpHttp_language', -priority='replace';
+
+	return:
+		(string_findregexp: 
+			client_headers,
+			-find='Accept-Language:\\s?([a-z-]+),', 
+			-ignorecase)->last;
+
+/define_tag;
+?>

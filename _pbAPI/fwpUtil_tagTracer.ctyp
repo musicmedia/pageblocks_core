@@ -1,0 +1,145 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpUtil_tagTracer.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_tagTracer }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_tagTracer }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+	
+	{desc=			Stores start time of named points in code to provide
+					a sequence trace of events and their intervals. }
+	
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-13 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added withBeganTimes parameter }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_tagTracer', -prototype;
+
+	local:'traceData' = array;
+
+//=============================================================================
+//
+//	->add
+//
+//	inserts a trace
+//
+
+define_tag:'add',
+	-required = 'fw_name',			-type='string',
+	-optional = 'withBeganTimes', 	-type='string';
+
+	local:
+		'fw_pointData' 	= array,
+		'fw_pLabel'		= string,
+		'fw_thisParam' 	= pair;
+
+	(params >> '-withbeganTimes')
+		? #fw_pointData->(insert:'traceBeganAt' = _date_msec);
+
+	iterate: params, #fw_thisParam;
+
+		loop_count == 1 ? loop_continue;
+
+		if: #fw_thisParam->type == 'pair';
+
+			#fw_pLabel = string:(#fw_thisParam->first);
+			#fw_pLabel->(removeleading:'-');
+			
+			if: global_defined:(#fw_pLabel);
+				#fw_pLabel = '$$' + #fw_pLabel;
+			else: var_defined:#fw_pLabel;
+				#fw_pLabel = '$' + #fw_pLabel;
+			else;
+				#fw_pLabel = '#' + #fw_pLabel;
+			/if;
+
+			#fw_pointData->(insert: #fw_pLabel = (#fw_thisParam->second));
+
+		/if;
+	/iterate;
+
+	(self->'traceData')->(insert: #fw_name = #fw_pointData);
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->tracepoint
+//
+//	extracts a raw tracepoint name
+//	returns an array of arrays (of pairs)
+//
+
+define_tag:'tracepoint',
+	-required='fw_name',
+	-criteria=(#fw_name->type == 'string');
+
+	return:((self->'traceData')->find:#fw_name);
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->intervals
+//
+//	extracts the trace sequence with calculated interval times
+//	returns an array of pairs (string = integer)
+//
+
+define_tag:'intervals';
+
+	local:
+		'fw_thisTrace'	= pair,
+		'fw_pointData' 	= array,
+		'fw_interval'	= integer,
+		'fw_points' 	= array;
+	
+	iterate: (self->'traceData'), #fw_thisTrace;
+		#fw_pointData = #fw_thisTrace->second;
+		#fw_points->(insert: (#fw_thisTrace->first) = ((#fw_pointData->get:1)->second));
+	/iterate;
+
+	loop: -from=(#fw_points->size), -to=1, -by=(-1);
+		if: loop_count == 1;
+			((#fw_points->get:loop_count)->second) = 0;
+		else;
+			#fw_interval =
+				((#fw_points->get:loop_count)->second) -
+				((#fw_points->get:(loop_count - 1))->second);
+			
+			((#fw_points->get:loop_count)->second) = #fw_interval;
+		/if;
+	/loop;
+
+	return: #fw_points;	
+
+/define_tag;
+
+/define_type;
+?>
+

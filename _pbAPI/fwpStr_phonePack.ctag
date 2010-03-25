@@ -1,0 +1,67 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_phonePack.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_phonePack }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_phonePack }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			consolidates form input fields for phone numbers }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+//	packed format should be 0001112222333333
+//	input form has separate fields
+//	where:	000 = area code (A)
+//			111 = prefix (P)
+//			2222 = number (N)
+//			333333 = extension (X)
+//	where there is no area code, the data should be padded with 000
+//	there is no need to pad the extension
+//	starting with a whole phone number in var:'phone'
+//	inputs should be named phoneA, phoneP, phoneN, phoneX
+//	to use this tag, submit the var name 'phone'
+//.............................................................................
+
+define_tag:'fwpStr_phonePack', -priority='replace',
+	-required = 'fw_varNm',
+	-optional = 'varNmOut';
+
+	(local:'varNmOut') 
+		? local:'fw_varNmOut' = @#varNmOut
+		| local:'fw_varNmOut' = @#fw_varNm;
+
+//	don`t bother if there is no main phone number
+//	if area code is empty, pack it with 000
+
+	if: !(var:(#fw_varNm + 'a')) && (var:(#fw_varNm + 'p'));
+		(var:(#fw_varNm + 'a')) = '000';
+	/if;
+	var:#fw_varNmOut = 
+		(var:(#fw_varNm + 'a')) + 
+		(var:(#fw_varNm + 'p')) + 
+		(var:(#fw_varNm + 'n')) + 
+		(var:(#fw_varNm + 'x'));
+
+/define_tag;
+?>
+
+

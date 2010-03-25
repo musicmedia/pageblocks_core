@@ -1,0 +1,95 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_headContent.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_headContent }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_headContent }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			consolidates a number of page head contents
+					into a single object }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.5 }
+	{maintdate=		2007-07-24 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_type:'fwp_headContent';
+
+	local:
+		'scriptFiles'		= array,
+		'cssFiles'			= array,
+		'metaTags'			= map,
+		'httpEquivTags'		= map;
+
+//============================================================================
+define_tag:'addMetaTag',
+	-required = 'newValue';
+	(self->'metaTags')->(insert:#newValue);
+/define_tag;
+
+//----------------------------------------------------------------------------
+define_tag:'removeMetaTag',
+	-required = 'key';
+	(self->'metaTags')->(remove:#key);
+/define_tag;
+
+
+//============================================================================
+define_tag:'addHttpEquiv',
+	-required = 'newValue';
+	(self->'httpEquivTags')->(insert:#newValue);
+/define_tag;
+
+//----------------------------------------------------------------------------
+define_tag:'removeHttpEquiv',
+	-required = 'key';
+	(self->'httpEquivTags')->(remove:#key);
+/define_tag;
+
+
+//============================================================================
+define_tag:'addScriptFile',
+	-required = 'newValue', -type = string;
+	(self->'scriptFiles')->(insert:#newValue);
+/define_tag;
+
+//----------------------------------------------------------------------------
+define_tag:'removeScriptFile',
+	-required = 'key', -type = string;
+	local:'indx' = (self->'scriptFiles')->(findPosition:#key);
+	(self->'scriptFiles')->(remove:(#indx->first));
+/define_tag;
+
+
+//============================================================================
+define_tag:'addCSSFile',
+	-required = 'newValue', -type = string;
+	(self->'cssFiles')->(insert:#newValue);
+/define_tag;
+
+//----------------------------------------------------------------------------
+define_tag:'removeCSSFile',
+	-required = 'key', -type = string;
+	local:'indx' = (self->'cssFiles')->(findPosition:#key);
+	(self->'cssFiles')->(remove:(#indx->first));
+/define_tag;
+
+/define_type;
+?>

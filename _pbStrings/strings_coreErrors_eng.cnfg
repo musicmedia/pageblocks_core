@@ -1,0 +1,821 @@
+﻿[output_none]
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+//
+//	{fileName=		lang_errCore_eng.cnfg }
+//	{rsrcType=		config }
+//	{rsrcName=		lang_errCore }
+//	{rsrcHTTP=		www.pageblocks.org/refc/lang_errCore }
+//	
+//	{lassoVrsnMin=	8.1.0 }
+//	{lassoVrsnMax=	8.5.3 }
+//
+//	{author=		Greg Willits }
+//	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+//	{authorHTTP=	www.pageblocks.org }
+//
+//	{desc=			Language configuration file for core error codes }
+//
+//	{maintvsrn=		1.2.3 }
+//	{maintrelease=	5.2.4 }
+//	{maintdate=		2007-07-21 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	improved messages for 5016 }
+//
+//	{maintvsrn=		1.2.2 }
+//	{maintrelease=	5.2.0 }
+//	{maintdate=		2007-06-09 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	improved messages for 5120 and 5121 }
+//
+//	{maintvsrn=		1.2.1 }
+//	{maintrelease=	5.1.6 }
+//	{maintdate=		2007-05-14 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	replaced instances of fw_myURL with fw_requestPage }
+//
+//	{maintvsrn=		1.2 }
+//	{maintrelease=	5.1.5 }
+//	{maintdate=		2007-02-18 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	added 5026 }
+//
+//	{maintvsrn=		1.1 }
+//	{maintrelease=	5.1.0 }
+//	{maintdate=		2006-09-05 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	added 5053 }
+//
+//	{maintvsrn=		1.0 }
+//	{maintrelease=	5.1.0 }
+//	{maintdate=		2006-06-09 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	initial release }
+//
+//.............................................................................
+//	Preferred Language Codes which will used as the PageBlocks standard
+//	ISO 639 which can be found here:
+//	http://www.oasis-open.org/cover/iso639a.html
+//
+//	The W3C preference appears to be moving to this list
+//	http://www.iana.org/assignments/language-subtag-registry
+//.............................................................................
+
+
+//=============================================================================
+//	Error Message Language Configuration
+//	- the file name defines the language
+//	- all reusable messages must be defined before they are mentioned by insert___
+//-----------------------------------------------------------------------------
+// 	note that each line will be trimmed,
+//	and all whitespace after ___ will be trimmed,
+//	so use space entity if you want to split the 
+//	msg up into rows of short lengths in source code
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+//
+//:	reusable message elements
+//
+//
+//
+
+{{showPrevPageLink:
+msg___	<p><a href="javascript:window.history.go(-1);">Return to previous page</a>.</p>
+}}
+
+{{showLoginLink:
+media_all:
+	msg___	[if: $fw_loginPagePath]<p><a href="[var:'fw_loginPagePath']">Return to login page</a>.</p>[/if]
+/media;
+media_pda:
+	msg___	[if: $fw_loginPagePath]<p><a href="[var:'fw_loginPagePath']">Try Again</a>.</p>[/if]
+/media;
+}}
+
+{{showContactInfo:
+msg___	<p>If the error persists, please send a message to our tech support staff at
+msg___	&nbsp;<a href="mailto:[var:'fw_helpAccountsEmail']?subject=Website Error&body=[var:'fw_errMailMsg']">
+msg___	[var:'fw_helpAccountsEmail']</a> and describe the actions you took in the web site before
+msg___	&nbsp;getting the above error message. We will investigate the error as soon as possible,
+msg___	&nbsp;and apologize for the inconvenience.</p>
+}}
+
+{{showYourSessionFailed:
+msg___	<p>Your session was not successfully cleared.</p>
+}}
+
+{{showErrorOnPage:
+msg___	<p>(Error [#thisErrCode] occurred on page [$fw_requestPage->'file'].)</p>
+}}
+
+{{showErrorOnPageWithData:
+msg___	<p>(Error [#thisErrCode] occurred on page [$fw_requestPage->'file'].</p>
+msg___	<p>[#thisErrData])</p>
+}}
+
+
+{{showLoginNotRecognized:
+msg___	<h3 class="errorTitle">User Login Not Recognized</h3>
+msg___	<p>That name and password are not recognized for access. Perhaps you entered them incorrectly.</p>
+}}
+
+{{internalProgramError:
+msg___		<h3 class="errorTitle">Internal Program Error</h3>
+msg___		<p>An error has occurred which will likely cause unexpected behavior on this page. We have been notified automatically, and appologize for the inconvenience.</p>
+}}
+
+//=============================================================================
+//
+//	codes 5000 through 5199 are reserved for the pageblocks framework visitor messages
+//
+//
+
+{{5000:
+constant___	fw_kErrFatalError
+errLevel___	5
+logIt___	Y
+msg___		<h2>Internal Application Error</h2>
+msg___		<p>A critical error has occurred internal to the web application.</p>
+msg___		<p>You may be able to use the browser`s back button and continue using the program, but if you were logged in, it is recommended that you logout, then log back in.</p>
+msg___		<p>If the error repeats after logging out and back in, please report it to the contact listed on the login page. Thank you.</p>
+}}
+
+{{5001:
+constant___	fw_kErrUnexpectedError
+errLevel___	5
+logIt___	Y
+msg___		<h2>Unexpected Error</h2>
+msg___		<p>An unexpected error occurred. (Log ID: [#thisErrData])</p>
+msg___		<p>To help us track the cause of the error, please send a message to our tech support staff at
+msg___		&nbsp;<a href="mailto:[var:'fw_errorsEmail']?subject=Website Error ([$fw_errLogID]&body=[var:'fw_errMailMsg']">
+msg___		[var:'fw_errorsEmail']</a> and provide as many details as you can regarding your actions prior to the error.</p>
+msg___		<p>We will investigate the error as soon as possible, and apologize for the inconvenience.</p>
+}}
+
+{{5002:
+constant___	fw_kErrUnknownError
+errLevel___	5
+logIt___	Y
+msg___		<h3>Error Code [#thisErrCode] Occurred</h3>
+msg___		<p>An error has occurred, but there is no description for this error.</p>
+msg___		<p>If you feel confused, we don't blame you. Feel free to contact the developer and complain :-)</p>
+insert___	showPrevPageLink
+}}
+
+{{5003:
+constant___	fw_kErrDependencyFailed
+errLevel___	5
+logIt___	Y
+msg___		<h3>Required Tag or Type Not Available</h3>
+msg___		<p>An operation which requires a tag or data type from [#thisErrData] failed.</p>
+}}
+
+//-----------------------------------------------------------------------------
+
+{{5010:
+constant___	fw_kErrUserNotRecognized
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010a:
+constant___	fw_kErrUserPasswordIncorrect
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010b:
+constant___	fw_kErrUserNoNameOrPswd
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010e:
+constant___	fw_kErrUserNotOneRecord
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010c:
+constant___	fw_kErrUserAuthSessIDNotFound
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010d:
+constant___	fw_kErrUserAuthSessIDMissing
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010g:
+constant___	fw_kErrUserVarsSessIDNotFound
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010h:
+constant___	fw_kErrUserVarsSessIDMissing
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5011:
+	constant___	fw_kErrUserAccessRestricted
+	errLevel___	4
+	logIt___	Y
+
+	media_all:
+		msg___		<h3 class="errorTitle">User Access Restricted</h3>
+		insert___	showPrevPageLink
+		msg___		<p>Either your account definition does not allow access to this page, or your login session has expired.</p>
+		msg___		<p>If you believe you should have access to [$fw_requestPage->'page'], please contact your site administator.</p>
+		insert___ 	showLoginLink
+	/media;
+	
+	media_pda:
+
+		variant_default:
+			msg___		<h3 class="errorTitle">User Access Restricted</h3>
+			insert___	showPrevPageLink
+			msg___		<p>Access not allowed, or your session expired.</p>
+			insert___ 	showLoginLink
+		/variant;
+
+		variant_extra:
+			msg___		<h3 class="errorTitle">Extra View Title</h3>
+			msg___		<p>Extra view message is here.</p>
+		/variant;
+
+	/media;
+	
+	media_wml:
+		msg___		<h3 class="errorTitle">Restricted</h3>
+		msg___		<p>Access not allowed, or your session expired.</p>
+		insert___	showPrevPageLink
+		insert___ 	showLoginLink
+	/media;
+}}
+
+{{5012:
+constant___	fw_kErrUserSessionExpired
+msg___		<h3 class="errorTitle">User Session Expired</h3>
+msg___		<p>Your authorization or security session has expired. Please login again.</p>
+msg___		<p>For security reasons, when your browser has not connected from one secured page to another secured page after [$fw_sessionTimeout] minutes, the server considers the connection inactive and cancels the login you started with. Simply log back in, and you may continue.</p>
+insert___	showLoginLink
+}}
+
+{{5013:
+constant___	fw_kErrUserSessionExpiredB
+msg___		<h3 class="errorTitle">User Session Expired</h3>
+msg___		<p>Your authorization or security session has expired. Please login again.</p>
+msg___		<p>For security reasons, when your browser has not connected from one secured page to another secured page after [$fw_sessionTimeout] minutes, the server considers the connection inactive and cancels the login you started with. Simply log back in, and you may continue.</p>
+insert___	showLoginLink
+}}
+
+{{5014:
+constant___	fw_kErrPasswordNeedsUpdated
+msg___		<h3 class="errorTitle">New Password Must Be Replaced</h3>
+msg___		<p>Your password was a temporary issue for one use only. Please create a new password to use from now on.</p>
+}}
+
+{{5015:
+constant___	fw_kErrPasswordExpired
+msg___		<h3 class="errorTitle">Your Password Has Expired</h3>
+msg___		<p>For security reasons, passwords are valid for a certain number of days.</p>
+msg___		<p>Please contact the site administrator to assign you a new password.</p>
+}}
+
+{{5016:
+constant___	fw_kErrAccountIsLocked
+msg___		<h3 class="errorTitle">Your Account Is Currently Locked</h3>
+msg___		<p>Attempts to log into your account failed several times in a row.</p>
+msg___		<p>For security reasons, when this happens, an account is locked for a short time to help prevent unauthorized breakins.</p>
+msg___		[if: (#thisErrData) == (-1)]
+msg___		<p>Please contact the site administrator to unlock your account.</p>
+msg___		[else]
+msg___		<p>Wait at least [#thisErrData] minutes, then you can try to login again.</p>
+msg___		[/if]
+}}
+
+{{5017:
+constant___	fw_kErrIPNotAllowed
+msg___		<h3 class="errorTitle">Access From Your Current IP Address Not Authorized</h3>
+msg___		<p>The IP address of your computer is not listed as a valid address for your account.</p>
+msg___		<p>For security reasons, your account password is only valid from a specifc list of IP addresses.</p>
+msg___		<p>Please contact the site administrator to make any necessary adjustments to your account if your IP address has changed.</p>
+}}
+
+
+{{5090:
+constant___	fw_kErrDatabaseNotAvailable
+errLevel___	4
+logIt___	Y
+msg___		<h3 class="errorTitle">Data Unavailable</h3>
+msg___		<p>An error has occurred due to unavailability of required data on the server. The problem may be temporary, please try again in a few minutes.</p>
+}}
+
+
+{{5100:
+constant___	fw_kErrNoRecordsFound
+msg___		[if: !(var:'fw_errQuiet5100')]
+msg___		<h3 class="errorTitle">No Matching Records</h3>
+msg___		<p>Records matching that search criteria were not found.</p>
+msg___		<p>Click here to <a href="javascript:window.history.go(-1);">return to the previous page</a>.<br>
+msg___		[/if]
+}}
+
+{{5110:
+constant___	fw_kErrRecordAlreadyExists
+msg___		[if: !(var:'fw_errQuiet5110')]
+msg___		<h3 class="errorTitle">That record has already been added.</h3>
+msg___		<p>The record you are editing appears to have already been added. To make changes to this record, please return to the record list and update this record.</p>
+msg___		[/if]
+}}
+
+{{5111:
+constant___	fw_kErrRecordIsBusy
+msg___		[if: !(var:'fw_errQuiet5111')]
+msg___		<h3 class="errorTitle">Record is Busy</h3>
+msg___		<p>The record you have requested is currently being edited. The record will be available within [var:'fw_rcrdLockDelay'] minutes, and may be available sooner.</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5112:
+constant___	fw_kErrRecordLockExpired
+msg___		[if: !(var:'fw_errQuiet5112')]
+msg___		<h3 class="errorTitle">Record Lock has Expired</h3>
+msg___		<p>The record you are editing needed to have been submitted within [var:'fw_rcrdLockDelay'] minutes from when you started. More than this amount of time has passed. You must re-select the record from the record list, and begin your edits again.</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5113:
+constant___	fw_kErrRecordLockLost
+msg___		<h3 class="errorTitle">Record Lock was Released</h3>
+msg___		<p>Your session's access to edit this record was released. This was probably because of an administrative process at the server.</p>
+msg___		<p>Log in again. If you get a record busy message, the server has likely taken control of access to this record for a short time to perform maintenance. Log in again later.</p>
+insert___	showLoginLink
+}}
+
+{{5120:
+constant___	fw_kErrUploadTypeNotAllowed
+msg___		[if: !(var:'fw_errQuiet5120')]
+msg___		<h3 class="errorTitle">File Upload Failed</h3>
+msg___		<p>The file "[#thisErrData]" was not uploaded because it appears to be a file type that is not allowed.</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5121:
+constant___	fw_kErrUploadSizeTooBig
+msg___		[if: !(var:'fw_errQuiet5121')]
+msg___		<h3 class="errorTitle">File Upload Failed</h3>
+msg___		<p>The file "[#thisErrData]" was not uploaded because it it larger than the allowed maximum size of [$fw_uploadSizeMax] bytes.</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5122:
+constant___	fw_kErrUploadFolderNotAvailable
+errLevel___	4
+msg___		<h3 class="errorTitle">Upload Failed</h3>
+msg___		<p>The file "[#thisErrData]" was not uploaded due to a problem on the server which prevented the file from being saved.</p>
+insert___	showPrevPageLink
+}}
+
+
+
+//=============================================================================
+//
+//	codes 5200 through 5599 are reserved for API debugging
+//
+//
+
+// 5200-5219 = general purpose messages
+// 5220-5239 = 
+// 5240-5259 = fwpCnfg APIs
+// 5260-5279 = fwpEDP APIs
+// 5280-5299 = 
+
+// 5300-5319 = 
+// 5320-5339 = 
+// 5340-5359 = 
+// 5360-5379 = 
+// 5380-5399 = 
+
+// 5400-5419 = 
+// 5420-5439 = 
+// 5440-5459 = fwpAuth APIs
+// 5460-5479 = 
+// 5480-5499 = 
+
+// 5500-5519 = fwpActn APIs
+// 5520-5539 = 
+// 5540-5559 = 
+// 5560-5579 = 
+// 5580-5599 = 
+
+
+//	this one is technically useless, but it explains what error 5200 is, which is hard coded in the error manager
+{{5200:
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorTitle">/LassoStartup/_strings/ Not Accessible</h3>
+msg___		<p>Check ServerAdmin allowed paths and SiteAdmin file permissions. Check the docs for info.</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5201:
+constant___	fw_kErrDeveloperAPIError
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorTitle">PageBlocks API Usage Error</h3>
+msg___		<p>Check the tagTracer for #ERROR after <span class="bold">[#thisErrData]</span> or check the Lasso Admin Error Log.</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5202:
+constant___	fw_kErrFileNotFound
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorTitle">File Not Found</h3>
+msg___		<p>File "[#thisErrData]" does not exist or could not be accessed.</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5203:
+constant___	fw_kErrFileReadFailed
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorTitle">Error Trying To Read File</h3>
+msg___		<p>Reading file "[(#thisErrData->split:'```')->get:1]" resulted in the error: [(#thisErrData->split:'```')->get:2]</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5204:
+constant___	fw_kErrInitTagNotFound
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorTitle">Init</h3>
+msg___		<p>Init ctag for [#thisErrData] was not found.</p>
+msg___		[else]
+msg___		[/if]
+}}
+
+
+
+
+//-----------------------------------------------------------------------------
+//:	file access errors
+
+
+{{5419:
+constant___	fw_kErrPageContentNotFound
+msg___		<h4>Page Content Not Found</h4>
+msg___		<p>This page cannot be accessed directly. This page requires additional information in the web page address to specify exactly what to display, and generally requires clicking a link from within the site.</p>
+}}
+
+
+//-----------------------------------------------------------------------------
+//:	fwpCnfg errors
+
+
+{{5240:
+constant___	fw_kErrDeCommentTypeWrong
+msg___		<h4>fwpCnfg_deComment</h4>
+msg___		<p>Expected input type of array, but got type [#thisErrData]</p>
+}}
+
+{{5241:
+constant___	fw_kErrSplitBlocksTypeWrong
+msg___		<h4>fwpCnfg_splitBlocks</h4>
+msg___		<p>Expected input type of string or bytes, but got type [#thisErrData]</p>
+}}
+
+{{5242:
+constant___	fw_kErrSplitCommaTypeWrong
+msg___		<h4>fwpCnfg_splitComma</h4>
+msg___		<p>Expected input type of string or bytes, but got type [#thisErrData]</p>
+}}
+
+{{5243:
+constant___	fw_kErrSplitLinesTypeWrong
+msg___		<h4>fwpCnfg_splitLines</h4>
+msg___		<p>Expected input type of string or bytes, but got type [#thisErrData]</p>
+}}
+
+{{5244:
+constant___	fw_kErrSplitPairsTypeWrong
+msg___		<h4>fwpCnfg_splitPairs</h4>
+msg___		<p>Expected input type of string or bytes, but got type [#thisErrData]</p>
+}}
+
+{{5245:
+constant___	fw_kErrSplitTabsTypeWrong
+msg___		<h4>fwpCnfg_splitTabs</h4>
+msg___		<p>Expected input type of string or bytes, but got type [#thisErrData]</p>
+}}
+
+{{5246:
+constant___	fw_kErrSplitBlockLinesTypeWrong
+msg___		<h4>fwpCnfg_splitBlockLines</h4>
+msg___		<p>Expected input type of string or bytes, but got type [#thisErrData]</p>
+}}
+
+
+//-----------------------------------------------------------------------------
+//:	EDP errors
+
+
+{{5460:
+constant___	fw_kErrEdpcFileNotFound
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorTitle">EDP Controller Class Not Found</h3>
+msg___		<p>EDP Class "[#thisErrData]" does not exist or could not be accessed.</p>
+msg___		<p>Make sure the file name is accurate, and that the name in the define_type tag is the same as the file name.</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5461:
+constant___	fw_kErrEdpmFileNotFound
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorTitle">EDP Model Class Not Found</h3>
+msg___		<p>EDP Class "[#thisErrData]" does not exist or could not be accessed.</p>
+msg___		<p>Make sure the file name is accurate, and that the name in the define_type tag is the same as the file name.</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+
+
+
+//-----------------------------------------------------------------------------
+//:	user auth errors
+
+
+{{5440:
+constant___	fw_kErrUserSelectionFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>User Selection in fwp_user->authenticate has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5441:
+constant___	fw_kErrUserAttemptsUpdateFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>User Update of 'attempts' in fwp_user->authenticate has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5442:
+constant___	fw_kErrSessionInitFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Session Initialize in fwp_user->authenticate has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5443:
+constant___	fw_kErrSessionAuthorizeFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Session Authorize in fwp_user->authorize has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5444:
+constant___	fw_kErrSessionRefreshFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Session Refresh in fwp_user->restoreUser has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5445:
+constant___	fw_kErrSessionVarsNotRestored
+errLevel___	4
+logIt___	Y
+msg___		<h4>Session Restore in fwp_user->restoreVarsKeepers has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5446:
+constant___	fw_kErrSessionAuthorizeFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Session Authorize in fwp_user->restoreUser has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5447:
+constant___	fw_kErrSessionStoreVarsFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->storeVars has failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5448:
+constant___	fw_kErrSessionStoreKeepersFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->storeKeepers has failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5449:
+constant___	fw_kErrSessionClearVarsFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->clearVars has failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5450:
+constant___	fw_kErrSessionClearKeepersFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->clearKeepers has failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5451:
+constant___	fw_kErrSessionAuthorizeRefreshFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Session Refresh in fwp_user->authorize has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+
+{{5452:
+constant___	fw_kErrSessionKillFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->killSession has failed</h4>
+msg___		<p>The session was not successfully cleared.</p>
+insert___	showErrorOnPageWithData
+}}
+
+
+
+//-----------------------------------------------------------------------------
+//:	database errors
+
+
+{{5500:
+constant___	fw_kErrRecordNumberNotFound
+errLevel___	4
+logIt___	Y
+msg___		<h4>Oh-oh. The record was not found (and it should have been).</h4>
+}}
+
+{{5501:
+errLevel___	4
+logIt___	Y
+constant___	fw_kErrRecordNumberEmpty
+msg___		<h4>Record Edits Unsuccessful</h4>
+insert___	showErrorOnPage
+}}
+
+{{5502:
+constant___	fw_kErrRecordUpdateFailed
+logIt___	Y
+errLevel___	4
+msg___		<h4>Record Update Unsuccessful</h4>
+insert___	showErrorOnPage
+}}
+
+{{5503:
+constant___	fw_kErrRecordAddFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Record Add Unsuccessful</h4>
+insert___	showErrorOnPage
+}}
+
+{{5504:
+constant___	fw_kErrRecordDeleteFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Record Delete Unsuccessful</h4>
+insert___	showErrorOnPage
+}}
+
+{{5505:
+constant___	fw_kErrQuerySyntaxError
+errLevel___	4
+logIt___	Y
+msg___		<h4>Database Query Failed</h4>
+insert___	showErrorOnPage
+}}
+
+{{5506:
+constant___	fw_kErrRecordSearchFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Record Search Unsuccessful</h4>
+msg___		<p>[if: #thisErrData >> '-9961'](The application encountered a lack of permissions from Lasso Admin.)
+msg___		[else][#thisErrData][/if]</p>
+}}
+
+{{5507:
+constant___	fw_kErrRecordLockFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Record Lock has Failed</h4>
+insert___	showErrorOnPageWithData
+}}
+
+
+
+
+//=============================================================================
+//
+//	codes 5600 through 5999 are available for Applications
+//	put application specific error in a separate file named strings_appErrors_{{languageCode}}.cnfg
+//
+//
+
+
+
+//=============================================================================
+//
+//	codes 6000 through 6999 are for reserved for trapping HTTP errors
+//
+//
+
+
+{{6401:
+constant___	fw_kErrHTTPAccessDenied
+msg___		<h3 class="errorTitle">Access Denied</h3>
+msg___		<p>The supplied password is not recognized.</p>
+insert___	showPrevPageLink
+}}
+
+{{6403:
+constant___	fw_kErrHTTPFolderNotAllowed
+msg___		<h3 class="errorTitle">Folder Access Denied</h3>
+msg___		<p>The requested folder either does not contain a default page, does not allow directory listing, or does not exist.</p>
+insert___	showPrevPageLink
+}}
+
+{{6404:
+constant___	fw_kErrHTTPFileNotFound
+msg___		<h3 class="errorTitle">Page Not Found</h3>
+msg___		<p>The requested page or document ([response_filepath]) has either been moved, renamed, or does not exist.</p>
+insert___	showPrevPageLink
+}}
+
+{{6500:
+constant___	fw_kErrHTTPServerError
+msg___		<h3 class="errorTitle">Web Server Error</h3>
+msg___		<p>The web server encountered an unexpected error trying to process the last request. It\'s likely that a programming error is at fault.</p>
+insert___	showPrevPageLink
+insert___	showContactInfo
+}}
+[/output_none]

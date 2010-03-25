@@ -1,0 +1,234 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		edpm_usrsBegin.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		 }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			 }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated custom validations to proper validator error handling }
+
+	{maintvsrn=		1.0.1 }
+	{maintdate=		2006-04-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added m_uPw to inputFields, and added a test to
+					check for a duplicate email address }
+
+	{maintvsrn=		1.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'edpm_usrsBegin', 'fwp_edpModel', -namespace = '_global_';
+
+
+//=============================================================================
+//
+//	->onCreate
+//
+//	
+//
+
+define_tag:'onCreate';
+
+	(self->'edp_rootTable')	= @$fw_gTables->find:'userauth';
+
+	(self->'edp_inputFields') = 
+		'm_rStat, m_uNameF, m_uNameL, m_uNameF, m_uEmail, m_uPw, m_uHint, ' +
+		'm_uTries, m_uLokTime, m_uPwDate, m_uHosts,' +
+		'i_upw1, i_upw2';
+
+	(self->'edp_updatePrepSelect') = 
+		'm_rStat, m_rModDate, m_uNameL, m_uNameF, m_uEmail, m_uPw, m_uHint, m_uIns, m_uLastIn, m_uTries, m_uLokTime, m_uPwNew, m_uPwDate, m_uPwHist, m_uHosts';
+
+	(self->init);
+
+	//	special case code for this Users system
+	//	the recursive Filters tab will mess up fw_r
+	//	so if the Auth tab is clicked after using filters
+	//	we need to manually restore the var to the user rcrdNo
+	//	must use var instead of $ to avoid crash when submitting
+	//	non-valid New Record
+
+	if: (var:'btnNavBegin.x');
+		var:'fw_r' = var:'edp_selectedRcrdID';
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->validate
+//
+//	method for EDP system
+//
+//	Use this method to test input validity, create/modify vars based on inputs.
+//	To perform other actions, code that action as a member tag or custom tag, then
+//	call the tag from here (this makes those actions available to other models
+//	and controllers if needed).
+//
+
+define_tag:'validate';
+
+	$fw_debug ? $fw_tagTracer->(add:'edpm_usrsBegin->validate');
+
+//	ensure there is not an account with this email address already
+//	as the account name (in this case email address is used) must be unique
+
+	local:'userExists' = (fwp_recordData:'userauth');
+
+	#userExists->(select:
+		-quiet,
+		-select = 'rcrdNo',
+		-keyfld = 'userEmail',
+		-keyval = $m_uEmail);
+
+	records: -inlinename=#userExists->'inlinename';
+		local:'existingRcrdNo' = field:'rcrdNo';
+	/records;
+
+//	if the email is used and the rcrdNo's are not the same
+//	then can't use the email (if they are the same, we're doing an update)
+
+	if: $m_uEmail && ((#userExists->'foundCount') != 0) && (#existingRcrdNo != $edp_selectedRcrdID);
+		$fw_formIsNotValid = true;
+		$fw_validator->(insertErrorMsg:
+			-input = 'm_uEmail',
+			-valcode = 'userExists');
+	/if;
+
+
+//
+//	password validation
+//	if this is an add page, or a new password page, validate the pswd fields
+//	if this is an update page and both pswd fields have data, then validate them
+//	otherwise ignore if none or one pswd field is empty
+//
+	
+	if: ($fw_requestPage->'name' >> 'newPswd') ||
+		((var:'fw_edpNewRcrdFlag') == 'Y') ||
+		(((var:'fw_edpNewRcrdFlag') != 'Y') && (var:'i_upw1') && (var:'i_upw2'));
+	
+//	use built-in routine to validate entries 
+//	to the rules in the authPass file for this user type
+	
+		var:'pswdInvalid' = ($fw_user->(testPswd:'i_upw1', -compare='i_upw2'));
+		
+		$pswdInvalid ? $fw_formIsNotValid = true;
+
+		if:	!($fw_formIsNotValid);
+	
+//	make an MD5 version
+			var:'m_uPw'= (encrypt_md5:$i_upw1);
+	
+//	store the date this password was created
+//	for compatibility with the fw_gUsrPassDays option
+			var:'m_uPwDate'=(date_format: (date), -DateFormat='%Y-%m-%d %T');
+	
+//	if fw_gUsrPassOnce is active, 
+//	then flag the db record that the pswd is new
+	
+			if: ($fw_user->(getProfile:'fw_gUsrPswdOnce') > 0);
+				var:'m_uPwNew'='Y';
+			else;
+				var:'m_uPwNew'='N';
+			/if;
+
+//	update the password history
+//	put the current history into a var to emulate a form submission
+//	submit that var and the new pw
+//	the new pw will be prepended to the history
+//	and if necessary the oldest pw will be deleted if the number
+//	of entries exceeds fw_gUsrPassHistory
+//	the value of the submitted history var will be modified and
+//	will be ready to save to the db
+	
+			var:'m_uPwHist' = $fw_user->(getProfile:'userPswdHistory');
+			$fw_user->(updtPwHistory: -history='m_uPwHist', -newpw=$i_upw1);
+		/if;
+	/if;
+	
+//
+//	other validations not covered by AutoValidate
+//	and data concats or declarations required before record add/update
+//
+
+	if: var:'i_uTries';
+		var:'m_uTries' = 0;
+		var:'m_uLokTime' = '0000-00-00 00:00:00';
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->postAdd
+//
+//	method for EDP system
+//
+
+define_tag:'postAdd';
+
+	$fw_debug ? $fw_tagTracer->(add:'edpm_usrsBegin->postAdd');
+
+	if: (var:'fw_edpNewRcrdFlag') == 'Y';
+
+		local:'userProfile' = fwp_recordData:'userprof';
+		
+		var:'m_uAuthFK' = $edp_keyval;
+		
+		#userProfile->(add:
+			-inputs = 'm_uAuthFK',
+			-keyval = $edp_keyval);
+
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->displayPrep
+//
+//	method for EDP system
+//
+//	Use this method to control logic for preparing display data and 
+//	display control flags, but if that prep requires db access calls
+//	code them as a separate member tag or custom tag.
+//	Call the tag from here (this makes those actions available to other models
+//	and controllers if needed).
+//
+
+define_tag:'displayPrep';
+
+	$edpMainController->(storeSelection);
+
+/define_tag;
+
+
+/define_type;
+?>
+

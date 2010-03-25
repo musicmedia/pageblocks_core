@@ -1,0 +1,2 @@
+﻿<p>To update this record, make changes to the form below, then click the &quot;Save&quot; button. For security purposes, this form can remain active for a maximum of [$fw_rcrdLockDelay] minutes. Please make sure your changes are completed and the record is updated within this time. Click the "Cancel" button to ignore any changes you have started and leave the record as it originally was.</p>
+<p>Fields with * flagged labels are required fields.</p>

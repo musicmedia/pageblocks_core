@@ -1,0 +1,26 @@
+﻿[output_none]
+# PageBlocks authPerms_{name}.cnfg
+# version:  2.0
+# released: 2006-01-16
+# authenticatedUser configuration
+
+# permissions common to all modules
+
+{common:
+view=View
+add=Add
+update=Update
+delete=Delete
+}
+
+# modules and module-specific permissions
+
+{usrs=Users:
+approve=Approve
+reset=Reset
+}
+
+{str=Strings:
+}
+
+[/output_none]

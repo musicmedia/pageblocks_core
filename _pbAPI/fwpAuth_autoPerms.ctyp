@@ -1,0 +1,595 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpAuth_autoPerms.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_autoPerms }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_autoPerms }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Reads a text file definition of modules and permissions 
+					utilized for authorization in the site. Presents a user
+					interface for defin auth privs for a user. Fuses and 
+					unfuses the matrix of auth privs into and from a single
+					data structure saved to db. }
+
+	{maintvsrn=		1.2.4 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2007-12-27 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	Changed x-y directions of permissions matrix }
+
+	{maintvsrn=		1.2.3 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-11-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Replaced the use of Z in high ascii regex with standard \\s }
+
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-11-23 }
+	{maintauthor=	Jolle Carlestam }
+	{maintnotes=	changed the hack to a real fix to allow for any Unicode chars in labels }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-11-22}
+	{maintauthor=	Jolle Carlestam }
+	{maintnotes=	added a hack to allow for use of åäöæø chars in labels }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-10-10}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added checkbox as a control style option }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0.2 }
+	{maintrelease=	5.0.3 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added removal of leading BOM after file_read }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.3 }
+	{maintdate=		2006-04-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -quiet to ->select query in ->load }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+
+//	(note this is some of the oldest surviving code from very early versions
+//	so syntax and efficency may need revisited)
+
+//	authModsList = the whole mods file
+//	authPermsList = the whole perms file
+//	fw_authListTemp = scratchpad
+
+//	public instance vars:
+//	modCodes = an array of module codes
+//	modLabels = an array of module friendy names
+//	permCodes = an array of perms codes
+//	permLabels = an array of perms friendly names
+
+define_type:'fwp_autoPerms';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_autoPerms->initializer');
+
+	local:
+		'fw_cnfgNm' 		= params->get:1,
+		'fw_thisItem' 		= string,
+		'fw_thisCode' 		= string,
+		'fw_thisPair' 		= string,
+		'fw_cnfgFile' 		= string,
+		'fw_authMods' 		= string,
+		'fw_authPerms' 		= string,
+		'fw_commonPerms' 	= string,
+		'fw_commonPermCodes' = array,
+		'fw_modPerms' 		= string,
+		'modCodes' 			= array,
+		'modLabels' 		= array,
+		'permCodes' 		= array,
+		'permLabels' 		= array,
+		'permsData' 		= map;
+
+//	read the whole file
+//	normalize file line endings
+
+	inline:
+		-username=$fw_gFilesUser,
+		-password=$fw_gFilesPswd;
+
+		local:'fw_filePath'=($fw_sPath->'configs') + 'authPerms_' + #fw_cnfgNm + fw_kCnfgExt;
+
+		if: (file_exists: #fw_filePath);
+			#fw_cnfgFile = (string:(file_read:(#fw_filePath)));
+			#fw_cnfgFile->(replace:'\r\n','\r');
+			#fw_cnfgFile->(replace:'\n','\r');
+			#fw_cnfgFile->(removeleading:bom_utf8);
+		/if;
+	/inline;
+
+	if: $fw_debug;
+		var:'api_authPerms_cnfgFilePath' = #fw_filePath;
+		var:'api_authPerms_cnfgFileType' = #fw_cnfgFile->type;
+		var:'api_authPerms_cnfgFile' = #fw_cnfgFile;
+	/if;
+
+//	get modules
+//	split modCodes / modLabels
+
+	#fw_authMods = (string_findregexp: #fw_cnfgFile, -find='[\\p{L}\\s]+=[\\p{L}\\s]+:', -ignorecase);
+// the explicit search for some high ASCII chars added by Jolle to compensate for 
+// a Lasso bug not including those letters in a \\w search
+
+	iterate: #fw_authMods, #fw_thisPair;
+		#modCodes->(insert: ((#fw_thisPair->split:'=')->get:1));
+		#modLabels->(insert: (string_removetrailing: (#fw_thisPair->split:'=')->get:2, -pattern=':'));
+	/iterate;
+
+	if: $fw_debug;
+		var:'api_authPerms_authMods' = #fw_authMods;
+		var:'api_authPerms_modCodes' = #modCodes;
+		var:'api_authPerms_modLabels' = #modLabels;
+	/if;
+
+
+//	get perms
+//	split permCodes / permLabels
+
+	#fw_authPerms = (string_findregexp: #fw_cnfgFile, -find='[\\p{L}0-9]+=[\\p{L}0-9]+\\r', -ignorecase);
+
+	iterate: #fw_authPerms, #fw_thisPair;
+		#permCodes->(insert: ((#fw_thisPair->split:'=')->get:1));
+		#permLabels->(insert: (string_removetrailing: (#fw_thisPair->split:'=')->get:2, -pattern='\r'));
+	/iterate;
+
+	if: $fw_debug;
+		var:'api_authPerms_authMods' = #fw_authMods;
+		var:'api_authPerms_permCodes' = #permCodes;
+		var:'api_authPerms_permLabels' = #permLabels;
+	/if;
+
+
+//	get common perm Codes
+
+	#fw_commonPerms	= (string_findregexp: #fw_cnfgFile, -find='\\{common:([=\\p{L}0-9\\s]+)\\}', -ignorecase)->last;
+	#fw_commonPerms->(replace:'\t','');
+	#fw_commonPerms->trim;
+	#fw_commonPerms = #fw_commonPerms->split:'\r';
+
+	iterate: #fw_commonPerms, #fw_thisPair;
+		#fw_commonPermCodes->(insert: ((#fw_thisPair->split:'=')->get:1));
+	/iterate;
+
+	if: $fw_debug;
+		var:'api_authPerms_commonPerms' = #fw_commonPerms;
+	/if;
+
+
+//	create mod-specific permsLists
+
+	#fw_modPerms = (string_findregexp: #fw_cnfgFile, -find='[\\p{L}\\s]+=[\\p{L}\\s]+:[=\\p{L}\\s]+\\}', -ignorecase);
+	iterate: #fw_modPerms, #fw_thisItem;
+
+//	get the mod code for this group
+//	set the core perms for this mod
+
+		#fw_thisCode = (((#fw_thisItem->split:':')->get:1)->split:'=')->get:1;
+		var:(#fw_thisCode + 'Perms') = #fw_commonPermCodes;
+
+//	trim out all non-essential parts to the list of pairs
+
+		#fw_thisItem = (#fw_thisItem->split:':')->last;
+		#fw_thisItem->removetrailing:'}';
+		#fw_thisItem->(replace:'\t','');
+		#fw_thisItem->trim;
+
+//	if this mod includes mod-specific perms, get the perm codes
+//	merge the mod-specific perms to the common perms
+
+		if:#fw_thisItem->size > 0;
+			local:'temp'=array;
+			#fw_thisItem = #fw_thisItem->split:'\r';
+			iterate: #fw_thisItem, #fw_thisPair;
+				#temp->(insert: ((#fw_thisPair->split:'=')->get:1));
+			/iterate;
+			(var:(#fw_thisCode + 'Perms'))->merge:#temp;
+		/if;
+	/iterate;
+
+//............................................................................
+/*
+	{fileName=		fwp_autoPerms->draw }
+
+	{desc=			This routine draws the matrix of module and permission
+					form inputs for the administrator add/update pages. 
+					y=perms, x=modules
+					outer loop = perms to build rows
+					inner loop = modules to build columns }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//.............................................................................
+//	controls = radioBtns|popup|noedit
+
+define_tag:'draw', -priority='replace',
+	-optional='drawMode', 
+	-optional='controls', 
+	-optional='tblBorder', 
+	-optional='tblPadding', 
+	-optional='tblSpacing';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_autoPerms->draw');
+
+	local:
+		'fw_drawCode'	= string,
+		'fw_drawMode'	= @local:'drawMode',
+		'fw_cntlType'	= @local:'type',
+		'fw_tblBorder'	= @local:'tblBorder',
+		'fw_tblPadding'	= @local:'tblPadding',
+		'fw_tblSpacing'	= @local:'tblSpacing',
+		'fw_colWidth'	= @local:'colWidth';
+
+//	planned future feature to allow transposing of X-Y grid in the table
+//	local:
+//		'fw_colLblTxt'=self->'modLabels',
+//		'fw_colLblClass'='modLabel',
+//		'fw_rowLblTxt'=self->'permCodes',
+//		'fw_rowLblClass'='permLabel',
+//
+//	if: #fw_transpose;
+//
+//	/if;
+
+	if:!(#fw_drawMode);
+		#fw_drawMode = 'add';
+	/if;
+	if:!(#fw_cntlType);
+		#fw_cntlType = 'checkbox';
+	/if;
+	if:!(#fw_colWidth);
+		#fw_colWidth = 100;
+	/if;
+	if:!(#fw_tblBorder);
+		#fw_tblBorder = 0;
+	/if;
+	if:!(#fw_tblPadding);
+		#fw_tblPadding = 2;
+	/if;
+	if:!(#fw_tblSpacing);
+		#fw_tblSpacing = 1;
+	/if;
+
+//	begin table
+
+	#fw_drawCode += '<div class="permsMatrix">\r';
+	#fw_drawCode += '<table border="' + #fw_tblBorder + '" cellpadding="' + #fw_tblPadding + '" cellspacing="' + #fw_tblSpacing + '">\r';
+
+//	column labels
+
+	local:'fw_indx'=0;
+	#fw_drawCode += '<thead>\r';
+	#fw_drawCode += '\t<tr>\r';
+	#fw_drawCode += '\t\t<th class="permLabel">';
+	#fw_drawCode += '</th>\r';
+		iterate: self->'permCodes', local:'thisPerm';
+			#fw_indx += 1;
+			#fw_drawCode += '\t\t<th class="modLabel" width="' + #fw_colWidth + '">';
+			#fw_drawCode += (self->'permLabels')->get:#fw_indx;
+			#fw_drawCode += '</th>\r';
+		/iterate;
+	#fw_drawCode += '\t</tr>\r'; 
+	#fw_drawCode += '</thead>\r';
+	#fw_drawCode += '<tbody>\r';
+
+//	row perms
+
+	local('fw_indx'	= 0);
+	iterate(self->('modCodes'), local('thisMod')); 
+		#fw_indx += 1;
+		#fw_drawCode += '\t<tr>\r';
+		#fw_drawCode += '\t\t<td class="permLabel">';
+		#fw_drawCode += self->('modLabels')->(get:#fw_indx);
+		#fw_drawCode += '</td>\r';
+		iterate(self->('permCodes'), local('thisPerm')); 
+			#fw_drawCode += '\t\t<td class="';
+			#fw_indx % 2 
+				? #fw_drawCode += 'permCellA' 
+				| #fw_drawCode += 'permCellB';
+			#fw_drawCode += '" width="' + #fw_colWidth + '">';
+			if(var(#thisMod + 'Perms')->find(#thisPerm)->size > 0);
+				if(#fw_cntlType == 'popup');
+/*					all the commented out code is unused but has been kept
+					from the original for nostalgic reasons
+					if(#fw_drawMode == 'update');
+						#fw_drawCode += (fwpGui_popup:
+							-name=('usr' + #thisMod + #thisPerm),
+							-list='No___N```Yes___Y',
+							-dflt=var:('usr' + #thisMod + #thisPerm),
+							-blank='N');
+					else;
+						#fw_drawCode += (fwpGui_popup:
+							-name=('usr' + #thisMod + #thisPerm),
+							-list='No___N```Yes___Y',
+							-dflt='N',
+							-blank='N');
+					/if;
+				else(#fw_cntlType == 'radioBtns');
+					if(#fw_drawMode == 'update');
+						#fw_drawCode += (fwpGui_radiobtns:
+							-name=('usr' + #thisMod + #thisPerm),
+							-list=(array: 'No'='N','Yes'='Y'),
+							-dflt=var:('usr' + #thisMod + #thisPerm),
+							-layout='horiz');
+					else;
+						#fw_drawCode += (fwpGui_radiobtns:
+							-name=('usr' + #thisMod + #thisPerm),
+							-list=(array: 'No'='N','Yes'='Y'),
+							-dflt='N',
+							-layout='horiz');
+					/if; 
+*/
+				else(#fw_cntlType == 'checkbox');
+//					if(#fw_drawMode == 'update');
+						local('permStat' = string);
+						var('usr' + #thisMod + #thisPerm) == 'Y' ? #permStat = ' checked="true"';
+						#fw_drawCode += '<span class="nobreak">';
+						#fw_drawCode += '<label class="fwpcheckbox">';
+						#fw_drawCode += ('<input name="usr' + #thisMod + #thisPerm + '"' + #permStat);
+						#fw_drawCode += ' class="fwpcheckbox" type="checkbox" value="Y" />';
+						#fw_drawCode += 'Allow';
+						#fw_drawCode += '</label></span>';
+//					else;
+//						#fw_drawCode += (fwpGui_checkbox:
+//							-name=('usr' + #thisMod + #thisPerm),
+//							-list=(array:'Allow'='Y'),
+//							-dflt='N',
+//							-layout='horiz');
+//					/if;
+				else;
+					#fw_drawCode += var:('usr' + #thisMod + #thisPerm);
+				/if;
+			else;
+				#fw_drawCode += '&nbsp;';
+			/if;
+			#fw_drawCode += '</td>\r';
+		/iterate; 
+		#fw_drawCode += '\t</tr>\r';
+	/iterate;
+
+	#fw_drawCode += '</tbody>\r';
+	#fw_drawCode += '</table>\r';
+	#fw_drawCode += '</div>\r';
+	
+	return: @#fw_drawCode;
+	
+/define_tag;
+
+//............................................................................
+/*
+	{rsrcName=		fwp_autoPerms->clear }
+
+	{desc=			This routine deletes all records of the specified user. }
+
+	{maintvsrn=		3.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//.............................................................................
+define_tag:'clear',
+	-required='table',
+	-required='userID';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_autoPerms->clear');
+
+	local:
+		'fw_table'	= @local:'table',
+		'fw_userID'	= @local:'userID';
+
+	local:'fw_tableObj' = (fwp_recordData: #fw_table);
+
+//	::NOTE:: this is still MySQL specific!
+//	::TODO:: really needs to be moved as tag of user ctype 
+//		and be done in database agnostic way
+
+	local:'fw_sqlActn' = 
+			' DELETE FROM ' + (#fw_tableObj->'dbtbl') + 
+			' WHERE userPrivID="' + #fw_userID + '" ';
+
+	inline:
+		-username=$fw_gQueryUser,
+		-password=$fw_gQueryPswd,
+		-database=#fw_tableObj->'db',
+		-table=#fw_tableObj->'tbl',
+		-maxrecords = 'all',
+		-sql = #fw_sqlActn;
+			
+	/inline;
+
+/define_tag;
+
+
+
+//............................................................................
+/*
+	{rsrcName=		fwp_autoPerms->store }
+
+	{desc=			This routine writes a record for each cell of the perms 
+					matrix submitted by the HTML table. This routine 
+					is used primarily by routines that create and read from 
+					the HTML matrix table for adding and updating users.
+					This routine is not needed to access profile data for
+					the user. }
+
+	{maintvsrn=		3.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//.............................................................................
+define_tag:'store',
+	-required='table',
+	-required='userID';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_autoPerms->store');
+
+	local:
+		'fw_table'			= @local:'table',
+		'fw_userID'			= @local:'userID',
+		'fw_authUsrPerms'	= map,
+		'fw_usrModPerms'	= map,
+		'fw_modCode'		= string,
+		'fw_permCode'		= string,
+		'fw_qryTimeStart'	= integer,
+		'fw_qryTime'		= integer,
+		'uprms'				= string;
+
+	local:'fw_tableObj' = (fwp_recordData: #fw_table);
+
+	//	first we have to delete the current records
+	//	::TODO:: need to change to mark these rcrds first, then add, then delete
+	//		has to be done in database agnostic way though
+	//		These table manipulating functions really need to be moved as
+	//		tags of the user ctype
+
+	(self->clear: -table = @local:'table', -userID = @local:'userID');
+	
+	//	now we add records for each position in the perms matrix which
+	//	has a Y definition
+
+	#fw_qryTimeStart = _date_msec;
+
+//	values comes from form fields which have been converted to vars
+//	named usr{modName}{permName} such as usrartclsView
+//	::NOTE:: this is still MySQL specific!
+
+	iterate: self->'modCodes', #fw_modCode;
+
+		iterate: (self->'permCodes'), #fw_permCode;
+
+			if: (var:('usr' +  #fw_modCode + #fw_permCode)) == 'Y';
+				
+				local:'fw_sqlActn' = 'insert ' + (#fw_tableObj->'dbtbl') + ' set ';
+
+				#fw_sqlActn += ('rcrdNo="' + (fwpStr_randomID:20) + '", ');
+				#fw_sqlActn += ('rcrdStatus="Y", ');
+				#fw_sqlActn += ('rcrdCreated="' + (date_format: (date), -DateFormat='%Y-%m-%d %T') + '", ');
+				#fw_sqlActn += ('rcrdCreatedBy="' + ($fw_user->(getProfile:'userName')) + '", ');
+				#fw_sqlActn += ('userPrivID="' + #fw_userID + '", ');
+				#fw_sqlActn += ('userPrivSet="' + #fw_modCode + '", '); 
+				#fw_sqlActn += ('userPrivName="' + #fw_permCode + '", '); 
+				#fw_sqlActn += ('userPrivValue="Y" ');
+
+				inline:
+					-username=$fw_gQueryUser,
+					-password=$fw_gQueryPswd,
+					-database=#fw_tableObj->'db',
+					-table=#fw_tableObj->'tbl',
+					-sql = #fw_sqlActn;
+
+				/inline;
+			/if;
+		/iterate;
+	/iterate;
+
+	#fw_qryTime = _date_msec - #fw_qryTimeStart;
+
+	if: $fw_gLogDb;
+		fwpLog_data: 
+			-usrName	= $fw_user->(getProfile:'userName'),
+			-usrRcrd	= $fw_user->(getProfile:'userRcrdID'),
+			-table		= (#fw_tableObj->'tbl'),
+			-rcrd		= #fw_userID,
+			-action		= 'rebuild',
+			-pageInfo	= $fw_logPageInfo,
+			-fwpInfo	= $fw_logFWPInfo,
+			-qryTime	= #fw_qryTime;
+	/if;
+
+/define_tag;
+
+
+//.............................................................................
+/*
+	{rsrcName=		fwp_autoPerms->load }
+
+	{desc=			This routine reads the stored results of the perms 
+					records and restructures them as individual variables.
+					This tag is used by routines that create 
+					and read from the HTML matrix table for updating users.
+					This routine is not needed to access profile data for the
+					user, which is performed by the fwpAuth_administrator
+					custom type member tags. }
+
+	{maintvsrn=		3.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//..............................................................................
+
+define_tag:'load',
+	-required='table',
+	-required='userID';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_autoPerms->load');
+
+	local:
+		'fw_table'	= @local:'table',
+		'fw_userID'	= @local:'userID';
+
+//	::TODO:: needs to be moved to a tag in user ctype
+//		at least this one is already database agnostic
+
+	var:'userPrivsRcrds' = (fwp_recordData: #fw_table);
+		
+	$userPrivsRcrds->(select:
+		-quiet,
+		-select = 'userPrivSet, userPrivName, userPrivValue',
+		-keyfld = 'userPrivID',
+		-keyval = #fw_userID,
+		-limit = '*');
+	
+//	encode field data
+
+	records: -inlinename = ($userPrivsRcrds->'inlinename');
+		var:('usr' + (field:'userPrivSet') + (field:'userPrivName')) = (field:'userPrivValue');
+	/records;
+
+/define_tag;
+
+/define_type;
+?>

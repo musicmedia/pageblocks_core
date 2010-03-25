@@ -1,0 +1,79 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		_initProfile.lgc }
+	{rsrcType=		file }
+	{rsrcName=		_initProfile }
+	{rsrcHTTP=		www.pageblocks.org/refc/_initProfile }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Looks up profile-specific config values from db
+					such as per subdomain, or per user }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+
+
+//============================================================================
+//
+//	(O)..... acquire site or user profile information .....
+//
+//	in order to enable this file be sure fw_gUseInitProfiles is true
+//
+//............................................................................
+
+	var:'fw_pageInitSection'	= 'O';
+
+//	use this block to manually assign one-to-one vars for non db-driven special cases
+
+	if: ($fw_requestPage->'subhost') == 'www' || ($fw_requestPage->'subhost') == 'signup';
+
+		//	$fw_myStyle		='';
+		//	$fw_mySubHostID	= $fw_requestPage->'subhost';
+
+	else;
+
+//	use this block to search a database based on a user`s profile 
+//	based on a cookie, login, folder name, sub-domain, or whatever
+//	and aquire one-to-one profile data
+//	such as default info to display, style preferences, etc.
+
+		inline: -search,
+			-username=$fw_gQueryUser,
+			-password=$fw_gQueryPswd,
+			-database=$fw_cstmrsDB,
+			-sql=
+				'SELECT ---enter_your_field_list_here--- ' + 
+				' FROM ' + $fw_cstmrsDB + '.' + $fw_cstmrsTBL + 
+				' WHERE ---your_key_field---="' + (var:'---your_key_value---') + '"';
+
+			if: (found_count) == 0;
+				var:'fw_myStyle' = '_genl';
+				$fw_error->(insert:'5201' = ($fw_requestPage->'subhost'));
+			else;
+
+//	set the vars from the one-to-one user profile
+
+				$fw_myStyle 	= '_' + (field:'cstmrSiteStyle');
+				$fw_mySubHostID	= (field:'rcrdNo');
+			/if;
+		/inline;
+	/if;
+
+?>

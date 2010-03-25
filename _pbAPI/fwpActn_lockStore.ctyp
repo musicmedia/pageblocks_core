@@ -1,0 +1,317 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_lockStore.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_lockStore }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_lockStore }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			manages storage of lock data in a cookie }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated unlockAll to convert iterate to reverse loop
+	 				to fix a bug }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.7 }
+	{maintdate=		2007-05-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_type:'fwp_recordLockStore', -prototype;
+
+	local:
+		'lockStore' 	= array,
+		'cookieName' 	= string;
+
+		
+//==============================================================================
+//	->onCreate
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'onCreate';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordLockStore');
+
+	(self->'cookieName') = ($fw_gAppPrefix + '_lockInfo');
+
+/define_tag;
+
+
+//==============================================================================
+//	->init
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'init';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordLockStore->init', -size = (self->'lockStore')->size);
+
+	local:
+		'thisLock'		= pair,
+		'lockDetails'	= map,
+		'lockData' 		= string;
+
+	if: ((self->'lockStore')->size == 0) && (cookie:(self->'cookieName'));
+		#lockData = (cookie:(self->'cookieName'));
+		#lockData = string:(decrypt_blowFish: #lockData, -seed=$fw_gQueryPswd);
+		#lockData = #lockData->(split:'___');
+
+		iterate: #lockData, #thisLock;
+			if: #thisLock >> '::';
+				#lockDetails = #thisLock->split:'::';
+				(self->'lockStore')->(insert: 
+					(#lockDetails->get:1) = (map:
+						'db'	= #lockDetails->get:2,
+						'tbl'	= #lockDetails->get:3,
+						'conn'	= #lockDetails->get:4,
+						'id'	= #lockDetails->get:5));
+			/if;
+		/iterate;
+	/if;
+
+/define_tag;
+
+
+//==============================================================================
+//	->save
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'save';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordLockStore->save');
+
+	local:
+		'thisLock'		= pair,
+		'lockDetails'	= map,
+		'lockData' 		= string;
+
+	iterate: self->'lockStore', #thisLock;
+	
+		#lockDetails = #thisLock->second;
+	
+		#lockData += #thisLock->first;
+		#lockData += '::';
+		#lockData += #lockDetails->find:'db';
+		#lockData += '::';
+		#lockData += #lockDetails->find:'tbl';
+		#lockData += '::';
+		#lockData += #lockDetails->find:'conn';
+		#lockData += '::';
+		#lockData += #lockDetails->find:'id';
+		#lockData += '___';
+
+	/iterate;
+
+	#lockData->(removeTrailing:'___');
+	#lockData = (encrypt_blowfish: #lockData, -seed=$fw_gQueryPswd);
+	cookie_set:(self->'cookieName')=#lockData, -path='/';
+
+/define_tag;
+
+
+//==============================================================================
+//	->insert
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'insert',
+	-required = 'name',
+	-required = 'db',
+	-required = 'tbl',
+	-required = 'conn',
+	-required = 'id';
+	
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordLockStore->insert', -lockName = #name);
+
+	(self->'lockStore')->(insert:
+		#name = (map:
+			'db'  	= #db,
+			'tbl' 	= #tbl,
+			'conn'	= #conn,
+			'id'  	= #id));
+
+	self->save;
+
+/define_tag;
+
+
+//==============================================================================
+//	->get
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'get',
+	-required = 'name';
+
+	return: (self->'lockStore')->find:#name;
+
+/define_tag;
+
+
+//==============================================================================
+//	->unlock
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'unlock',
+	-required = 'lockName';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordLockStore->unlock', -lockName = #lockName);
+
+	local:
+		'sqlActn'		= string,
+		'lockDetails'	= (((self->'lockStore')->(find:#lockName))->last)->second;
+
+	local:
+		'lockDb'	= #lockDetails->find:'db',
+		'lockTbl'	= #lockDetails->find:'tbl',
+		'lockConn'	= #lockDetails->find:'conn',
+		'lockID'	= #lockDetails->find:'id';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpActn_unlock', 
+		-lockDb = #lockDb,
+		-lockTbl = #lockTbl,
+		-lockConn = #lockConn,
+		-lockID = #lockID);
+
+	if: #lockConn == 'fmp';
+
+		inline: 
+			-update,
+			-username		= $fw_gQueryUser,
+			-password		= $fw_gQueryPswd,
+			-database		= #lockDb,
+			-layout			= 'fwproRcrdFields',
+			-keyvalue		= #lockID,
+			'rcrdLock'		= '',
+			'rcrdLockTime'	= '',
+			'rcrdLockOwnr'	= '',
+			'rcrdLockID'	= '';
+
+			((error_code != 0) && $fw_debug) ? $fw_tagTracer->(add:'fwpActn_lockStore', -ERROR = error_currentError);
+			((error_code != 0) && $fw_criticalLog) ? log_critical:('pbError : fwpActn_lockStore ' + error_currentError);
+		/inline;
+
+	else;
+	
+		#sqlActn = 'UPDATE ';
+		#sqlActn += #lockDb;
+		#sqlActn += '.';
+		#sqlActn += #lockTbl;
+		#sqlActn += ' SET ';
+		#sqlActn += 'rcrdLockTime=\'\', ';
+		#sqlActn += 'rcrdLockOwnr=\'\', ';
+		#sqlActn += 'rcrdLockID=\'\' ';
+		#sqlActn += 'WHERE rcrdLockID=\'';
+		#sqlActn += #lockID;
+		#sqlActn += '\'';
+
+		inline:
+			-username	= $fw_gQueryUser,
+			-password	= $fw_gQueryPswd,
+			-database	= #lockDb,
+			-table		= #lockTbl,
+			-sql		= #sqlActn;
+			
+			((error_code != 0) && $fw_debug) ? $fw_tagTracer->(add:'fwpActn_lockStore', -ERROR = error_currentError);
+			((error_code != 0) && $fw_criticalLog) ? log_critical:('pbError : fwpActn_lockStore ' + error_currentError);
+		/inline;
+
+	/if;
+
+	self->(delete:#lockName);
+
+/define_tag;
+
+
+//==============================================================================
+//	->unlockAll
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'unlockAll';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordLockStore->unlockAll');
+
+	local:'thisLock' = pair;
+
+	loop: -from=(self->'lockStore')->size, -to=1, -by=(-1);
+		#thisLock = (self->'lockStore')->get:loop_count;
+		self->(unlock:(#thisLock->first));
+	/loop;
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordLockStore->unlockAllExit');
+
+/define_tag;
+
+
+//==============================================================================
+//	->delete
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'delete',
+	-required = 'lockName';
+	
+	$fw_debug ? $fw_tagTracer->(add:'fwp_recordLockStore->delete', -lockName = #lockName);
+
+	local:'indx' = ((self->'lockStore')->(findPosition:#lockName))->last;
+	
+	#indx
+		? (self->'lockStore')->remove:#indx;
+		
+	self->save;
+
+/define_tag;
+
+
+//==============================================================================
+//	->size
+//
+//
+//------------------------------------------------------------------------------
+
+define_tag:'size';
+	return: (self->'lockStore')->size;
+/define_tag;
+
+
+
+/define_type;
+
+?>

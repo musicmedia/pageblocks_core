@@ -1,0 +1,138 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_client.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_client }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_client }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			provides client date & numerics formatting preferencse
+	 				and a gateway to Lasso client tag values }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-15 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added intercept for client_ip to return 
+					forwarded-for if available }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-01 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_type:'fwp_client';
+
+	local:
+		'decimalChar'	= string,
+		'thousandsChar'	= string,
+		'language'		= string,
+		'media'			= string,
+		'variant'		= string,
+		'forwardedFor'	= string,
+		'forwardedHost'	= string,
+		'ip'			= string;
+
+
+//============================================================================
+//
+//	->onCreate
+//
+//............................................................................
+
+define_tag:'onCreate';
+
+	(self->'forwardedFor') 	= (string_findRegExp: client_headers, -find='X-Forwarded-For:\\s?(.*)', -ignorecase)->last;
+	(self->'forwardedFor')
+		? (self->'forwardedFor')->trim;
+
+	(self->'forwardedHost') = (string_findRegExp: client_headers, -find='X-Forwarded-For:\\s?(.*)', -ignorecase)->last;
+	(self->'forwardedHost')
+		? (self->'forwardedHost')->trim;
+
+	(self->'forwardedFor')
+		? (self->'ip') = (self->'forwardedFor')
+		| (self->'ip') = client_ip;
+
+/define_tag;
+
+
+//============================================================================
+//	->unknownTag
+//
+//	provides an interface to all the Lasso built-in client_ tags
+//	just to unify the API into the client if preferred
+//
+//............................................................................
+
+define_tag:'_unknowntag';
+//	::HACK::
+//	this is a bandaid to correct the behavior of Lasso
+//	calling _unknownTag before checking for an instance var 
+//	when the ivar is called unquoted
+	if: self->properties->first->contains:tag_name;
+		return: self->properties->first->find:tag_name;
+	/if;
+
+	if: tag_name == 'IP';
+		(self->'forwardedFor')
+			? return: (self->'forwardedFor')
+			| return: client_ip;
+	/if;
+
+//	enables this ctype to act as an interface to built-in client_ tags
+	if: lasso_tagExists:('client_' + tag_name);
+		return: (\('client_' + tag_name))->run;
+	/if;
+/define_tag;
+
+//============================================================================
+define_tag:'setDecimalChar',
+	-required = 'newValue', -type = string;
+	(self->'decimalChar') = #newValue;
+/define_tag;
+
+//============================================================================
+define_tag:'setThousandsChar',
+	-required = 'newValue', -type = string;
+	(self->'thousandsChar') = #newValue;
+/define_tag;
+
+//============================================================================
+define_tag:'setLanguage',
+	-required = 'newValue', -type = string;
+	(self->'language') = #newValue;
+/define_tag;
+
+//============================================================================
+define_tag:'setMedia',
+	-required = 'newValue', -type = string;
+	(self->'media') = #newValue;
+/define_tag;
+
+//============================================================================
+define_tag:'setVariant',
+	-required = 'newValue', -type = string;
+	(self->'variant') = #newValue;
+/define_tag;
+
+
+/define_type;
+?>
+

@@ -1,0 +1,56 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpAuth_init.ctag }
+	{rsrcType=		ctag }
+	{rsrcName=		fwpAuth_init }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpAuth_init }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes	the page level vars and resources
+					of the fwpAuth framework. }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-07-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_logoutPagePath }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+//
+//	fw_userVarName			(fw_user) the default name of the authenticated user object
+//	fw_loginPagePath		(/siteMngr/) sets the default user login page location in case of errors or session expiration
+//	fw_sessionTimeout		(30) max duration of a login session before it expires
+//	fw_getPswdSubject		(empty) email subject when emailing user password hint
+//
+//............................................................................
+
+define_tag:'fwpAuth_init';
+
+	var:
+		'fw_userVarName'		= 'fw_user',
+		'fw_loginPagePath'		= '/siteMngr/',
+		'fw_logoutPagePath'		= '/',
+		'fw_sessionTimeout'		= 30,
+		'fw_getPswdSubject'		= string;
+
+/define_tag;
+
+?>

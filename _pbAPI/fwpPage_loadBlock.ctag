@@ -1,0 +1,225 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_loadBlock.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpPage_loadBlock }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_loadBlock }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Loads logic and content blocks for the specified block 
+					name. This tag is used within templates. }
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-10}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added useMultiLanguageBlocks, changed the repeatBlocks
+					vars to use fw_pageModes }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace
+					added new errorController
+					removed fw_debugStackPageBlocks }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.2 }
+	{maintdate=		2006-04-11 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_debugStackPageBlocks }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpPage_loadBlock', -priority='replace',
+	-required='blockName';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -blockName = #blockName);
+
+	var:'fw_blockName'	= @local:'blockName';
+	local:
+		'fw_blockName'		= @local:'blockName',
+		'fw_blockLanguage'	= string,
+		'fw_blockCode'		= string,
+		'fw_logicWasLoaded'	= false;
+
+	$fw_pageModes->'useMultiLanguageBlocks' 
+		? #fw_blockLanguage	= ('_' + @($fw_client->'language'));
+
+//	first let`s calculate the names of the blocks we`re looking for
+
+//	these are the main conventional logic/content include files
+//	block level logic code can be loaded from pagename_{block}.lgc
+//	block level display code can be loaded from pagename_{block}.dsp
+
+	local:
+		'fw_logicBlock'		= $fw_requestPage->'path' + ($fw_requestPage->'name' + '_' + #fw_blockName + fw_kLogicExt),
+		'fw_displayBlock'	= $fw_requestPage->'path' + ($fw_requestPage->'name' + '_' + #fw_blockName + #fw_blockLanguage + fw_kDisplayExt);
+
+//	these are optional `repeat` block files that would be loaded on every page in the folder
+//	there`s two standard display files which could be loaded above & below the basic content
+//	the repeat logic would be a logic file loaded for every page in the folder
+
+	if: ($fw_pageModes->'useRepeatBlocks');
+		local:
+			'fw_repeatLogic' = ($fw_requestPage->'path') + 'repeatLogic_' + #fw_blockName + fw_kLogicExt,
+			'fw_repeatAbove' = ($fw_requestPage->'path') + 'repeatAbove_' + #fw_blockName + #fw_blockLanguage + fw_kDisplayExt,
+			'fw_repeatBelow' = ($fw_requestPage->'path') + 'repeatBelow_' + #fw_blockName + #fw_blockLanguage + fw_kDisplayExt;
+	/if;
+
+//	these are the `template` logic/content files which would be the 
+//	template for every page and typically populated by pageStrings
+
+ 	if: ($fw_pageModes->'useBlockTemplates');
+		local:
+			'fw_logicTmplt'		= ($fw_requestPage->'path') + 'blockTemplate_' + #fw_blockName + fw_kLogicExt,
+			'fw_displayTmplt'	= ($fw_requestPage->'path') + 'blockTemplate_' + #fw_blockName + #fw_blockLanguage + fw_kDisplayExt;
+	/if;
+
+//............................................................................
+//
+//	include whatever logic/content files we find
+//	wrap it in an inline so we can access text files
+//	for configs and valueLists
+//	note: update those to use include/include_raw
+
+	inline:
+		-username=$fw_gFilesUser,
+		-password=$fw_gFilesPswd;
+
+//	first look for any of the variety of logic segements
+//	if based structure allows multiple sources for flexibility
+
+		$fw_debugTimers ? $fw_timer->(start:'pageTagBlockLgc');
+
+		if: ($fw_pageModes->'useRepeatBlocks') && (($fw_pageModes->'repeatLogicBlocks') >> #fw_blockName) && (file_exists: #fw_repeatLogic);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_repeatLogic = #fw_repeatLogic);
+			#fw_logicWasLoaded = true;
+			library: #fw_repeatLogic;
+		/if;
+		if: (file_exists: #fw_logicBlock);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_logicBlock = #fw_logicBlock);
+			#fw_logicWasLoaded = true;
+			library: #fw_logicBlock;
+		/if;
+		if: ($fw_pageModes->'useBlockTemplates') && (file_exists: #fw_logicTmplt);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_logicTmplt = #fw_logicTmplt);
+			#fw_logicWasLoaded = true;
+			library: #fw_logicTmplt;
+		/if;
+		if: (var_defined:'fw_logicCustom') && (file_exists: $fw_logicCustom);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_logicCustom = #fw_logicCustom);
+			#fw_logicWasLoaded = true;
+			library: $fw_logicCustom;
+			$fw_logicCustom=(string);
+		/if;
+
+		$fw_debugTimers ? $fw_timer->(stop:'pageTagBlockLgc');
+
+//	test for errors from the logic code, and fire up the errorManager if needed 
+//	this will report errors within each block independently
+//	errors are reset after each block by the errorManager to avoid compounding the error array
+//	if there are errors, then call errMngr now so that error messages are
+//	displayed above the regular content
+
+		if: #fw_logicWasLoaded && ($fw_error->size > 0);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock : logic Error');
+			$fw_error->(handleAllErrors: 
+				-pgBlock= #fw_blockName,
+				-code	= var:'fw_errCode', 
+				-data	= var:'fw_errMsg',
+				-language = ($fw_client->'language'));
+
+			if: $fw_pageModes->'useAutoErrorDisplay';
+				#fw_blockCode += $fw_error->'errorMsg';
+			/if;
+
+			// backwards compatibility
+			var:'fw_blockLogicError' = ($fw_error->'blockErrorCodes')->find:#fw_blockName;
+		else;
+			// backwards compatibility
+			var:'fw_blockLogicError' = false;
+		/if;
+
+//	now look for content blocks
+//	if based structure allows multiple sources for flexibility
+
+		$fw_debugTimers ? $fw_timer->(start:'pageTagBlockDsp');
+
+		if: ($fw_pageModes->'useRepeatBlocks') && (($fw_pageModes->'repeatAboveBlocks') >> #fw_blockName) && (file_exists: #fw_repeatAbove);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_repeatAbove = #fw_repeatAbove);
+			#fw_blockCode += include: #fw_repeatAbove;
+		/if;
+		if: (file_exists: #fw_displayBlock);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_displayBlock = #fw_displayBlock);
+			#fw_blockCode += include: #fw_displayBlock;
+		/if;
+		if: ($fw_pageModes->'useBlockTemplates') && (file_exists: #fw_displayTmplt);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_displayTmplt = #fw_displayTmplt);
+			#fw_blockCode += include: #fw_displayTmplt;
+		/if;
+		if: (var_defined:'fw_displayCustom') && (file_exists: $fw_displayCustom);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_displayCustom = #fw_displayCustom);
+			#fw_blockCode += include: $fw_displayCustom;
+			$fw_displayCustom=(string);
+		/if;
+		if: ($fw_pageModes->'useRepeatBlocks') && (($fw_pageModes->'repeatBelowBlocks') >> #fw_blockName) && (file_exists: #fw_repeatBelow);
+			$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock', -fw_repeatBelow = #fw_repeatBelow);
+			#fw_blockCode += include: #fw_repeatBelow;
+		/if;
+
+		$fw_debugTimers ? $fw_timer->(stop:'pageTagBlockDsp');
+
+	/inline;
+
+//	was there a problem created by the display content?
+//	the error will not display in the page block so the 
+//	error messages have to be shown at the end of the 
+//	template. Also, having this here will trigger the
+//	email alert system if applicable, and log the error
+
+	if: $fw_error->size > 0;
+		$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadBlock : display Error');
+		$fw_error->(handleAllErrors: 
+			-pgBlock= #fw_blockName,
+			-code	= var:'fw_errCode', 
+			-data	= var:'fw_errMsg',
+			-language = ($fw_client->'language'));
+
+		if: $fw_pageModes->'useAutoErrorDisplay';
+			#fw_blockCode += ($fw_error->'messages');
+		/if;
+	/if;
+
+//	spit it out
+	
+	return: @#fw_blockCode;
+	
+/define_tag;
+?>

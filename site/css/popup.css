@@ -1,0 +1,124 @@
+/*
+//	#################################################
+//	#												#
+//	#	** popup page and design element rules **	#
+//	#	www.coco.dk									#
+//	#	thanks to sitepoint &all :)					#
+//	#	this code is intellectual proporty of		#
+//	#	musicmedia.dk, please proceed with caution!	#
+//	#												#
+//	#################################################
+*/
+
+/*	--------------------------------------------- */
+
+/* @group major html elements */
+
+html, body, div, form, label, select, input, h1, h2, h3, h4, h5, h6, ul, p {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	margin: 26px 20px 30px 50px;
+	background: #ffffff;
+	font: 11px/1.3em verdana, "Trebuchet MS";
+	color: #000000;
+}
+
+
+/* @end */
+
+/* @group design and typography */
+
+div.headerleft {
+	float: left;
+}
+
+div.headerright {
+	float: right;
+	margin-bottom: 14px;
+}
+
+div.headerright span.close {
+	display: block;
+	width: 30px;
+	height: 12px;
+	background: url(/site/controls/closewin-over.gif) no-repeat right top; 
+
+}
+
+div.headerright a {
+	display: block;
+	width: 30px;
+	height: 12px;
+	background: url(/site/controls/closewin.gif) no-repeat right top;
+}
+
+div.headerright a:hover {
+	background: transparent;
+}
+
+h2 {
+	margin-top: 1px;
+	margin-left: 3px;
+	font: bold 12px arial, verdana;
+	color: #444;
+	letter-spacing: 0.1em;
+}
+
+h3 {
+	clear: right;
+	margin-top: 1px;
+	font: bold 11px arial, verdana;
+}
+
+p {
+	clear: right;
+	margin-left: 90px;
+	margin-bottom: 0.3em;
+}
+
+a {
+	font: 11px/1.3em verdana, "Trebuchet MS";
+	color: #000000;
+}
+
+a.external {
+	padding-right: 12px;
+	background: transparent url(/site/media/images/ext.gif) no-repeat right center;
+}
+
+.inputerrfldnm {
+	color: #993300;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+table {
+	clear: right;
+	width: 100%;
+}
+
+th.col1, td.col1 {
+	font: 11px verdana, arial;
+	width: 80px;
+	vertical-align: top;
+}
+
+th {
+	text-align: left;
+	font-weight: normal;
+}
+
+
+th.col2, td.col2 {
+	font-weight: normal;
+	text-align: left;
+	vertical-align: top;
+}
+
+
+/* @end */

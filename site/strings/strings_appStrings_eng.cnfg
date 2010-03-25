@@ -1,0 +1,101 @@
+﻿[output_none]
+
+
+//	------------------------------
+//:	general admin strings
+
+{{loginQuest:
+msg___	Please enter your email address and password
+}}
+
+{{loginProblem:
+msg___	A problem occurred while trying to login to the Admin System, please see below!
+}}
+
+{{logoutConfirm:
+msg___	You are now logged out from the Admin System
+}}
+
+{{systTle:
+msg___	Concerto Copenhagen
+}}
+
+{{systNomination:
+msg___	Administration System
+}}
+
+{{pubStartPg:
+msg___	Public Start Page
+}}
+
+{{useMenuAbove:
+msg___	(Use Menu Above)
+}}
+
+{{yes:
+msg___	Yes
+}}
+
+{{no:
+msg___	No
+}}
+
+{{none:
+msg___	None
+}}
+
+{{english:
+msg___	English
+}}
+
+{{german:
+msg___	German
+}}
+
+{{danish:
+msg___	Danish
+}}
+
+
+
+//	------------------------------
+//:	general admin quests
+
+{{questSave:
+msg___	Please make your changes and click 'Save'
+}}
+
+
+
+//	------------------------------
+//:	admin main menu
+
+{{pg00:
+msg___	Admin Start Page
+}}
+
+{{pg01:
+msg___	Project &nbsp;Administration
+}}
+
+{{pg02:
+msg___	
+}}
+
+{{pg03:
+msg___	Contacts and Musicians
+}}
+
+{{pg04:
+msg___	Newsmail
+}}
+
+{{pg05:
+msg___	Repertoire and programmes
+}}
+
+{{pg06:
+msg___	CMS
+}}
+
+[/output_none]

@@ -1,0 +1,175 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//.............................................................................
+
+//
+//	edpConfig
+//
+
+$fw_edpForceClassLoad = true;	// set to false after development is done
+
+include: ($fw_mPath->'edp_classes') + 'edpc_usrsMain.ctyp';
+
+
+//	---------------------------------------------------------------------------
+//	modConfig
+//
+
+var:
+	'fw_pgHeader'		= 'hdr_sitemngr.dsp',
+	'fw_pgFooter'		= 'ftr_sitemngr.dsp',
+	'adminPageTitle'	= 'Administrators';
+
+if: ($fw_requestPage->'path') >> '_admin';
+	$fw_headContent->(addCssFile($fw_sPath->'css' + 'pb_apiStyles.css')); 
+	$fw_headContent->(addCssFile($fw_sPath->'css' + 'styles_main.css')); 
+	$fw_headContent->(addCssFile($fw_sPath->'css' + 'styles_admin.css')); 
+	$fw_pgAuthRequired = true;
+else: 
+	$fw_pgAuthRequired = false;
+/if;
+
+$fw_pageModes->disableAutoErrorDisplay;
+
+	// initialise valuelists
+	var('rcrdStatus'	= fwp_valueList(
+		-file		= 'genl',
+		-list		= 'yesno',
+		-attributes	= map(
+			'name'		= 'm_rStat',
+			'id'		= 'rStat'
+			)
+		)
+	);
+
+	var('srchOpShortF'	= fwp_valueList(
+		-file		= 'genl',
+		-list		= 'srchOpShort',
+		-attributes	= map(
+			'name'		= 'm_uNameFOp',
+			'id'		= 'uNameFOp'
+			)
+		)
+	);
+
+	var('srchOpShortL'	= fwp_valueList(
+		-file		= 'genl',
+		-list		= 'srchOpShort',
+		-attributes	= map(
+			'name'		= 'm_uNameLOp',
+			'id'		= 'uNameLOp'
+			)
+		)
+	);
+
+	var('srchOpLong'	= fwp_valueList(
+		-file		= 'genl',
+		-list		= 'srchOpLong',
+		-attributes	= map(
+			'name'		= 'm_ufOp',
+			'id'		= 'ufOp'
+			)
+		)
+	);
+
+	var('rSessTimeOp'	= fwp_valueList(
+		-file		= 'genl',
+		-list		= 'srchOpLG',
+		-attributes	= map(
+			'name'		= 'm_rSessTimeOp',
+			'id'		= 'rSessTimeOp'
+			)
+		)
+	);
+
+	var('uInsOp'	= fwp_valueList(
+		-file		= 'genl',
+		-list		= 'srchOpLG',
+		-attributes	= map(
+			'name'		= 'm_uInsOp',
+			'id'		= 'uInsOp'
+			)
+		)
+	);
+
+	var('uOrgOp'	= fwp_valueList(
+		-file		= 'genl',
+		-list		= 'srchOpShort',
+		-attributes	= map(
+			'name'		= 'm_uOrgOp',
+			'id'		= 'uOrgOp'
+			)
+		)
+	);
+
+
+//	---------------------------------------------------------------------------
+//	pageConfig
+//
+
+if: $fw_requestPage->'path' >> '_admin';
+
+	if: (var_defined:'fw_s');
+
+		select: $fw_requestPage->'name';
+
+			case:'usrsAdmin';
+				$fw_pgTitle			= 'pageblocks SiteManager : Users';
+				$fw_pgTemplate		= '1col';
+				$fw_pgPrivilege		= 'fw_user->prvlg.usrs_view';
+
+			case;
+				fwpPage_pageNotFound;
+
+		/select;
+
+	else;
+
+		$fw_pgTitle		= 'pageblocks SiteManager';
+		$fw_pgTemplate	= '2colwn';
+		$fw_error->(insert:'5011'='not logged in');
+
+	/if;
+
+else;
+
+	select: $fw_requestPage->'name';
+
+		case:'mngr_login';
+			$fw_pgTitle		= 'SiteManager : Login';
+			$fw_pgTemplate	= '3col';
+
+		//	can`t use case for login2
+		//	for some reason it only works if there is a real page stub
+		//	I need to investigate this
+
+		case:'mngr_pswdCnfrm';
+			$fw_pgTitle		= 'SiteManager : Send Password';
+			$fw_pgTemplate	= '3col';
+
+		case:'newPswd';
+			$fw_pgAuthRequired 	= true;
+			$fw_pgTitle			= 'pageblocks Update Password';
+			$fw_pgTemplate		= '1col';
+			$fw_pgPrivilege		= 'fw_user->prof.loginValid';
+
+		case:'newPswdResult';
+			$fw_pgAuthRequired	= true;
+			$fw_pgTitle			= 'pageblocks Update Password';
+			$fw_pgTemplate		= '3col';
+			$fw_pgPrivilege		= 'fw_user->prof.loginValid';
+
+		case;
+			fwpPage_pageNotFound;
+
+	/select;
+
+/if;
+?>

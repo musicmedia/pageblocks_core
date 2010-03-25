@@ -1,0 +1,209 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpUtil_timer.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_timer }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_timer }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+	
+	{desc=			Stores start and stop times of named points in
+					code. Aggregates times of like-named events. }
+	
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.3 }
+	{maintdate=		2006-05-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_timer', -prototype;
+
+	local:'timeData' = map;
+
+
+//-----------------------------------------------------------------------------
+//	->start
+//
+//	inserts a start time
+//
+
+define_tag:'start',
+	-required='fw_name',
+	-criteria=(#fw_name->type == 'string');
+
+	!((self->'timeData')->find:#fw_name)
+		? (self->'timeData')->(insert: #fw_name = (array: _date_msec = 0))
+		| ((self->'timeData')->find:#fw_name)->(insert: _date_msec = 0);
+
+/define_tag;
+
+
+//-----------------------------------------------------------------------------
+//	->stop
+//
+//	inserts a stop time
+//
+
+define_tag:'stop',
+	-required='fw_name',
+	-criteria=(#fw_name->type == 'string');
+
+	((self->'timeData')->find:#fw_name)
+		? (((self->'timeData')->find:#fw_name)->last)->second = _date_msec;
+
+/define_tag;
+
+
+//-----------------------------------------------------------------------------
+//	->eventTimes
+//
+//	extracts a raw array of times
+//	returns an array of pairs (of integers)
+//
+
+define_tag:'eventTimes',
+	-required='fw_name',
+	-criteria=(#fw_name->type == 'string');
+
+	return:((self->'timeData')->find:#fw_name);
+
+/define_tag;
+
+
+//-----------------------------------------------------------------------------
+//	->durations
+//
+//	extracts individually calculated durations
+//	returns an array of integers
+//
+
+define_tag:'durations',
+	-optional='fw_name';
+
+	local:
+		'fw_data'		= null,
+		'fw_thisTime'	= integer,
+		'fw_times'		= array;
+
+	(local_defined:'fw_name')
+		? local:'fw_data' = (self->eventTimes:#fw_name)
+		| local:'fw_name' = string;
+
+	if: !#fw_name;
+		iterate: (self->'timeData'), #fw_data;
+			#fw_name = #fw_data->first;
+			#fw_data = #fw_data->second;
+			iterate: #fw_data, #fw_thisTime;
+				#fw_thisTime->second > 0
+					? #fw_times->(insert: #fw_name = (#fw_thisTime->second - #fw_thisTime->first))
+					| #fw_times->(insert: #fw_name = 0);
+			/iterate;
+		/iterate;
+	else: #fw_data;
+		iterate: #fw_data, #fw_thisTime;
+			#fw_thisTime->second > 0
+				? #fw_times->(insert: #fw_name = (#fw_thisTime->second - #fw_thisTime->first))
+				| #fw_times->(insert: #fw_name = 0);
+		/iterate;
+	/if;
+
+	return: #fw_times;
+
+/define_tag;
+
+
+//-----------------------------------------------------------------------------
+//	->calcPairs
+//
+//	calculates a total time slice for a given set of pairs
+//	returns an array of integers
+//	called internally only
+//
+
+define_tag:'calcPairs',
+	-required = 'fw_data',
+	-criteria=(#fw_data->type == 'array');
+
+	local:
+		'fw_thisTime'	= integer,
+		'fw_times'		= array;
+
+	iterate: #fw_data, #fw_thisTime;
+		#fw_thisTime->second > 0
+			? #fw_times->(insert:(#fw_thisTime->second - #fw_thisTime->first));
+	/iterate;
+
+	return: #fw_times;
+
+/define_tag;
+
+
+//-----------------------------------------------------------------------------
+//	->eventTotal
+//
+//	calculates a total time slice for a given name
+//	returns an integer
+//
+
+define_tag:'eventTotal',
+	-required='fw_name',
+	-criteria=(#fw_name->type == 'string');
+
+	local:
+		'fw_data' 		= (self->durations:#fw_name),
+		'fw_thisTime'	= integer,
+		'fw_totalTime' 	= integer;
+	
+	iterate: #fw_data, #fw_thisTime;
+		#fw_totalTime += (#fw_thisTime->second);
+	/iterate;
+
+	return: #fw_totalTime;
+
+/define_tag;
+
+//-----------------------------------------------------------------------------
+//	->groupTotal
+//
+//	calculates a total time slice for a given group
+//	a group is any string which can be used in a BeginsWith comparison
+//	returns an integer
+//
+
+define_tag:'groupTotal',
+	-required='fw_name',
+	-criteria=(#fw_name->type == 'string');
+
+	local:
+		'fw_data' 		= map,
+		'fw_thisGroup'	= map,
+		'fw_thisData'	= map,
+		'fw_thisTime'	= integer,
+		'fw_totalTime' 	= integer;
+	
+	iterate: (self->'timeData'), #fw_thisGroup;
+		if: (#fw_thisGroup->first)->beginswith:#fw_name;
+			#fw_totalTime += self->eventTotal:(#fw_thisGroup->first);
+		/if;
+	/iterate;
+
+	return: #fw_totalTime;
+
+/define_tag;
+
+/define_type;
+?>

@@ -1,0 +1,32 @@
+[output_none]
+#! dbTbl5
+
+# version:  2006-08-01
+
+{{serverType___		[$fw_gDbServerTypes->find:'site'] }}
+{{databaseName___	[$fw_gDatabases->find:'site'] }}
+{{tableName___		[$fw_gTables->find:'appstrings'] }}
+{{keyfield___		rcrdNo }}
+{{lockField___		rcrdLockID }}
+{{tableModel___
+
+#inputName		fieldName			dataType	validation codes
+#------------	-----------------	---------	-------------------------------------------
+m_rNo			rcrdNo				string
+m_rNewDate		rcrdCreated			string
+m_rNewBy		rcrdCreatedBy		string
+m_rModDate		rcrdModified		string
+m_rModBy		rcrdModifiedBy		string
+m_rStat			rcrdStatus			string
+m_rLokid		rcrdLockID			string
+m_rLoktm		rcrdLockTime		string
+m_rLokown		rcrdLockOwnr		string
+
+m_strName		stringName				string		req
+m_strLang		stringLanguage			string		req
+m_strPath		stringPagePath			string		req
+m_strMedia		stringClientMedia		string		req
+m_strVariant	stringClientVariant		string		req
+m_strValue		stringValue				string		req
+}}
+[/output_none]

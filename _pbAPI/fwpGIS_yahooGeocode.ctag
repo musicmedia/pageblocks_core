@@ -1,0 +1,107 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGIS_yahooGeocode.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpGIS_yahooGeocode }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpGIS_yahooGeocode }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Returns the lat/long coordinates of a USA address.
+	 				Refer to the yahoo geocode API at
+	 				http://developer.yahoo.com/maps/rest/V1/geocode.html }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-07-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:	'fwpGIS_yahooGeocode',
+	-required = 'appid',
+	-optional = 'location',
+	-optional = 'street',
+	-optional = 'city',
+	-optional = 'state',
+	-optional = 'zip',
+	-optional = 'minPrecision';
+	
+
+	local:
+		'serviceURL'	= 'http://local.yahooapis.com/MapsService/V1/geocode',
+		'GETParams' 	= (array: 'appid' = #appid),
+		'GISResults'	= string,
+		'GISCoords'		= (map: 'latitude' = 0, 'longitude' = 0, 'precision' = 0),
+		'GISInvalid'	= (map: 'latitude' = 0, 'longitude' = 0, 'precision' = 0),
+		'GISPrecision'	= (array: 'country','state','city','zip','zip+2','zip+4','street','address'),
+		'reqPrecision'	= local:'minPrecision';
+
+//	convert user's text into an integer to compare to google API integer
+
+	#reqPrecision	= #GISPrecision->(findIndex:#reqPrecision);
+
+	if: params >> '-location';
+		#GETParams->(insert:'location' = #location);
+	else;
+		if: params >> '-street';
+			#street->(replace:' ','+');
+			#GETParams->(insert:'street' = #street);
+		/if;
+		if: params >> '-city';
+			#street->(replace:' ','+');
+			#GETParams->(insert:'city' = #city);
+		/if;
+		if: params >> '-state';
+			#street->(replace:' ','+');
+			#GETParams->(insert:'state' = #state);
+		/if;
+		if: params >> '-zip';
+			#street->(replace:' ','+');
+			#GETParams->(insert:'zip' = #zip);
+		/if;
+	/if;
+	
+	#GISResults = (include_url: #serviceURL, -getParams = #GETParams);
+	
+	if: #GISResults !>> 'unable to parse location';
+
+		#GISCoords->(find:'latitude') = (string_findRegExp: 
+											#GISResults,
+											-find='<Latitude>([\\d\\.\\-]*?)</Latitude>',
+											-ignoreCase)->last;
+
+		#GISCoords->(find:'longitude') = (string_findRegExp: 
+											#GISResults,
+											-find='<Longitude>([\\d\\.\\-]*?)</Longitude>',
+											-ignoreCase)->last;
+
+		#GISCoords->(find:'precision') = (string_findRegExp: 
+											#GISResults,
+											-find='precision="(\\w*?)"',
+											-ignoreCase)->last;
+
+	/if;
+
+	if: #GISPrecision->(findIndex:(#GISCoords->(find:'precision'))) >= #reqPrecision;
+		return: #GISCoords;
+	else;
+		return: #GISInvalid;
+	/if;
+
+/define_tag;
+
+?>

@@ -1,0 +1,140 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpDate_isValid.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpDate_isValid }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpDate_isValid }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Wilits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			validates that a string is a valid date }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.7 }
+	{maintdate=		2007-05-30 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpDate_isValid',
+	-required = 'inputDate', -copy;
+
+	local:
+		'usaDate' 		= false,
+		'euroDate' 		= false,
+		'lassoDate' 	= string,
+		'returnAsQ' 	= false,
+		'dateParts'		= array,
+		'result'		= true,
+		'Qformatted'	= string,
+		'thisMonth'		= pair,
+		'monthNames' 	= (map:
+    						'01' = ('jan, january'),
+    						'02' = ('feb, february'),
+    						'03' = ('mar, march'),
+    						'04' = ('apr, april'),
+    						'05' = ('may'),
+    						'06' = ('jun, june'),
+    						'07' = ('jul, july'),
+    						'08' = ('aug, august'),
+    						'09' = ('sep, september'),
+    						'10' = ('oct, october'),
+    						'11' = ('nov, november'),
+    						'12' = ('dec, december'));
+		
+	(params >> '-returnAsQ')
+		? #returnAsQ = true;
+		
+	(params >> '-euroDate')
+		? #euroDate = true;
+		
+	(params >> '-usaDate')
+		? #usaDate = true;
+		
+	(#inputDate == '') || (#inputDate >> '0000')
+		? return: false;
+
+//	normalize date input format for internal use
+
+	#inputDate->(replace:'.','/');
+	#inputDate->(replace:'-','/');
+	#inputDate->(replace:'_','/');
+	#inputDate->(replace:' ','/');	
+
+	#dateParts = #inputDate->split:'/';
+
+	if: #dateParts->size == 3;
+		local:
+			'datePartA' = #dateParts->get:1,
+			'datePartB' = #dateParts->get:2,
+			'datePartC' = #dateParts->get:3;
+
+		if: #datePartA != string:(integer:#datePartA);
+			iterate: #monthNames, #thisMonth;
+				if: (#thisMonth->second) >> #datePartA; 
+					#datePartA = (#thisMonth->first);
+					#inputDate = #datePartA + '/' + #datePartB + '/' + #datePartC;
+					#usaDate = true;
+					#euroDate = false;
+					loop_abort;
+				/if;
+			/iterate;
+		/if;
+	
+		if: #datePartB != string:(integer:#datePartB);
+			iterate: #monthNames, #thisMonth;
+				if: (#thisMonth->second) >> #datePartB; 
+					#datePartB = (#thisMonth->first);
+					#inputDate = #datePartA + '/' + #datePartB + '/' + #datePartC;
+					#usaDate = false;
+					#euroDate = true;
+					loop_abort;
+				/if;
+			/iterate;
+		/if;
+
+		if: (#datePartA->size == 4);
+			#inputDate	= #datePartA + '-' + #datePartB + '-' + #datePartC;
+			#lassoDate = #datePartA + '-' + #datePartB + '-' + #datePartC;
+		else;
+			(#datePartA > 12) || #euroDate
+				? #lassoDate = (#datePartB + '/' + #datePartA + '/' + #datePartC)
+				| #lassoDate = (#datePartA + '/' + #datePartB + '/' + #datePartC);
+		/if;
+		
+	/if;
+
+//	validate the date value
+
+	if: #usaDate && !(valid_date:#inputDate, -format='%m/%d/%Y') && !(valid_date:#inputDate);
+		#result = false;
+		#Qformatted = false;
+	else: #euroDate && !(valid_date:#inputDate, -format='%d/%m/%Y') && !(valid_date:#inputDate);
+		#result = false;
+		#Qformatted = false;
+	else: !(valid_date:#inputDate, -format='%m/%d/%Y') && !(valid_date:#inputDate, -format='%d/%m/%Y') && !(valid_date:#inputDate);
+		#result = false;
+		#Qformatted = false;
+	/if;
+
+	#result && ((date:#lassoDate) != null) ? #Qformatted = (date_format: #lassoDate, -format='%Q');
+	
+	#returnAsQ
+		? return: #Qformatted
+		| return: #result;
+
+/define_tag;
+?>

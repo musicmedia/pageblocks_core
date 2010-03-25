@@ -1,0 +1,25 @@
+﻿[output_none]
+// -------------------------------------
+
+//	if you are overriding the message of a Core error code, 
+//	do not change constant___, as Lasso does not allow defining a constant twice
+
+
+{{5129:
+msg___		<h3 class="errorttl">Sletning mislykkedes</h3>
+msg___		<p>Filen blev ikke slettet på grund af en fejl: [#thisErrData]</p>
+insert___	showContactInfo
+insert___	showPrevPageLink
+}}
+
+{{5601:
+msg___		[if: !(var:'fw_errQuiet5601')]
+msg___		<h3 class="errorttl">Upload mislykkedes</h3>
+msg___		<p>Filen blev ikke uploadet på grund af en fejl: [#thisErrData].</p>
+insert___	showContactInfo
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+
+[/output_none]

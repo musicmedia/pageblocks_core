@@ -1,0 +1,299 @@
+﻿[output_none]
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+//
+//	{fileName=		lang_errCoreVal_dan.cnfg }
+//	{rsrcType=		config }
+//	{rsrcName=		lang_errCoreVal }
+//	{rsrcHTTP=		www.pageblocks.org/refc/lang_errCoreVal }
+//	
+//	{lassoVrsnMin=	8.1.0 }
+//	{lassoVrsnMax=	8.5.3 }
+//
+//	{author=		Greg Willits }
+//	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+//	{authorHTTP=	www.pageblocks.org }
+//
+//	{desc=			Language configuration file for core validation codes }
+//
+//
+//	{maintvsrn=		1.4 }
+//	{maintrelease=	5.5.0 }
+//	{maintdate=		2008-08-01 }
+//	{maintauthor=	Nikolaj de Fine Licht }
+//	{maintnotes=	added strings for extd, extds and flnm }
+//
+//	{maintvsrn=		1.2 }
+//	{maintrelease=	5.2.0 }
+//	{maintdate=		2007-06-09 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	added strings for User object pswd validations }
+//
+//	{maintvsrn=		1.1.3 }
+//	{maintrelease=	5.1.7 }
+//	{maintdate=		2007-05-29 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	removed euroDate, changed date string }
+//
+//	{maintvsrn=		1.1.2 }
+//	{maintrelease=	5.1.6 }
+//	{maintdate=		2007-05-15 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	changed thisMsgFirstWord to msgFirstWord to be
+//					consistent with documentation }
+//
+//	{maintvsrn=		1.1 }
+//	{maintrelease=	5.1.5 }
+//	{maintdate=		2007-02-18 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	added anh and anspc }
+//
+//	{maintvsrn=		1.0 }
+//	{maintrelease=	5.1.0 }
+//	{maintdate=		2006-01-06 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	initial release }
+//
+//.............................................................................
+//	Preferred Language Codes which will used as the PageBlocks standard
+//	ISO 639 which can be found here:
+//	http://www.oasis-open.org/cover/iso639a.html
+//
+//	The W3C preference appears to be moving to this list
+//	http://www.iana.org/assignments/language-subtag-registry
+//.............................................................................
+
+//=============================================================================
+//	Error Message Language Configuration
+//	- the file name defines the language
+//	- all reusable messages must be defined before they are mentioned by insert___
+//-----------------------------------------------------------------------------
+// 	note that each line will be trimmed,
+//	and all whitespace after ___ will be trimmed,
+//	so use space entity if you want to split the 
+//	msg up into rows of short lengths in source code
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+//
+//	reusable message elements
+//
+//
+//
+
+
+//=============================================================================
+//
+//	Core Validation Error Strings
+//
+//
+
+{{a:
+constant___	fw_kValNotAlpha
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver (a...z, A...Z)
+}}
+
+{{n:
+constant___	fw_kValNotNumeric
+msg___	Feltet [#inputLabel] kan kun indeholde tal (0...9)
+}}
+
+{{d:
+constant___	fw_kValNotDecimal
+msg___	Feltet [#inputLabel] kan kun indeholde tal (0...9) samt tal med minustegn (-) og med tusindseparator (.)
+}}
+
+{{i:
+constant___	fw_kValNotInteger
+msg___	Feltet [#inputLabel] kan kun indeholde tal (0...9) samt tal med minustegn (-)
+}}
+
+{{ipos:
+constant___	fw_kValNotPosInteger
+msg___	Feltet [#inputLabel] kan kun indeholde numeriske tal (1...9)
+}}
+
+{{aspc:
+constant___	fw_kValNotAlphaSpace
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver fra det engelske alfabet (a...z, A...Z) samt mellemrum
+}}
+
+{{an:
+constant___	fw_kValNotAlphaNumeric
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver (a...z, A...Z) samt tal (0...9)
+}}
+
+{{ans:
+constant___	fw_kValNotAlphaNumericSpace
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver fra det engelske alfabet (a...z, A...Z), tal (0...9) samt tegnene !@#$%^&*
+}}
+
+{{anu:
+constant___	fw_kValNotAlphaNumericUnderScore
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver fra det engelske alfabet (a...z, A...Z), tal (0...9) samt _ (underscore)
+}}
+
+{{anh:
+constant___	fw_kValNotAlphaNumericHyphen
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver fra det engelske alfabet (a...z, A...Z), tal (0...9) samt - (tankestreg)
+}}
+
+{{anspc:
+constant___	fw_kValNotAlphaNumericSpace
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver fra det engelske alfabet (a...z, A...Z), tal (0...9) samt mellerum
+}}
+
+{{extd:
+constant___	fw_kValNotExtended
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver (a...z, A...Z), herunder de fleste europæiske special-bogstaver, tal (0...9) samt tegnene ',.-?&:
+}}
+
+{{extds:
+constant___	fw_kValNotExtendedSymbols
+msg___	Feltet [#inputLabel] kan kun indeholde bogstaver (a...z, A...Z), herunder de fleste europæiske specialbogstaver, tal (0...9), linieskift og tabulator samt tegnene '".,-_:;?!%&()/{}=
+}}
+
+{{flnm:
+constant___	fw_kValNotFileName
+msg___	Feltet [#inputLabel] kan kun indeholde små bogstaver fra det engelske alfabet (a...z), tal (0...9) samt tegnene - og _
+}}
+
+{{pws:
+constant___	fw_kValNotPasswordStrong
+msg___	Feltet [#inputLabel] skal være mindst 8 tegn langt og have mindst ét tegn fra hhv. a...z, A...Z, 0...9 samt mindst ét af tegnene !@#$%^&*
+}}
+
+{{cc:
+constant___	fw_kValNotCreditCard
+msg___	Feltet [#inputLabel] skal være et gyldigt kreditkortnummer
+}}
+
+{{req:
+constant___	fw_kValNotFilledIn
+msg___	Feltet [#inputLabel] kan ikke være tomt
+}}
+
+{{vreq:
+constant___	fw_kVlistNotSelected
+msg___	Der skal foretages et valg i feltet [#inputLabel]
+}}
+
+{{nospc:
+constant___	fw_kValNotWithoutSpaces
+msg___	Feltet [#inputLabel] kan ikke indeholde mellerum
+}}
+
+{{email:
+constant___	fw_kValNotEmailFormat
+msg___	Feltet [#inputLabel] synes ikke at indeholde en gyldig emailadresse
+}}
+
+{{link:
+constant___	fw_kValNotLinkFormat
+msg___	Feltet [#inputLabel] synes ikke at indeholde en gyldig webadresse (URL)
+}}
+
+{{html:
+constant___	fw_kValNotSafeHTML
+msg___	Feltet [#inputLabel] synes at indeholde HTML-fremmed kode, der ikke er tilladt
+}}
+
+{{date:
+constant___	fw_kValNotDateFormat
+msg___	Feltet [#inputLabel] indeholder ikke en gyldig dato. En US-dato skal have formen: <span class="bold">mm/dd/yyyy</span>
+}}
+
+{{dateEuro:
+constant___	fw_kValNotEuroDateFormat
+msg___	Feltet [#inputLabel] indeholder ikke en gyldig dato. En dato skal have formen: <span class="bold">dd.mm.yyyy</span>
+}}
+
+{{regex:
+constant___	fw_kValNotRegexFormat
+msg___	Feltet [#inputLabel]s indhold har ikke den krævede form
+}}
+
+{{eq:
+constant___	fw_kValNotEqual
+msg___	Feltet [#inputLabel] og dets tilhørende bekræftelses-felt er ikke ens
+}}
+
+{{length:
+constant___	fw_kValNotLengthMatch
+msg___	Feltet [#inputLabel] skal være præcis [#inputParam] tegn langt
+}}
+
+{{minlen:
+constant___	fw_kValNotMinLength
+msg___	Feltet [#inputLabel] skal være mindst [#inputParam] tegn langt
+}}
+
+{{maxlen:
+constant___	fw_kValNotMaxLength
+msg___	Feltet [#inputLabel] kan ikke være mere end [#inputParam] tegn langt
+}}
+
+{{min:
+constant___	fw_kValNotMinValue
+msg___	Feltet [#inputLabel] skal være mindst [#inputParam]
+}}
+
+{{max:
+constant___	fw_kValNotMaxValue
+msg___	Feltet [#inputLabel] kan ikke være mere end [#inputParam]
+
+
+//	-------------------------------------------------------------------------
+//	these validation strings are intended to be used only by the fwp_user custom type
+//	they're not part of the standard validation code options
+
+{{pswdNoSpace:
+constant___	fw_kValPswdNoSpace
+msg___	Adgangskoder på mindre end 16 tegn kan ikke indeholde mellemrum
+}}
+
+{{pswdLength:
+constant___	fw_kValPswdLength
+msg___	Adgangskoder skal være på mindst [#inputParam] tegn
+}}
+
+{{pswdUppercase:
+constant___	fw_kValPswdUppercase
+msg___	Adgangskoder skal indeholde mindst ét stort bogstav (A-Z)
+}}
+
+{{pswdLowercase:
+constant___	fw_kValPswdLowercase
+msg___	Adgangskoder skal indeholde mindst ét lille bogstav (a-z)
+}}
+
+{{pswdNumeral:
+constant___	fw_kValPswdNumeral
+msg___	Adgangskoder skal indeholde mindst ét tal (0-9)
+}}
+
+{{pswdSymbol:
+constant___	fw_kValPswdSymbol
+msg___	Adgangskoder skal indeholde mindst ét tegn fra *&^%$#@!
+}}
+
+{{pswdSecond:
+constant___	fw_kValPswdSecond
+msg___	Det indtastede svarer ikke til den først indtastede adgangskode 
+}}
+
+{{pswdUsed:
+constant___	fw_kValPswdAlreadyUsed
+msg___	Den adgangskode har været brugt for nylig til din konto og kan ikke bruges påny
+}}
+
+{{userExists:
+constant___ fw_kValUserAlreadyExists
+msg___	Der findes allerede en konto med den emailadresse, brug venligst en anden emailadresse til denne nye konto
+}}
+
+
+[/output_none]

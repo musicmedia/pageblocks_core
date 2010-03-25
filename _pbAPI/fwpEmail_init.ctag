@@ -1,0 +1,47 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpEmail_init.ctag }
+	{rsrcType=		ctag }
+	{rsrcName=		fwpEmail_init }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpEmail_init }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes	the page level vars and resources
+					of the fwpEmail framework. }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+//
+//	fw_SMTPServer	(empty) an SMTP server name or IP address for sending email via Lasso
+//	fw_SMTPUser		(empty) an SMTP user name for SMTP authentication
+//	fw_SMTPPswd		(empty) an SMTP user password for SMTP authentication
+//
+//............................................................................
+
+define_tag:'fwpEmail_init';
+
+	var:
+		'fw_SMTPServer'			= string,
+		'fw_SMTPUser'			= string,
+		'fw_SMTPPswd'			= string;
+
+/define_tag;
+
+?>

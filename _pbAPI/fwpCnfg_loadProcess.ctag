@@ -1,0 +1,76 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_loadProcess.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpCnfg_loadProcess }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpCnfg_loadProcess }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag loads a file, and processes it`s contents }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpCnfg_loadProcess', -priority='replace',
+	-required='file',
+	-optional='username',
+	-optional='password';
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpCnfg_loadProcess', -file = #file);
+
+	local:
+		'fileName' 		= @#file,
+		'fileData' 		= string,
+		'fileDataStr'	= string;
+
+//	pull from cache if available
+//	else pull from disk (and store to cache)
+
+	#fileData = $fw_gConfigCache->(restore:#fileName);
+
+	if: #fileData->size == 0;
+
+//	load file data
+
+		#fileData = (fwpCnfg_loadFile:
+			-file		= #fileName,
+			-username 	= local:'username',
+			-password 	= local:'password');
+
+//	store it to the cache
+
+			$fw_gConfigCache->(add:
+				-name  = #fileName,
+				-value = #fileDataStr);
+
+	/if;
+
+	process: #fileData;
+
+/define_tag;
+
+?>

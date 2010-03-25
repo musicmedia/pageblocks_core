@@ -1,0 +1,1030 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGui_rcrdList.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_rcrdList }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_rcrdList }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates a generic data type for database found sets to be
+					displayed in a table with sort control and other integral
+					GUI controls. Also maintains prior search parameters. }
+
+	{maintvsrn=		1.3.4 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-04 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -ignoreCache option }
+
+	{maintvsrn=		1.3.3 }
+	{maintrelease=	5.2.4 }
+	{maintdate=		2007-07-12 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	oops 1.3.2 broke column sorting by re-constituting the cookie
+	 				at the wrong time, so this fixes that. }
+
+	{maintvsrn=		1.3.2 }
+	{maintrelease=	5.2.2 }
+	{maintdate=		2007-07-05 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed bug where cookie was not being used to re-set the last 
+					params of the list after jumping to a record }
+
+	{maintvsrn=		1.3.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-25}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added withDynamicForms, fixed bug that used loop_count in
+	 				columns instead of rows to make unique form ids, updated
+	 				 whitespace for html output to look better }
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems,
+	 				changed fw_listRcrds from $ to #,
+	 				added -groupBy }
+
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-03-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added queryParams ivar }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.3 }
+	{maintdate=		2006-11-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	Added ->getFieldForInput and ->getInputForField }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-10-10 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	removed storing of list data to user session, and
+					changed to use always use a cookie (admin sessions
+					could get very bloated from list objects, so
+					eliminated that until better session system could
+					be devised).
+					Also, refactored the drawing process into smaller 
+					methods for easier maintenance, and to prepare
+					for this ctype to be a generic view for multiple data 
+					structures. Eliminated a bunch of dead code, and began
+					to code the capabilities for an external named inline
+					dataset. }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added new -withFoundCount param to ->select }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype
+					added ability to use double braces for config sections }
+
+	{maintvsrn=		1.0.1}
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added new -id param to fwpActn_searchState }
+
+	{maintvsrn=		1.0}
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type: 'fwp_listRcrds';
+
+	local:
+		'fw_listName'		= string,
+		'fw_listConfig'		= string,
+		'fw_listRecords'	= string,
+		'fw_listArray'		= string,
+		'fw_listData'		= null,
+
+		'fw_tableModel'		= null,
+		'fw_qryTable'		= string,
+		'fw_qryInputs'		= string,
+		'fw_qrySelect'		= string,
+		'fw_qryFrom'		= string,
+		'fw_qryWhere'		= string,
+		'fw_qryKeyFld'		= string,
+		'fw_qryKeyVal'		= string,
+		'fw_qryGroupBy'		= string,
+		'fw_qryOrderBy'		= string,
+		'fw_qrySort'		= string,
+		'fw_qryLimit'		= $fw_listRcrdsMax,
+		'fw_qrySQL'			= string;
+
+	local: 
+		'fw_configData'		= string,
+		'fw_cookieNm'		= string,
+		'fw_ignoreCache'	= boolean,
+		'fw_listPage'		= string;
+		 
+		
+	local:
+		'inlineName'		= string,
+		'foundcount'		= integer,
+		'showFirst'			= integer,
+		'showLast'			= integer,
+		'skip'				= integer,
+		'queryString'		= string,
+		'queryParams'		= array,
+		'listInfoDflt'		= fwp_collection,
+		'listInfoCopy'		= fwp_collection,
+
+		'sortFld'			= string,
+		'sortOrdr'			= string,
+		'sortDesc'			= string,
+		'sortSub1Fld'		= string,
+		'sortSub1Ordr'		= string,
+		'sortSub1Desc'		= string,
+		'sortSub2Fld'		= string,
+		'sortSub2Ordr'		= string,
+		'sortSub2Desc'		= string;
+
+	local:
+		'columnDefinitions'	= map;
+
+
+//============================================================================
+//
+//	->onCreate
+//
+//	instantiates the object`s default data set
+//	the developer should not call this tag
+//
+//............................................................................
+
+define_tag:'onCreate';
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_rcrdList');
+
+	$fw_debugTimers ? $fw_timer->(start:'guiTagListRcrdsInit');
+
+	local:
+		'fw_modelIsLoaded'	= boolean,
+		'_fw_thisParam' 	= (string);
+
+	(self->'fw_listPage') = ($fw_requestPage->'urlFilePath');
+	(self->'fw_listPage')->(replace:'/', '_');
+
+
+//	convert incoming params to local vars of the same name
+
+	iterate: (params), #_fw_thisParam;
+		if: #_fw_thisParam->type == 'pair';
+			local: (#_fw_thisParam->first) = (#_fw_thisParam->second);
+		else;
+			local: (#_fw_thisParam) = true;
+		/if;
+	/iterate;
+
+	self->'fw_ignoreCache'	= local:'ignoreCache';
+
+	self->'fw_listName'		= local:'name';
+	self->'fw_listConfig'	= local:'config';
+
+	self->'fw_listRecords'	= local:'records';
+	self->'fw_listArray'	= local:'array';
+
+	self->'fw_qryTable'		= local:'table';
+	self->'fw_qryInputs'	= local:'inputs';
+	self->'fw_qrySelect'	= local:'select';
+	self->'fw_qryFrom'		= local:'from';
+	self->'fw_qryWhere'		= local:'where';
+	self->'fw_qryKeyVal'	= local:'keyval';
+	self->'fw_qryKeyFld'	= local:'keyfld';
+	self->'fw_qryGroupBy'	= local:'groupBy';
+	self->'fw_qryOrderBy'	= local:'orderBy';
+	self->'fw_qrySort'		= local:'sort';
+	self->'fw_qryLimit'		= local:'limit';
+	self->'fw_qrySQL'		= local:'sql';
+
+	(self->'fw_cookieNm') = $fw_gAppPrefix + '_listInfo' + (self->'fw_listPage') + (self->'fw_listName');
+
+	if: (self->'fw_listRecords');
+		(self->'fw_qryTable') = (self->'fw_listRecords')->'tbl';
+	/if;
+
+	#fw_modelIsLoaded = (fwpActn_loadTableModel:(self->'fw_qryTable'));
+
+	if: #fw_modelIsLoaded;
+		(self->'fw_tableModel') = @($fw_gDbTableModels->find:(self->'fw_qryTable'));
+	else;
+		// 	we don't normally report or log this error because
+		//	the likely cause is that the tableModel file was not found
+		//	which the file loading process would have already reported
+		//	and we don't need multiple reports of that fact
+		
+		($fw_debug >= fw_kVerbose) ? $fw_error->(insert:'5201' = 'fwpGui_listRcrds');
+		($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpGui_listRcrds', -ERROR = 'tableModel not loaded for table ' + (self->'fw_qryTable'));
+		($fw_debug >= fw_kVerbose) && $fw_criticalLog ? log_critical:('pbError : fwpGui_listRcrds could not load tableModel for table ' + (self->'fw_qryTable'));
+	/if;
+
+//	load config file and remove comments
+//	loadLines converts to an array, and we want it back to a delimited list 
+//	so we end up using join to reverse the array
+
+	(self->'fw_configData') = fwpCnfg_loadLines: ('listTbl_' + (self->'fw_listConfig') + fw_kCnfgExt);
+	(self->'fw_configData') = (self->'fw_configData')->join:'\r';
+
+//	............................................................................
+
+	local:
+		'_fw_thisItem' 	= string,
+		'_fw_listQuery'	= string,
+		'_fw_wasfirst' 	= integer,
+		'_fw_wasLast' 	= integer,
+		'_fw_wasfound' 	= integer;
+
+	if:	(self->'fw_listArray');
+
+//	the data is an array, so prep the array data		
+
+		//	nothing to do here
+		//	the array must exist as a page var
+		//	the config file will refer to that var in the column definitions
+		//	which can use #_fw_rowIndx as the operand to the ->get member tag
+
+	else: (self->'fw_listRecords');
+	
+//	the data is a pre-existing named inline
+
+		//	nothing to do here
+		//	the config file will refer to fields in the named inline
+		//	there`s nothing else to do here except draw it
+
+	else;
+
+//	the data is from a database, so prep to query the db to fetch it
+
+//	if an object already exists for this list, restore the prior values
+//	get any info from existing list object passed by sort or page buttons
+
+		if: !(self->'fw_ignoreCache');
+	
+			if: var:((self->'fw_listName') + 'Info');
+				//	var created by form submit, so nothing to do
+			else;
+				// check for cookie from previous session
+				if: (cookie:(self->'fw_cookieNm'));
+					var:((self->'fw_listName') + 'Info') = (cookie:(self->'fw_cookieNm'));
+				/if;
+			/if;
+	
+			if: var:((self->'fw_listName') + 'Info');
+		
+				if: (var:((self->'fw_listName') + 'Info'))->type != 'fwp_collection';
+					(var:((self->'fw_listName') + 'Info'))->unserialize:decompress:decode_base64:(var:((self->'fw_listName') + 'Info'));
+				/if;
+	
+				self->'fw_listConfig' 	= (var:(self->'fw_listName') + 'Info')->'config';
+				self->'fw_listRecords' 	= (var:(self->'fw_listName') + 'Info')->'records';
+				self->'fw_listArray' 	= (var:(self->'fw_listName') + 'Info')->'array';
+				self->'fw_qryInputs' 	= (var:(self->'fw_listName') + 'Info')->'inputs';
+				self->'fw_qryTable' 	= (var:(self->'fw_listName') + 'Info')->'table';
+				self->'fw_qrySelect'	= (var:(self->'fw_listName') + 'Info')->'select';
+				self->'fw_qryFrom' 		= (var:(self->'fw_listName') + 'Info')->'from';
+				self->'fw_qryWhere' 	= (var:(self->'fw_listName') + 'Info')->'where'; 
+				self->'fw_qryKeyfld' 	= (var:(self->'fw_listName') + 'Info')->'keyfld';
+				self->'fw_qryKeyval' 	= (var:(self->'fw_listName') + 'Info')->'keyval';
+				self->'fw_qryGroupby'	= (var:(self->'fw_listName') + 'Info')->'groupby';
+				self->'fw_qryOrderby'	= (var:(self->'fw_listName') + 'Info')->'orderby';
+				self->'fw_qrySort' 		= (var:(self->'fw_listName') + 'Info')->'sort';
+	
+				self->'skip' 		= integer:((var:(self->'fw_listName') + 'Info')->'skip');
+				self->'fw_qryLimit'	= integer:((var:(self->'fw_listName') + 'Info')->'limit');
+				#_fw_wasfirst 		= integer:((var:(self->'fw_listName') + 'Info')->'showfirst');
+				#_fw_wasLast 		= integer:((var:(self->'fw_listName') + 'Info')->'showLast');
+				#_fw_wasfound 		= integer:((var:(self->'fw_listName') + 'Info')->'foundCount');
+		
+//	default limit value in case it is not included in fwp_listRcrds tag call
+	
+				if: !(self->'fw_qryLimit');
+					(self->'fw_qryLimit') = $fw_listRcrdsMax;
+				/if;
+	
+//	based on the page button that was clicked 
+//	calculate skip value for new page
+	
+				if: var:'btnListFirst.x';
+					(self->'skip') = 0;
+		
+				else: var:'btnListPrev.x';
+					(self->'skip') = #_fw_wasFirst - (self->'fw_qryLimit') - 1;
+		
+				else: var:'btnListNext.x';
+					(self->'skip') = #_fw_wasLast;
+		
+				else: var:'btnListLast.x';
+					(self->'skip') = (math_floor: ((#_fw_wasFound / (self->'fw_qryLimit')) / 1.0) * (self->'fw_qryLimit'));
+				/if;
+			/if;
+		/if;
+//	............................................................................
+
+//	regardless of query source, parse out the primary sort info
+//	they`re needed as instance vars for the list drawing routine
+//	a primary sort and 2 levels of sub sorts are supported
+//	should rewrite this to be unlimited, and not require the unused fields be defined
+
+		if: self->'fw_qrySort';
+			self->'sortFld'		= ((self->'fw_qrySort')->split:'```')->get:1;
+			self->'sortOrdr'	= ((self->'fw_qrySort')->split:'```')->get:2;
+			self->'sortDesc'	= ((self->'fw_qrySort')->split:'```')->get:3;
+	
+			if: ((self->'fw_qrySort')->(split:'```'))->size > 3;
+				self->'sortsub1Fld'		= (self->'fw_qrySort'->split:'```')->get:4;
+				self->'sortsub1Ordr'	= (self->'fw_qrySort'->split:'```')->get:5;
+				self->'sortsub1Desc'	= (self->'fw_qrySort'->split:'```')->get:6;
+			else;
+				self->'sortsub1Fld'		= (string);
+				self->'sortsub1Ordr'	= (string);
+				self->'sortsub1Desc'	= (string);
+			/if;
+	
+			if: ((self->'fw_qrySort')->(split:'```'))->size > 6;
+				self->'sortsub2Fld'		= (self->'fw_qrySort'->split:'```')->get:7;
+				self->'sortsub2Ordr'	= (self->'fw_qrySort'->split:'```')->get:8;
+				self->'sortsub2Desc'	= (self->'fw_qrySort'->split:'```')->get:9;
+			else;
+				self->'sortsub2Fld'		= (string);
+				self->'sortsub2Ordr'	= (string);
+				self->'sortsub2Desc'	= (string);
+			/if;
+		/if;
+
+//	modify the default sort definition if needed
+//	if we`re coming back here from one of the list sort buttons
+//	then there will already be a #sort from that form
+
+		if: ((var:'fw_sortInvert') == 'Y') && ((self->'sortOrdr') == 'asc');
+			(self->'sortOrdr') = 'desc';
+		else: ((var:'fw_sortInvert') == 'Y') && ((self->'sortOrdr') == 'desc');
+			(self->'sortOrdr') = 'asc';
+		/if;
+
+//	............................................................................
+//	select the records 
+
+		local:'fw_listData' = (fwp_recordData:(self->'fw_qryTable'));
+
+		#fw_listData->(select:
+			-inputs		= (self->'fw_qryInputs'),
+			-select		= (self->'fw_qrySelect'),
+			-from		= (self->'fw_qryFrom'),
+			-where		= (self->'fw_qryWhere'),
+			-groupby	= (self->'fw_qryGroupby'),
+			-orderby	= (self->'fw_qryOrderby'),
+			-keyfld		= (self->'fw_qryKeyfld'),
+			-keyval		= (self->'fw_qryKeyval'),
+			-sort		= (self->'fw_qrySort'),
+			-skip		= (self->'skip'),
+			-limit		= (self->'fw_qryLimit'),
+			-withFoundCount);
+
+		(self->'showfirst')		= #fw_listData->'showFirst';
+		(self->'showLast')		= #fw_listData->'showLast';
+		(self->'foundCount')	= #fw_listData->'foundCount';
+		(self->'inlineName')	= #fw_listData->'inlineName';
+		(self->'queryString')	= #fw_listData->'queryString';
+		(self->'queryParams')	= #fw_listData->'queryParams';
+
+	/if;
+
+//	............................................................................
+//	store the list state
+//	create a list Info object with default values
+
+	(self->'listInfoDflt') = (fwp_collection:
+		-config		= (self->'fw_listConfig'),
+		-records	= (self->'fw_listRecords'),
+		-array		= (self->'fw_listArray'),
+		-inputs		= (self->'fw_qryInputs'),
+		-table		= (self->'fw_qryTable'),
+		-select		= (self->'fw_qrySelect'),
+		-from		= (self->'fw_qryFrom'),
+		-where		= (self->'fw_qryWhere'),
+		-keyfld		= (self->'fw_qryKeyfld'),
+		-keyVal		= (self->'fw_qryKeyval'),
+		-groupby	= (self->'fw_qryGroupby'),
+		-orderby	= (self->'fw_qryOrderby'),
+		-sort		= (self->'fw_qrySort'),
+		-skip		= (self->'skip'),
+		-limit		= (self->'fw_qryLimit'),
+		-showfirst	= (self->'showfirst'),
+		-showlast	= (self->'showlast'),
+		-foundcount	= (self->'foundcount'));
+
+//	make a copy to work with for each non-default column sort
+
+	(self->'listInfoCopy') = (self->'listInfoDflt');
+	var:((self->'fw_listName') + 'Info') = (self->'listInfoDflt');
+
+//	scrunch the default info to send in form
+
+	(self->'listInfoDflt') = encode_base64:(compress:((self->'listInfoDflt')->serialize));
+
+//	store list info to cookie
+
+	cookie_set: (self->'fw_cookieNm') = (self->'listInfoDflt'), -path='/';
+
+//	store search criteria
+
+	fwpActn_searchState: 
+		-store, 
+		-table = (self->'fw_qryTable'),
+		-id = (self->'fw_listConfig');
+
+	$fw_debugTimers ? $fw_timer->(stop:'guiTagListRcrdsInit');
+
+/define_tag;
+
+//============================================================================
+//
+//	->getFieldForInput
+//
+//	retrieves the fieldName for a specified inputName
+//
+//............................................................................
+
+define_tag:'getFieldForInput',
+	-required = 'inputName',	-type = 'string';
+
+	return: ((self->'fw_tableModel')->'fieldNameMap')->find:#inputName;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->getInputForField
+//
+//	retrieves the inputName for a specified fieldName
+//
+//............................................................................
+
+define_tag:'getInputForField',
+	-required = 'fieldName',	-type = 'string';
+
+	return: ((self->'fw_tableModel')->'inputNameMap')->find:#fieldName;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->draw
+//
+//	Description:
+//
+//	creates the HTML table
+//
+//	Usage:
+//
+//	the developer calls this tag where the table is to be drawn
+//
+//	Maintenance Notes:
+//
+//	2006-01-16 	GW	initial release
+//
+//............................................................................
+
+define_tag:'draw', -autooutput;
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_rcrdList->draw');
+
+	$fw_debugTimers ? $fw_timer->(start:'guiTagListRcrdsDraw');
+
+	local:
+		'fw_tagmsStart' 		= _date_msec,
+		'fw_withDynamicForms'	= false,
+		'_fw_listGenl'			= string,
+		'_fw_listCols'			= string,
+		'_fw_thisItem'			= string,
+		'_fw_thisColumn'		= string,
+		'_fw_thisColProperty'	= string,
+		'_fw_listColumns' 		= array,
+		'_fw_listColMap' 		= map;
+
+	local:
+		'_fw_delimiterBegin'	= string,
+		'_fw_delimiterEnd'		= string,
+		'_fw_thisField'			= string,
+		'_fw_indx'				= integer,
+		'_fw_theseInputs'		= string,
+		'_fw_thisInput'			= string,
+		'_fw_thisColumn'		= string,
+		'_fw_thisColProperty'	= string,
+		'_fw_listColumns' 		= array,
+		'_fw_listRowCode' 		= string;
+
+	(params >> '-withDynamicForms')
+		? #fw_withDynamicForms = true;
+
+//	detect version 5.0 vs 5.1 format
+
+		if: (self->'fw_configData') >> '{{tableConfig___';
+			#_fw_delimiterBegin = '{{';
+			#_fw_delimiterEnd = '}}';
+		else;
+			#_fw_delimiterBegin = '{';
+			#_fw_delimiterEnd = '}';
+		/if;		
+
+//	locate the table general config params and convert all to local variables
+
+	#_fw_listGenl = (string_findregexp: (self->'fw_configData'), 
+					-find=(#_fw_delimiterBegin + 'tableConfig:([\\w\\W\\d\\D\\b\\s\\S]+?)' + #_fw_delimiterEnd), -ignorecase)->last;
+
+	#_fw_listGenl->(replace:'\t','');
+	#_fw_listGenl->trim;
+	#_fw_listGenl = (fwpCnfg_splitLines: #_fw_listGenl);
+
+	iterate: #_fw_listGenl, #_fw_thisItem;
+		local:((#_fw_thisItem->split:'===')->get:1)=((#_fw_thisItem->split:'===')->get:2);
+	/iterate;
+
+//	locate each column, delete the first entry of the array that Lasso fills with the complete found string
+//	for each column data set retrieved by the search
+//	convert each line of name=value into a map pair
+//	and insert the entire map as a single element of an array
+//	so that we have an array of maps
+
+	#_fw_listCols = (string_findregexp: (self->'fw_configData'), 
+					-find=(#_fw_delimiterBegin + 'column:([\\w\\W\\d\\D\\b\\s\\S=]+?)' + #_fw_delimiterEnd), -ignorecase);
+
+	loop: -loopfrom=#_fw_listCols->size, -loopto=1, -loopincrement=(-1);
+		if: (loop_count)%2;
+			#_fw_listCols->(remove:loop_count);
+		/if;
+	/loop;
+
+	if: $fw_debug;
+		var:'api_fwpGui_list_columns1' = #_fw_listCols;
+	/if;
+
+	iterate: #_fw_listCols, #_fw_thisColumn;
+		#_fw_thisColumn = (fwpCnfg_splitLines: #_fw_thisColumn);
+		iterate: #_fw_thisColumn, #_fw_thisColProperty;
+			#_fw_thisColProperty->(replace:'\t','');
+			#_fw_thisColProperty->trim;
+			#_fw_listColMap->(insert:((#_fw_thisColProperty->split:'===')->get:1) = ((#_fw_thisColProperty->split:'===')->get:2));
+		/iterate;
+		#_fw_listColumns->(insert:(#_fw_listColMap));
+	/iterate;
+	if: $fw_debug;
+		var:'api_fwpGui_list_columns2' = #_fw_listColumns;
+	/if;
+
+//: start drawing
+//	--------------------------------------------------------------------------------------------------
+
+	(local_defined:'listTopNavPanel')
+		? self->(drawNavPanel:#listTopNavPanel);
+
+	(local_defined:'listDivClass')
+		? '<div class="'; #listDivClass; '">\r';
+
+	'<table '; 
+		if: (local_defined:'listTableBorderPx');	' border="'; #listTableBorderPx; '"'; /if; 
+		if: (local_defined:'listCellSpacePx');		' cellspacing="'; #listCellSpacePx; '"'; /if; 
+		if: (local_defined:'listCellPadPx');		' cellpadding="'; #listCellPadPx; '"'; /if;
+		if: (local_defined:'listTableWidth');		' width="'; #listTableWidth; '"'; /if;
+	">\r";
+
+	self->(drawLabelRow: 
+		-columnData		= #_fw_listColumns,
+		-hdrRowclass	= #listHdrClass, 
+		-hdrSortClass	= #listHdrSortClass,
+		-sortAscBtn		= #listSortAscBtn,
+		-sortDescBtn	= #listSortDescBtn);
+
+// ::Note::
+//	as of this release, this ctype can accept an external named inline
+//	as a set of records, but those records cannot yet be paginated
+//	so they must all appear in one contiguous list.
+//	the refactoring of this ctype will continue to eventually
+//	completely separate the data object from the view object
+
+	(self->'fw_listRecords')
+		? local:'recordSet' = (self->'fw_listRecords')->'inlineName'
+		| local:'recordSet' = (self->'inlineName');
+
+	self->(drawRecords:
+		-withDynamicForms	= #fw_withDynamicForms,
+		-columnData			= #_fw_listColumns,
+		-recordSet			= #recordSet,
+		-dataSortClass		= #listDataSortClass,
+		-altRowAClass		= #listAltRowAClass,
+		-altRowBClass		= #listAltRowBClass);
+
+	// wrap it up
+
+	'</table>\r';
+
+	(local_defined:'listDivClass')
+		? '</div> <!-- end records data -->\r';
+
+	(local_defined:'listBtmNavPanel')
+		? self->(drawNavPanel:#listBtmNavPanel);
+
+	$fw_debugTimers ? $fw_timer->(stop:'guiTagListRcrdsDraw');
+	
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawNavPanel
+//
+//	draws the top navigation panel
+//
+//
+//............................................................................
+
+define_tag:'drawNavPanel',
+	-autooutput,
+	-required = 'panel';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_rcrdList->drawNavPanel');
+
+	if: (self->'fw_listRecords');
+		self->'foundcount' = (self->'fw_listRecords')->'foundCount';
+		self->'showFirst' = (self->'fw_listRecords')->'showFirst';
+		self->'showLast' = (self->'fw_listRecords')->'showLast';
+	/if;
+
+	'<form class="noprint" name="listNav" action="'; $fw_requestPage->'self'; '" method="post">\r\r';
+		include: (process:#panel);
+		'<input type="hidden" name="'; (self->'fw_listName'); 'Info" value="'; (self->'listInfoDflt'); '" />';
+	'\r\r</form>\r';
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawLabelRow
+//
+//	draws the row of labels
+//
+//............................................................................
+
+define_tag:'drawLabelRow',
+	-autooutput,
+	-required = 'hdrRowClass',
+	-required = 'hdrSortClass',
+	-required = 'sortAscBtn',
+	-required = 'sortDescBtn',
+	-required = 'columnData';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_rcrdList->drawLabelRow');
+
+	local:
+		'_fw_listColumns' 	= #columnData,
+		'_fw_thisColumn'	= map;
+
+	'<tr class="'; #hdrRowClass; '">\r';
+
+	iterate: #_fw_listColumns, #_fw_thisColumn;
+
+		if: (#_fw_thisColumn->(find:'cellSortDefault'));
+
+			//	this column is a sortable column
+			///	so we add a form for the asc|desc sort button
+
+			'\t<td width="'; #_fw_thisColumn->(find:'cellWidth'); '" class="'; #_fw_thisColumn->(find:'lblStyle'); if: (self->'sortFld') == (((#_fw_thisColumn->(find:'cellSortDefault'))->split:'```')->get:1); ' '; #hdrSortClass; /if; '">\r';
+				'\t\t<form name="sort'; #_fw_thisColumn->(find:'lblName'); '" action="'; ($fw_requestPage->'self'); '" method="post">\r';
+
+					//	the column label text
+
+					'\t\t\t'; #_fw_thisColumn->(find:'lblName'); '\r';
+
+					//	add a session var if defined
+
+					if: (var:'fw_s'); 
+						'\t\t\t<input type="hidden" name="fw_s" value="'; (var:'fw_s'); '" />\r'; 
+					/if;
+
+					//	add the default list info object if this column _is not_ sorted
+					//	add a customized list info object if this column _is_ sorted
+
+					if: (self->'sortFld') == (((#_fw_thisColumn->(find:'cellSortDefault'))->split:'```')->get:1);
+						'\t\t\t<input type="hidden" name="'; (self->'fw_listName'); 'Info" value="'; (self->'listInfoDflt'); '" />\r';
+					else;
+						((self->'listInfoCopy')->'sort') = (#_fw_thisColumn->(find:'cellSortDefault'));
+						local:'listInfo' = encode_base64:(compress:((self->'listInfoCopy')->serialize));
+						'\t\t\t<input type="hidden" name="'; (self->'fw_listName'); 'Info" value="'; #listInfo; '" />\r';
+					/if;
+
+					//	if the current sort of this column is the default sort order
+					//	then add an input to say the sort needs inverted ifthe button is clicked
+
+					if: (self->'sortFld') == (((#_fw_thisColumn->(find:'cellSortDefault'))->split:'```')->get:1);
+						'\t\t\t<input type="hidden" name="fw_sortInvert" value="Y" />\r';
+					/if;
+					
+					//	draw the appropriate asc|desc button based on conditions
+					
+					if: (self->'sortFld') == (((#_fw_thisColumn->(find:'cellSortDefault'))->split:'```')->get:1);
+						if: (self->'sortOrdr')->(beginswith:'asc');
+							'\t\t\t<input type="image" class="noprint" name="btnSort'; #_fw_thisColumn->(find:'lblName'); '" src="'; (process:#sortAscBtn); '" alt="Sort '; #_fw_thisColumn->(find:'lblName'); '" />\r';
+						else;
+							'\t\t\t<input type="image" class="noprint" name="btnSort'; #_fw_thisColumn->(find:'lblName'); '" src="'; (process:#sortDescBtn); '" alt="Sort '; #_fw_thisColumn->(find:'lblName'); '" />\r';
+						/if;
+					else;
+						if: (((#_fw_thisColumn->(find:'cellSortDefault'))->split:'```')->get:2)->beginswith:'asc';
+							'\t\t\t<input type="image" class="noprint" name="btnSort'; #_fw_thisColumn->(find:'lblName'); '" src="'; (process:#sortAscBtn); '" alt="Sort '; #_fw_thisColumn->(find:'lblName'); '" />\r';
+						else;
+							'\t\t\t<input type="image" class="noprint" name="btnSort'; #_fw_thisColumn->(find:'lblName'); '" src="'; (process:#sortDescBtn); '" alt="Sort '; #_fw_thisColumn->(find:'lblName'); '" />\r';
+						/if;
+					/if;
+				'\t\t</form>\r';
+			'\t</td>\r';
+
+		else;
+		
+			//	not a sortable column so we just show a simple label
+		
+			'\t<td width="'; #_fw_thisColumn->(find:'cellWidth'); '" class="'; #_fw_thisColumn->(find:'lblStyle'); '">';
+			#_fw_thisColumn->(find:'lblName');
+			'</td>\r';
+		/if;
+	/iterate;
+
+	'</tr>\r';
+
+/define_tag;
+
+//============================================================================
+//
+//	->drawRecords
+//
+//	iterates through a found set of records
+//
+//............................................................................
+
+define_tag:'drawRecords',
+	-autooutput,
+	-required = 'withDynamicForms',
+	-required = 'columnData',
+	-required = 'recordSet',
+	-required = 'dataSortClass',
+	-required = 'altRowAClass',
+	-required = 'altRowBClass';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_rcrdList->drawRecords');
+
+	local:
+		'_fw_thisField'		= string,
+		'_fw_indx' 			= integer,
+		'_fw_listRowCode'	= string;
+
+	records: -inlineName = #recordSet;
+
+//	convert this record's fields to inputName vars
+//	this a) abstracts the field name, 
+//	and b) using $ var syntax in the list config counteracts
+//	the sql encoding we apply to fields when data is saved
+		
+		iterate: field_names, #_fw_thisField;
+
+			#_fw_indx = (((self->'fw_tableModel')->find:'fieldNames')->findindex:#_fw_thisField)->last;
+
+			if: #_fw_indx;
+				select: (((self->'fw_tableModel')->find:'fieldTypes')->get:#_fw_indx);
+				case: 'integer';
+					var:(((self->'fw_tableModel')->find:'inputNames')->get:#_fw_indx) = integer:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#_fw_indx));
+				case: 'decimal';
+					var:(((self->'fw_tableModel')->find:'inputNames')->get:#_fw_indx) = decimal:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#_fw_indx));
+				case: 'date';
+					var:(((self->'fw_tableModel')->find:'inputNames')->get:#_fw_indx) = date:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#_fw_indx));
+				case;
+					var:(((self->'fw_tableModel')->find:'inputNames')->get:#_fw_indx) = string:(field:(((self->'fw_tableModel')->find:'fieldNames')->get:#_fw_indx));
+				/select;
+			/if;
+		/iterate;
+	
+		if: #_fw_listRowCode && !#withDynamicForms;
+
+//	reuse code from first pass except swap out the row class for alt coloring
+
+			if: (loop_count)%2; 
+				#_fw_listRowCode->(replace: #altRowBClass, #altRowAClass);
+			else; 
+				#_fw_listRowCode->(replace: #altRowAClass, #altRowBClass);
+			/if; 
+
+			#_fw_listRowCode->(replace: '#row_number#', loop_count);
+
+			process:#_fw_listRowCode;
+		
+		else;
+
+			#_fw_listRowCode = self->(drawRow:
+				-columnData		= #columndata,
+				-rowindex		= loop_count,
+				-dataSortClass	= #dataSortClass,
+				-altRowAClass	= #altRowAClass,
+				-altRowBClass	= #altRowBClass);
+
+//	for first pass usage, we need to render this row now
+//	for the subsequent passes, it gets rendered up above
+
+			#_fw_listRowCode->(replace: '#row_number#', loop_count);
+
+			process:#_fw_listRowCode;
+			
+		/if;
+	/records;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawRow
+//
+//	draws a single row of code
+//
+//............................................................................
+
+define_tag:'drawRow',
+	-required = 'columnData',
+	-required = 'rowIndex',
+	-required = 'dataSortClass',
+	-required = 'altRowAClass',
+	-required = 'altRowBClass';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwp_rcrdList->drawRow');
+
+	local:
+		'_fw_listRowCode'	= string,
+		'_fw_thisColumn'	= map,
+		'_fw_theseInputs'	= string,
+		'_fw_thisInput'		= string;
+
+	#_fw_listRowCode += '<tr';  
+	if: (#rowIndex)%2; 
+		#_fw_listRowCode += ' class="'; 
+		#_fw_listRowCode += #altRowAClass; 
+		#_fw_listRowCode += '"'; 
+	else; 
+		#_fw_listRowCode += ' class="'; 
+		#_fw_listRowCode += #altRowBClass; 
+		#_fw_listRowCode += '"'; 
+	/if; 
+	#_fw_listRowCode += '>\r';
+
+	//	then insert each column
+
+		iterate: #columnData, #_fw_thisColumn;
+
+			if: (process:(#_fw_thisColumn->(find:'cellType'))) == 'form';
+			
+				//	this cell is a form for an icon button
+				//	add the form, button, and all the hidden inputs
+				
+				#_fw_listRowCode += '\t<td width="';
+				#_fw_listRowCode += #_fw_thisColumn->(find:'cellWidth'); 
+				#_fw_listRowCode += '" class="'; 
+				#_fw_listRowCode += #_fw_thisColumn->(find:'cellStyle'); 
+				#_fw_listRowCode += '">\r';
+
+				if: !(#_fw_thisColumn->(find:'formPrvlg')) || ((#_fw_thisColumn->(find:'formPrvlg')) == 'Y');
+
+					#_fw_listRowCode += '\t\t<form name="'; 
+					#_fw_listRowCode += #_fw_thisColumn->(find:'formBtnName'); 
+					#_fw_listRowCode += '#row_number#'; 
+					#_fw_listRowCode += '" action="'; 
+					#_fw_listRowCode += #_fw_thisColumn->(find:'formAction'); 
+					#_fw_listRowCode += '" method="post">\r';
+				
+					//	the record key field
+					
+					#_fw_listRowCode += '\t\t\t<input type="hidden" name="fw_r" value="'; 
+					#_fw_listRowCode += '[field:\'' + (self->'fw_qryKeyfld') + '\']'; 
+					#_fw_listRowCode += '" />\r';
+					
+					//	additional hidden inputs
+					
+					if: (#_fw_thisColumn->(find:'formHidden'));
+						#_fw_theseInputs = #_fw_thisColumn->(find:'formHidden');
+						#_fw_theseInputs = (fwpCnfg_splitComma: #_fw_theseInputs);
+						iterate: #_fw_theseInputs, #_fw_thisInput;
+							if: #_fw_thisInput->(beginswith:'var:');
+								#_fw_thisInput->(removeleading:'var:');
+								if: #_fw_thisInput >> 'field:';
+
+									//	var is a bit misleading, it doesn't look for a var, it creates one
+									//	this one converts an entry like var:whatever=field:xyz and 
+									//	inserts the 'whatever' as the name and value of field:'xyz' as the value
+
+									#_fw_thisInput->(replace:'field:', '');
+									#_fw_listRowCode += '\t\t\t<input type="hidden" name="'; 
+									#_fw_listRowCode += (((#_fw_thisInput)->split:'=')->get:1); 
+									#_fw_listRowCode += '" value="'; 
+									#_fw_listRowCode += '[field:\'' + (((#_fw_thisInput)->split:'=')->get:2) + '\']" />\r';
+								else;
+
+									//	var is a bit misleading, it doesn't look for a var, it creates one
+									//	this one converts an entry like var:whatever=xyz and 
+									//	inserts the 'whatever' as the name and 'xyz' as the value
+
+									#_fw_listRowCode += '\t\t\t<input type="hidden" name="'; 
+									#_fw_listRowCode += (((#_fw_thisInput)->split:'=')->get:1); 
+									#_fw_listRowCode += '" value="'; 
+									#_fw_listRowCode += (((#_fw_thisInput)->split:'=')->get:2); 
+									#_fw_listRowCode += '" />\r';
+								/if;
+							else: #_fw_thisInput->(beginswith:'field=');
+							
+								//	this one converts a simple entry like field=xyz and 
+								//	inserts xyz as the name and the value of field:'xyz' as the value
+
+								#_fw_thisInput->(removeleading:'field=');
+								#_fw_listRowCode += '\t\t\t<input type="hidden" name="'; 
+								#_fw_listRowCode += #_fw_thisInput; 
+								#_fw_listRowCode += '" value="[field:\'' + #_fw_thisInput + '\']" />\r';
+
+							else;
+
+								//	this one converts a simple entry like fw_s and 
+								//	inserts fw_s as the name and the value of var:'fw_s' as the value
+
+								#_fw_listRowCode += '\t\t\t<input type="hidden" name="'; 
+								#_fw_listRowCode += #_fw_thisInput; 
+								#_fw_listRowCode += '" value="[var:\'' + #_fw_thisInput + '\']" />\r';
+							/if;
+						/iterate;
+					/if;
+
+					//	the icon button
+					
+					#_fw_listRowCode += '\t\t\t<input type="image" name="'; 
+					#_fw_listRowCode += #_fw_thisColumn->(find:'formBtnName'); 
+					#_fw_listRowCode += '" src="'; 
+					#_fw_listRowCode += (#_fw_thisColumn->(find:'formButton')); 
+					#_fw_listRowCode += '" alt="'; 
+					#_fw_listRowCode += #_fw_thisColumn->(find:'lblName'); 
+					#_fw_listRowCode += '"  />\r\t\t</form>\r';
+				/if;
+
+				#_fw_listRowCode += '\t</td>\r';
+
+			else;
+
+				//	this cell is just for plain data display
+	
+				#_fw_listRowCode += '\t<td width="'; 
+				#_fw_listRowCode += #_fw_thisColumn->(find:'cellWidth'); 
+				#_fw_listRowCode += '" class="'; 
+				#_fw_listRowCode += #_fw_thisColumn->(find:'cellStyle'); 
+				if: (self->'sortFld') == (((#_fw_thisColumn->(find:'cellSortDefault'))->split:'```')->get:1); 
+					#_fw_listRowCode += ' '; 
+					#_fw_listRowCode += #dataSortClass; 
+				/if; 
+				#_fw_listRowCode += '">';
+				#_fw_listRowCode += (#_fw_thisColumn->(find:'cellContent')); 
+				#_fw_listRowCode += '</td>\r';
+
+			/if;
+
+		/iterate;
+
+	#_fw_listRowCode += '</tr>\r';
+
+	if: $fw_debug;
+		var:'api_fwpGui_list_listRowCode' = #_fw_listRowCode;
+	/if;
+
+	return: #_fw_listRowCode;
+
+/define_tag;
+
+/define_type;
+?>

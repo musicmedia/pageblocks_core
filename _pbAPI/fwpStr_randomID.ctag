@@ -1,0 +1,114 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_randomID.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_randomID }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_randomID }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Generates a random string of characters of a specified length. }
+
+	{maintvsrn=		2.0 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-02-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added uppercase and hyphen options }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+//	fwpStr_randomID: 10; 							= xXxXxXxXxX
+//	fwpStr_randomID: 10, -asUpperCase; 				= XXXXXXXXXX
+//	fwpStr_randomID: 10, -withHyphensAt='4,8'; 		= XXX-XXX-XXXX
+//	fwpStr_randomID: 10, -withHyphensAfter='3,6';	= XXX-XXX-XXXX
+//	fwpStr_randomID: 10, -withHyphensEach='3';		= XXX-XXX-XXX-X
+
+//	fwpStr_randomID: '3a,3an,4an', -withHyphensAfter='3,6';	= XXX-XXX-XXXX
+
+//.............................................................................
+
+define_tag:'fwpStr_randomID', -priority='replace',
+	-required='length';
+
+	local:
+		'idLength'			= integer:(local:'length'),
+		'asUpperCase'		= false,
+		'addHyphensAt'		= string,
+		'addHyphensAfter'	= string,
+		'addHyphensEach'	= integer,
+		'srcChars'			= 'AaBb9CcDd8EeFf7GgHh6iJj5KkLMm4NnoPp3QqRr2SsTt1UuVv9WwXx8YyZz',
+		'idVal'				= string,
+		'hyphenPosition'	= integer;
+		
+	local:'srcLen'	= #srcChars->size;
+
+	(params->find:'-asUpperCase') || (params->find:'-upperCase')
+		? #asUpperCase = true;
+
+	(params->find:'-withHyphensAt')
+		? #addHyphensAt = local:'withHyphensAt'
+		| (params->find:'-usingHyphensAt')
+			? #addHyphensAt = local:'usingHyphensAt'
+			| (params->find:'-hyphensAt')
+				? #addHyphensAt = local:'hyphensAt';
+
+	(params->find:'-withHyphensAfter')
+		? #addHyphensAfter = local:'withHyphensAfter'
+		| (params->find:'-usingHyphensAfter')
+			? #addHyphensAfter = local:'usingHyphensAfter'
+			| (params->find:'-hyphensAfter')
+				? #addHyphensAfter = local:'hyphensAfter';
+
+	(params->find:'-withHyphensEach')
+		? #addHyphensEach = integer:(local:'withHyphensEach')
+		| (params->find:'-usingHyphensEach')
+			? #addHyphensEach = integer:(local:'usingHyphensEach')
+			| (params->find:'-hyphensEach')
+				? #addHyphensEach = integer:(local:'hyphensEach');
+
+	loop: #idLength;
+		#idVal += (#srcChars)->(substring:(math_random: -min=1, -max=#srcLen),1);
+	/loop;
+
+	#asUpperCase
+		? #idVal->uppercase;
+
+	if: #addHyphensEach;
+		#hyphenPosition = #addHyphensEach + 1;
+		loop: (#addHyphensEach % #idLength);
+			#idVal->(merge: (loop_count * #hyphenPosition), '-');
+		/loop;
+	else: #addHyphensAfter;
+		#addHyphensAfter = fwpCnfg_splitComma:#addHyphensAfter;
+		iterate: #addHyphensAfter, #hyphenPosition;
+			#idVal->(merge: (integer:#hyphenPosition) + loop_count, '-');
+		/iterate;
+	else: #addHyphensAt;
+		#addHyphensAt = fwpCnfg_splitComma:#addHyphensAt;
+		iterate: #addHyphensAt, #hyphenPosition;
+			#idVal->(merge: #hyphenPosition, '-');
+		/iterate;
+	/if;
+
+	return: #idVal;
+
+/define_tag;
+
+?>

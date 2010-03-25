@@ -1,0 +1,1287 @@
+﻿/*	.................................................. 
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//	.................................................. 
+
+	{fileName=		fwpro_main.css }
+	{rsrcType=		css }
+	{rsrcName=		fwpro_main.css }
+	{rsrcHTTP=		www.pageblocks.org/refc/ }
+
+	{author=			Greg Willits }
+	{authorEmail=	 	}
+	{authorHTTP=	 	}
+
+	{desc=			standard styles for FWPro site }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=		Greg Willits }
+	{maintnotes=		initial release }
+
+//	.................................................. 
+*/
+
+/* @group Major Page Elements
+// ========================================================
+//
+//: Major Page Elements
+//
+//
+*/
+
+html, body, div, form, table, h1, h2, h3, h4, h5, h6, p {
+	margin: 0px;
+	padding: 0px;
+	}
+
+.alerts {
+	width: 100%;
+	vertical-align: middle;
+	padding: 10px 10px 10px 10px;
+	margin-bottom: 10px;
+	text-align: center;
+	background-color: #ffffbe;
+	}
+
+/* -------------------------------- */
+
+#pagewrapper {
+	clear: both;
+	width: 940px;
+	margin: 40px auto 40px auto;
+	padding: 0;
+	text-align: left;
+	}
+
+#headerCapWrapper,
+#headerWrapper,
+#bodyWrapper,
+#footerWrapper,
+#footerCapWrapper {
+	clear: both;
+	width: 940px;
+	margin: 0;
+	padding: 0;
+	}
+
+#headerCapShdwLeft,
+#headerCapShdwRight,
+#footerCapShdwLeft,
+#footerCapShdwRight,
+#bodyShdwLeft,
+#bodyShdwRight {
+	float: left;
+	width: 10px;
+	margin: 0;
+	padding: 0;
+	}
+
+
+#pgblockbody {
+	float: left;
+	clear: both;
+	width: 860px;
+	padding: 24px 30px 0 30px;
+	margin: 0;
+	text-align: left;
+	}
+
+#sidebar {
+	float: left;
+	width: 170px;
+	margin: 0;
+	padding: 0;
+	text-align: left;
+	}
+
+#pgblock1colmain {
+	float: left;
+	width: 690px;
+	padding: 0;
+	margin: 0;
+	text-align: left;
+	}
+
+#pgblock1colmain {
+	float: left;
+	width: 660px;
+	padding: 0 30px 0 0;
+	margin: 0;
+	text-align: left;
+	}
+
+#pgblock2colnwleft {
+	float: left;
+	width: 140px;
+	margin: 0 20px 0 0;
+	padding: 0;
+	overflow: hidden;
+	text-align: left;
+	}
+
+#pgblock2colnwmain {
+	float: left;
+	width: 500px;
+	padding: 0 20px 0 0;
+	margin: 0;
+	text-align: left;
+	}
+
+#refcAPIVitals {
+	float: left;
+	width: 140px;
+	margin: 0 20px 0 0;
+	padding: 0;
+	overflow: hidden;
+	text-align: left;
+	}
+
+#refcAPIDocs {
+	float: left;
+	width: 500px;
+	padding: 0 20px 0 0;
+	margin: 0;
+	text-align: left;
+	}
+
+#refcAPISource {
+	float: left;
+	width: 860px;
+	padding: 0 30px 0 30px;
+	margin: 0 0 0 0;
+	text-align: left;
+	}
+
+#pgblockhdr {
+	float: left;
+	width: 860px;
+	padding: 11px 30px 20px 30px;
+	margin: 0 0 0 0;
+	text-align: left;
+	}
+
+#pgblockftr {
+	float: left;
+	width: 860px;
+	padding: 20px 30px 0px 30px;
+	margin: 0 0 0 0;
+	text-align: left;
+	}
+
+/* @end */
+
+
+/* @group Basic Text Elements 
+// ========================================================
+//
+//: Basic Text Elements
+//
+//
+*/
+
+a {
+	text-decoration: none;
+	cursor: pointer;
+	}
+
+a:hover {
+	text-decoration: none;
+	}
+
+a.help {
+	text-decoration: none;
+	cursor: help;
+	}
+
+textarea#sampleStyles {
+	width: 100%;
+	}
+
+h1 {
+	font-weight: bold;
+	font-size: 24px;
+	line-height: 130%;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	padding: 0px 0px 10px 0px;
+	}
+
+h2 {
+	font-weight: 
+;
+	font-size: 18px;
+	line-height: 130%;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	padding: 6px 0px 10px 0px;
+	}
+
+h3 {
+	font-weight: 
+;
+	font-size: 16px;
+	line-height: 130%;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	padding: 6px 0px 10px 0px;
+	}
+
+h4 {
+	font-weight: 
+;
+	font-size: 14px;
+	line-height: 130%;
+	font-family: Verdana, Arial, "Trebuchet MS";
+	padding: 0px 0px 10px 0px;
+	}
+
+h5 {
+	font-weight: bold;
+	font-size: 10px;
+	line-height: 130%;
+	font-family: Arial, "Trebuchet MS", Verdana;
+	padding: 0px 0px 10px 0px;
+	}
+
+h6 {
+	font-weight: bold;
+	font-size: 9px;
+	line-height: 130%;
+	font-family: Arial, "Trebuchet MS", Verdana;
+	padding: 0px 0px 10px 0px;
+	}
+
+p, li, ul, cite, blockquote {
+	font-size: 11px;
+	line-height: 130%;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	word-spacing: normal;
+	letter-spacing: normal;
+	}
+
+ul {
+	padding-top: 0px;
+	margin-top: 0px;
+	}
+
+p {
+	padding: 0px 0px 10px 0px;
+	}
+
+p.singlespaced {
+	padding: 0px 0px 2px 0px;
+	}
+	
+div.debug p {
+	padding: 0px 0px 4px 0px;
+	}
+
+
+.bold {
+	font-weight: bold;
+	}
+
+.grabber {
+	font-weight: bold;
+	size: 12px
+	}
+
+.super {
+	font-size: 8px;
+	vertical-align: super;
+	}
+
+.sub {
+	font-size: 8px;
+	vertical-align: sub;
+	}
+
+.pub {
+	border-bottom: 1px dotted black;
+	}
+
+.artcl {
+	font-style: italic;
+	}
+
+.filename {
+	font-family: Verdana, Arial, "Trebuchet MS";
+	}
+	
+.mono {
+	font-size: 10px;
+	line-height: 130%;
+	font-family: Monaco, "Andale Mono";
+	}
+
+pre.code, code, samp, var, kbd {
+	font-size: 10px;
+	line-height: 130%;
+	font-family: Monaco, "Andale Mono";
+	padding: 0px 0px 10px 0px;
+	}
+
+small {
+	font-size: 10px;
+	line-height: 130%;
+	font-family: Verdana, Arial, "Trebuchet MS";
+	font-style: normal;
+	word-spacing: normal;
+	letter-spacing: normal;
+	}
+
+em {
+	font-style: normal;
+	font-weight: bold;
+	}
+
+strong {
+	font-weight: bold;
+	}
+
+/* @end */
+
+
+/* @group Basic Img Elements 
+// ========================================================
+//
+//: Basic Img Elements
+//
+//
+*/
+
+img {
+	vertical-align: middle;
+	border-width: 0px;
+	}
+
+img.content {
+	padding: 10px 0 10px 0;
+	}
+
+/* @end */
+
+
+/* @group Admin UI Elements 
+// ========================================================
+//
+//: Admin UI Elements
+//
+//
+*/
+
+form#stdadminmainbar {
+	margin: 0 0 10px 0;
+	padding: 6px 7px 6px 10px;
+	text-align: right;
+	background-color: #E0E0C0;
+	}
+
+div.stdadminformbar {
+	margin: 10px 0 10px 0;
+	padding: 6px 7px 6px 10px;
+	text-align: right;
+	background-color: #E0E0C0;
+	}
+
+span.btnbarbutton {
+	padding: 0 3px 0 3px;
+	}
+
+div#stdadminfilter {
+	margin: 10px 0 10px 0;
+	padding: 6px 7px 6px 10px;
+	text-align: right;
+	background-color: #E0E0C0;
+	}
+
+/* @end */
+
+
+/* @group Basic List Elements
+// ========================================================
+//
+//: Basic List Elements
+//
+//
+*/
+
+div.listnavbar {
+	padding: 6px 10px 6px 0;
+	text-align: right;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	font-size: 11px;
+	}
+
+.stdlist table {
+	font-family: Verdana, "Trebuchet MS", Arial;
+	font-size: 11px;
+	}
+
+.stdlist table tr.hdr {
+	font-weight: bold;
+	}
+
+.stdlist table td {
+	padding: 2px 4px 2px 4px;
+	vertical-align: middle;
+	line-height: 120%;
+	}
+
+.stdlist table td.left {
+	text-align: left;
+	}
+
+.stdlist table td.cntr {
+	text-align: center;
+	}
+
+.stdlist table td.right {
+	text-align: right;
+	}
+
+/* @end */
+
+
+/* @group Basic Table Elements
+// ========================================================
+//
+//: Basic Table Elements
+//
+//
+*/
+
+.stdtable table {
+	font-family: Verdana, "Trebuchet MS", Arial;
+	font-size: 11px;
+	}
+
+.stdtable tr {
+	text-align: left;
+	vertical-align: top;
+	}
+
+.stdtable td {
+	padding: 0px;
+	}
+
+.stdtable td.cntr {
+	text-align: center;
+	}
+
+.stdtable td.right {
+	text-align: right;
+	}
+
+/* @end */
+
+
+/* @group Basic Form Elements
+// ========================================================
+//
+//: Basic Form Elements
+//
+//
+*/
+
+.stdform table {
+	font-family: Verdana, "Trebuchet MS", Arial;
+	font-size: 11px;
+	}
+
+.stdform td {
+	text-align: left;
+	vertical-align: middle;
+	padding: 2px 4px 2px 4px;
+	}
+
+.stdform td.label {
+	font-weight: bold;
+	}
+
+.stdform td span.labeltip {
+	font-weight: normal;
+	font-size: 10px;
+	}
+
+.stdform td.cntr {
+	text-align: center;
+	}
+
+.stdform td.right {
+	text-align: right;
+	}
+
+.stdform td.top {
+	vertical-align: top;
+	}
+
+/* @end */
+
+
+/* @group Inputs and Value Lists 
+// ========================================================
+//
+//: Inputs and Value Lists
+//
+//
+*/
+
+input {
+	vertical-align: middle;
+	}
+
+.txtinput {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, Arial, "Trebuchet MS";
+	border-width: 1px;
+	}
+
+.fwppopup {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	}
+
+.fwpcheckbox {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	}
+
+.fwpradiobtns {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	}
+
+.fwplistbox {
+	font-weight: normal;
+	font-size: 11px;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	}
+
+/* @end */
+
+
+/* @group Autovalidate ErrMsgs
+// ========================================================
+//
+//:	Autovalidate ErrMsgs
+//
+//
+*/
+
+span.inputerrmsg {
+	margin:  0px;
+	padding: 2px;
+	font-size: 10px;
+	line-height: 110%;
+	font-weight: bold;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	text-align: left;
+	}
+
+span.inputerrfldnm {
+	font-size: 10px;
+	line-height: 110%;
+	font-weight: bold;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	text-align: left;
+	}
+
+div#validerror {
+	width: 100%;
+	padding: 6px 0px 6px 0px;
+	margin-top: 4px;
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 110%;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	word-spacing: normal;
+	letter-spacing: normal;
+	text-align: center;
+	}
+	
+/* @end */
+
+
+/* @group Text Menus
+// ========================================================
+//
+//:	Text Menus
+//
+//
+*/
+
+.fwptextmenu {
+	font-size: 11px;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	font-weight: normal;
+	line-height: 150%;
+	text-align: left;
+	padding: 10px 0 12px 0px;
+	}
+
+.fwptxtmenuhilite {
+	font-weight: bold;
+	}
+
+/* @end */
+
+
+/* @group autoPerms Styles 
+// ========================================================
+//
+//:	autoPerms Styles
+//
+//
+*/
+
+.permsMatrix td.modLabel {
+	font-size: 11px;
+	font-weight: bold;
+	text-align: center;
+	}
+
+.permsMatrix td.permLabel {
+	font-size: 11px;
+	font-weight: bold;
+	text-align: right;
+	}
+
+.permsMatrix td.permCellA {
+	font-size: 11px;
+	text-align: center;
+	}
+
+.permsMatrix td.permCellB {
+	font-size: 11px;
+	text-align: center;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar
+// ========================================================
+//
+//:	EDP Cntlbar
+//
+//
+*/
+
+#edpcntlbarmain {
+	margin: 0px 0px 20px 0px;
+	}
+
+#edpcntlbarmain table {
+	width: 700px;
+	padding: 4px 5px 4px 5px;
+	}
+
+#edpcntlbarmain table td.btncell {
+	width: 120px;
+	text-align: right;
+	padding: 0 5px 0 0px;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar Filter
+// ========================================================
+//
+//:	EDP Cntlbar Filter
+//
+//
+*/
+
+#edpcntlbarfltr {
+	margin: 0px 0px 6px 0px;
+	}
+
+#edpcntlbarfltr table {
+	width: 700px;
+	padding: 4px 10px 4px 10px;
+	font-size: 11px;
+	line-height: 100%;
+	font-weight: normal;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	text-align: left;
+	}
+
+#edpcntlbarfltr tr {
+	vertical-align: middle;
+	}
+
+#edpcntlbarfltr td.cntr {
+	text-align: center;
+	}
+
+#edpcntlbarfltr td.right {
+	text-align: right;
+	}
+
+#edpcntlbarfltr td.left {
+	text-align: left;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar Nav
+// ========================================================
+//
+//:	EDP Cntlbar Nav
+//
+//
+*/
+
+#edpcntlbarnav {
+	margin: 20px 0px 0px 0px;
+	}
+
+#edpcntlbarnav table {
+	width: 700px;
+	padding: 0px 0px 0px 0px;
+	}
+
+/* @end */
+
+
+/* @group EDP Status Panel
+// ========================================================
+//
+//:	EDP Status Panel
+//
+//
+*/
+
+#edpstatuspanel {
+	margin: 0px 0px 6px 0px;
+	}
+
+#edpstatuspanel table {
+	width: 700px;
+	padding: 4px 0px 4px 0px;
+	font-size: 11px;
+	line-height: 100%;
+	font-weight: normal;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	text-align: center;
+	background-color: #CCCCCC;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar Form
+// ========================================================
+//
+//:	EDP Cntlbar Form
+//
+//
+*/
+
+#edpcntlbarform {
+	margin: 0px 0px 6px 0px;
+	}
+
+#edpcntlbarform table {
+	width: 700px;
+	margin: 1px 0px 1px 0px;
+	padding: 4px 10px 4px 10px;
+	font-size: 11px;
+	line-height: 100%;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	}
+
+#edpcntlbarform table td.right {
+	text-align: right;
+	}
+
+#edpcntlbarform input.formbtnsave {
+	}
+
+#edpcntlbarform input.formbtncancel {
+	padding-left: 5px;
+	}
+
+#edpcntlbarform input.formbtndelete {
+	padding-left: 5px;
+	}
+
+/* @end */
+
+
+/* @group EDP Panes 
+// ========================================================
+//
+//:	EDP Panes
+//
+//
+*/
+
+#edppanehelp table {
+	width: 725px;
+	padding: 0px 0px 0px 0px;
+	}
+
+#edppanehelp td.top {
+	vertical-align: top;
+	}
+
+#edppanehelp p {
+	font-size: 11px;
+	line-height: 100%;
+	font-weight: normal;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	text-align: left;
+	vertical-align: text-top;
+	}
+
+/* @end */
+
+
+/* @group EDP Cntlbar List 
+// ========================================================
+//
+//:	EDP Cntlbar List
+//
+//
+*/
+
+#edpcntlbarlist {
+	margin: 0px 0px 0px 0px;
+	}
+
+#edpcntlbarlist table {
+	width: 700px;
+	margin: 0px 0px 1px 0px;
+	padding: 0px 10px 4px 0px;
+	font-size: 11px;
+	line-height: 100%;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	}
+
+#edpcntlbarlist table td.right {
+	text-align: right;
+	}
+
+/* @end */
+
+
+/* @group Misc 
+// ========================================================
+//
+//:	App Misc
+//
+//
+*/
+
+p.mainmenu {
+	padding: 6px 0px 10px 0px;
+	}
+
+p.caption {
+	font-size: 10px;
+	line-height: 130%;
+	font-family: Verdana, Arial, "Trebuchet MS";
+	font-style: normal;
+	word-spacing: normal;
+	letter-spacing: normal;
+	}
+
+p.refclink {
+	padding: 0 0 4px 0;
+	font-size: 10px;
+	line-height: 110%;
+	font-family: Verdana, Arial, "Trebuchet MS";
+	font-style: normal;
+	word-spacing: normal;
+	letter-spacing: normal;
+	}
+
+.footnote {
+	font-size: 9px;
+	line-height: 100%;
+	color: #808080;
+	font-family: Verdana, Arial, "Trebuchet MS";
+	font-style: normal;
+	word-spacing: normal;
+	letter-spacing: normal;
+	text-align: left;
+	padding: 6px 0px 0px 0px;
+	}
+
+#sidebar ul {
+	list-style-type: none;
+	padding: 0;
+	margin-left: 10px;
+	}
+
+#intro ul {
+	padding: 0;
+	margin-left: 20px;
+	}
+
+#intro p {
+	font-size: 12px;
+	padding: 0px 0px 8px 0px;
+	}
+
+div.errata {
+	margin: 20px 0px 20px 0px;
+	}
+/* @end */
+
+/* @group Source Code 
+// ========================================================
+//
+//: APP Source Code
+//
+//
+*/
+
+pre.code {
+	width: 97%;
+	margin: 0 0 20px 0;
+	padding: 4px;
+	border: 1px solid #dddddd;
+	overflow: auto;
+	font: 10px Monaco, "Andale Mono";
+	white-space: pre;
+	}
+
+div.sourcecode {
+	width: 99%;
+	margin: 10px 0 20px 0;
+	padding: 4px;
+	border: 1px solid #808080;
+	background-color: #eeeeee;
+	overflow: scroll;
+	font: 10px Monaco, "Andale Mono";
+	white-space: pre;
+	}
+
+pre.sourcecode {
+	width: 97%;
+	height: 300px;
+	margin: 0 0 20px 0;
+	padding: 4px;
+	border: 1px solid #dddddd;
+	overflow: auto;
+	font: 10px Monaco, "Andale Mono";
+	white-space: pre;
+	}
+
+form.srccodesetheight {
+	margin-bottom: 20px;
+	}
+
+form.srccodesetheight p {
+	text-align: center;
+	padding: 0 0 5px 0;
+	}
+
+form.srccodesetheight img {
+	padding: 0 0 0 5px;
+	}
+
+/* @end */
+
+
+/* @group Security Outline 
+// ========================================================
+//
+//
+//
+//
+*/
+
+#securityoutline ol {
+	margin: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+	}
+
+#securityoutline li {
+	margin: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+	}
+
+#securityoutline ol.Numbered_List {
+	list-style: decimal;
+	padding-left: 15px;
+	text-indent: 0px;
+	padding-bottom: 0px;
+	}
+
+#securityoutline ol.Numbered_List_1 {
+	list-style: decimal;
+	padding-left: 40px;
+	text-indent: 0px;
+	padding-bottom: 0px;
+	}
+
+#securityoutline ol.Numbered_List_2 {
+	list-style: decimal;
+	padding-left: 75px;
+	text-indent: 0px;
+	padding-bottom: 0px;
+	}
+
+#securityoutline ol.Numbered_List_3 {
+	list-style: decimal;
+	padding-left: 105px;
+	text-indent: 0px;
+	padding-bottom: 0px;
+	}
+
+/* @end */
+
+
+/* @group Talk Msgs 
+// ========================================================
+//
+//: APP - msgArchives
+//
+//
+*/
+
+div.msgheaders {
+	width: 490px;
+	}
+
+div.msgheaderlabels {
+	float: left;
+	width:  100px;
+	}
+
+div.msgheaderdata {
+	float: left;
+	width: 300px;
+	}
+
+p.msghdrlabel {
+	padding: 0;
+	margin:  0;
+	font-weight: bold;
+	}
+
+p.msghdrdata {
+	padding: 0;
+	margin:  0;
+	}
+
+div.msgbody {
+	clear: both;
+	width:  490px;
+	padding-top: 5px;
+	}
+
+pre.msgtext {
+	padding: 10px;
+	background-color: #f5f5dc;
+	font-family: Monaco, "Andale Mono";
+	font-size: 10px;
+	}
+
+/* ------------------ */
+
+span.msgquote4 {
+	color: #9933CC;
+	}
+
+span.msgquote3 {
+	color: #CC3333;
+	}
+
+span.msgquote2 {
+	color: #339999;
+	}
+
+span.msgquote1 {
+	color: #3366CC;
+	}
+
+p.msgthread {
+	margin: 0;
+	padding: 0 0 2px 0;
+	}
+
+/* ------------------ */
+	
+div.msgsearch {
+	padding: 10px;
+	margin: 5px 0 20px 0;
+	background-color: #f5f5dc;
+	}
+
+div.msgsearchinput {
+	float: left;
+	width: 105px;
+	}
+
+div.msgsearchinputdate {
+	float: left;
+	width: 85px;
+	}
+
+div.msgsearchinputshow {
+	float: left;
+	width: 55px;
+	}
+
+div.msgsearch p.msgsearchinfo {
+	clear: both;
+	margin: 0;
+	padding: 0;
+	color: #666666;
+	}
+
+
+/* @end */
+
+/* @group debug */
+
+div.debug {
+	padding: 10px 0px 20px 20px;
+	}
+
+div.debug h1, h2, h3 {
+	font-size: 20px;
+	line-height: 130%;
+	text-align: left;
+	font-family: Arial, "Trebuchet MS", Verdana;
+	margin: 0px 0px 10px 0px;
+	}
+
+div.debug h2 {
+	font-size: 16px;
+	}
+
+div.debug h3 {
+	font-size: 14px;
+	padding: 6px 0px 0px 0px;
+	}
+
+div.debug h4{
+	padding: 10px 0px 6px 0px;
+	}
+
+div.debug p {
+	font-size: 11px;
+	line-height: 130%;
+	text-align: left;
+	font-family: Verdana, Arial, "Trebuchet MS";
+	font-style: normal;
+	word-spacing: normal;
+	letter-spacing: normal;
+	padding: 10px 0px 0px 0px;
+	}
+
+/* @end */
+
+/* @group dbm module */
+
+div#dbmButtonBar{
+	margin: 0;
+	padding: 10px 0 10px 0;
+	}
+
+span.minoremphasis {
+	color: #986631;
+	}
+
+span.sqlstatement {
+	color: grey;
+	}
+
+h3.dbmResults {
+	margin: 0;
+	padding: 20px 0 10px 0;
+	}
+
+.dbmFieldSpecs table {
+	font-size: 11px;
+	color: black;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	background-color: white;
+	page-break-after: always;
+	}
+
+.dbmFieldSpecs table tr.hdr {
+	font-weight: bold;
+	background-color: #cc9;
+	color: #000;
+	}
+
+.dbmFieldSpecs table tr.altrowA {
+	background-color: #f5f5dc;
+	}
+
+.dbmFieldSpecs table tr.altrowB {
+	background-color: #E9E9D1;
+	}
+
+.dbmFieldSpecs table td {
+	padding: 2px 4px 2px 4px;
+	vertical-align: middle;
+	line-height: 130%;
+	}
+
+.dbmFieldSpecs table td.left {
+	text-align: left;
+	}
+
+.dbmFieldSpecs table td.cntr {
+	text-align: center;
+	}
+
+.dbmFieldSpecs table td.right {
+	text-align: right;
+	}
+
+.dbmFieldSpecs .subtext {
+	color: #808080;
+	font-size: 10px;
+	padding-top: 3px;
+	}
+
+.dbmTableSpecs table {
+	font-size: 11px;
+	color: black;
+	font-family: Verdana, "Trebuchet MS", Arial;
+	padding-top: 0px;
+	padding-bottom: 10px;
+	}
+
+.dbmTableSpecs tr {
+	text-align: left;
+	vertical-align: top;
+	}
+
+.dbmTableSpecs td {
+	padding: 0px;
+	}
+
+.dbmTableSpecs td.label {
+	font-weight: bold;
+	}
+
+.dbmTableSpecs td.cntr {
+	text-align: center;
+	}
+
+.dbmTableSpecs td.right {
+	text-align: right;
+	}
+
+.dbmTableSpecs td.top {
+	vertical-align: top;
+	}
+
+/* @end */
+	

@@ -1,0 +1,63 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpSrch_nemoyController.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_nemoyController }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_nemoyController }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			parses and stores search criteria }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-05-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_nemoyController';
+
+
+//============================================================================
+//
+//	->search
+//
+//
+//............................................................................
+
+define_tag:'search',
+	-required = 'criteria',
+	-required = 'query';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyController->search');
+
+	if: (client_getParams >> 'btnNemoyReset.x');
+	else;
+		#criteria->(init:client_getParams);
+		if: #criteria->'searchString';
+			#query->(init:
+				-srchConfig = #criteria->'srchConfig',
+				-rankEngine = #criteria->'rankEngine');
+			#query->(searchFor: -searchTerms = #criteria->'searchTerms');
+		/if;
+	/if;
+
+/define_tag;
+
+/define_type;
+
+?>

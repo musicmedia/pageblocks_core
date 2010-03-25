@@ -1,0 +1,171 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_requestPageElements.ctype }
+	{rsrcType=		type }
+	{rsrcName=		fwp_requestPageElements }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_requestPageElements }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates instance vars of various URL components. Also 
+					determines if params have been embedded in the URL
+					as created by fwpPage_makeURLparams.ctag and turns them
+					in to vars and rewrite the real `file` name. }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2008-06-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed bug that would improperly define domain/subdomain
+	  				when there was < 3 parts to the URL root }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-21 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added ->page as a synonym for file }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.2 }
+	{maintdate=		2006-04-11 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed calculation of #path to fix a bug
+					rearranged some var declarations to make it easier to
+					deprecate older var names }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_requestPageElements', -prototype;
+
+	local:
+		'goback' 		= string,
+		'self' 			= string,
+		'file'			= string,
+		'folder'		= string,
+		'path'			= string,
+		'folderList'	= string,
+		'urlFilePath'	= string,
+		'moduleName'	= string,
+		'module'		= string,
+		'host'			= string,
+		'subhost'		= string,
+		'domain'		= string,
+		'subdomain'		= string,
+		'name'			= string,
+
+		'page'			= string,
+		'fldr'			= string,
+		'fldrlist'		= string,
+		'moduleNm'		= string;
+		
+
+define_tag:'onCreate';
+
+	if: params->get:1;
+		(self->'urlFilePath') = params->get:1;
+	else;
+		(self->'urlFilePath') = response_filepath;
+	/if;
+		
+//	slice up the basic stuff
+
+	(self->'goback') 		= referrer_url;
+	(self->'self') 			= (self->'urlFilePath');
+	(self->'file')			= (self->'urlFilePath')->(split:'/')->last;
+	(self->'folder')		= (self->'urlFilePath')->(split:'/')->get:(((self->'urlFilePath')->(split:'/')->size)-1);
+	(self->'path')			= (self->'urlFilePath');
+	(self->'path')->(removeTrailing:(self->'file'));
+	(self->'folderList')	= (self->'path')->(split:'/');
+
+//	a `module` is the first path folder which
+//	defines a transportable FWPro site module
+
+	if: (self->'path')->(split:'/')->size > 2;
+		(self->'moduleName')	= (self->'urlFilePath')->(split:'/')->get:2;
+		(self->'module')		= '/' + (self->'moduleName') + '/';
+	else; 
+		(self->'moduleName')	= '/'; 
+		(self->'module')		= '/'; 
+	/if;
+
+//	get domain and subdomain
+//	subhost and subdomain are synonyms, neither will be deprecated
+
+	(self->'host') = (string_findregexp: client_headers, -find='HOST:\\s?(.*)', -ignorecase)->last;
+	(self->'host')->trim;
+
+	local:'hostParts' = (self->'host')->(split:'.');
+	(#hostParts->size > 2) ? (self->'subHost') = #hostParts->get:1;
+
+	(self->'domain') = (self->'host');
+	(self->'domain')->removeLeading:((self->'subhost') + '.');
+	(self->'subdomain')	= @(self->'subhost');
+
+
+//	see if we have any embedded params
+//	if so, make an array of names & values
+//	adjust the file or path name to the real value
+//	loop and make vars
+
+	local:'params'=(string);
+
+//	look for URL params using file method
+
+	if: (self->'file') >> fw_kUrlParamsChar;
+		#params = (self->'file')->(split:fw_kUrlParamsChar);
+		(self->'file') = #params->last;
+		#params->(remove:(#params->size));
+
+		loop: #params->size, -loopincrement=2;
+			var:(#params->get:loop_count) = 
+			#params->(get:loop_count + 1);
+		/loop;
+
+//	look for URL params using folder method
+
+	else: (self->'path') >> '/-/';
+		#params = (self->'path')->(split:'/-/')->get:2;
+		#params = #params->(split:'/');
+		#params->(remove:(#params->size));
+		(self->'path') = (self->'path')->(split:'/-/')->get:1;
+		(self->'path') += '/';
+		loop: #params->size, -by=2;
+			var:(#params->get:loop_count) =	local:(#params->get:(loop_count + 1));
+		/loop;
+	/if;
+
+//	name is a function of file, so we can`t set it until now
+//	in case there were params embedded in the file name
+
+	(self->'name') = (self->'file')->(split:'.')->get:1;
+
+//	deprecated var names
+//	expect these to be removed in the next major point release or two
+
+	(self->'page')		= @(self->'file');
+	(self->'fldr')		= @(self->'folder');
+	(self->'fldrList')	= @(self->'folderList');
+	(self->'moduleNm')	= @(self->'moduleName');
+
+/define_tag;
+	
+/define_type;
+?>

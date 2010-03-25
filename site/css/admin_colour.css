@@ -1,0 +1,354 @@
+/*
+	#################################################
+	#												#
+	#	** colouring rules **						#
+	#	www.coco.dk admin system					#
+	#	this code is intellectual proporty of		#
+	#	musicmedia.dk, please proceed with caution!	#
+	#												#
+	#################################################
+*/
+
+/*	--------------------------------------------- */
+/*	### general element colouring ###  */
+
+body {
+	background-color: #f7f7ef;
+}
+
+.bold, dt, legend, th, strong, fieldset#dsp label, label.title, div.twolan var {
+	color: #3a2611;
+}
+
+
+a, #main a {
+	color: #777777;
+}
+
+a:hover, #main a:hover {
+	color: #333333;
+}
+
+.orange {
+	color: #ff8c1c;
+}
+
+.asterisk {
+	color: #c30;
+	}
+
+.dim, .grey {
+	color: #666666;
+}
+
+.green {
+	color: #336600;
+}
+
+h3.errorttl {
+	color: #993300;
+}
+
+.alert, .red {
+	color: #cf0000;
+}
+
+.notthis {
+	color: #746d46;
+}
+
+.thisone {
+	color: #518f50;
+}
+
+
+/*	--------------------------------------------- */
+/*	### custom element colouring ###  */
+
+#contentwrapper, #header {
+	background-color: #c8c9c0;
+}
+
+#feedback, #main, #left div.lefttitle {
+	background-color: #f7f7ef;
+}
+
+div.links, #footer {
+	background-color: #e5e5d9;
+}
+
+
+/* @group mainnav */
+
+ul#mainnav li {
+	background-color: #e5e5d9;
+	border-right-color: #f7f7ef;
+}
+
+ul#mainnav li a {
+	color: #3a2611;
+}
+
+ul#mainnav li a.sel {
+	background-color: #c8c9c0;
+}
+
+ul#mainnav div.dim, ul#mainnav div.dimtwo {
+	color: #999999;
+}
+
+ul#mainnav a:hover {
+	color: #000000;
+	background-color: #d7d7cc;
+}
+
+/* @end */
+
+/* @group left */
+
+#left {
+	background-color: #c8c9c0;
+}
+
+#left #menugrp {
+	border-top-color: #e5e5d9;
+	border-right-color: #9e9e95;
+	border-bottom-color: #9e9e95;
+	border-left-color: #e5e5d9;
+}
+
+#left #menugrp div.tle {
+	background-color: #9e9e95;
+	color: #000000;
+}
+
+ul#leftnav li.divider {
+	border-bottom-color: #9e9e95;
+}
+
+ul#leftnav a {
+	color: #333333;
+}
+
+ul#leftnav a:hover {
+	color: #000000;
+	background-color: #9e9e95;
+}
+
+/* @end */
+
+/* @group feedback */
+
+#feedback p.feedback, p.feedback {
+	color: #cc711c;
+}
+
+#feedback a {
+	color: #3a2611;
+	border-bottom-color: #3a2611;
+}
+
+#feedback div.divider {
+	border-bottom-color: #c8c9c0;
+}
+
+#feedback a:hover {
+	border-bottom-color: #000000;
+}
+
+
+/* @end */
+
+/* @group main */
+
+#main div.links a {
+	color: #333333;
+	border-bottom-color: #333333; 
+}
+
+#main div.links a:hover {
+	color: #000000;
+	border-bottom-color: #000000;
+}
+
+/* @end */
+
+/* @group footer */
+
+ul#footernav li {
+	border-right-color: #9e9e95;
+}
+
+ul#footernav li.last {
+	border-left-color: #9e9e95;
+}
+
+ul#footernav li a {
+	color: #333333;
+	border-bottom-color: #333333;
+}
+
+ul#footernav a:hover {
+	color: #000000;
+	border-bottom-color: #000000;
+}
+
+/* @end */
+
+/* @group technical */
+
+div.divider, div.dividerright {
+	border-color: #c8c9c0;
+}
+
+/* @end */
+
+/* @group various form element rules */
+
+fieldset, fieldset#dsp {
+	border-color: #9fa098;
+}
+
+fieldset fieldset {
+	border-color: #c8c9c0;
+	background-color: #fbfcf5;
+}
+
+select	{
+	border-color: #9e9e95;
+}
+
+fieldset fieldset legend {
+	color: #5d4744;
+}
+
+fieldset fieldset select {
+	border-color: #e3e3dd;
+}
+
+fieldset fieldset input.size1, fieldset fieldset input.size2, fieldset fieldset input.size3, fieldset fieldset input.size4 {
+	border-color: #e5e7df;
+}
+
+select, textarea, input.size1, input.size2, input.size3, input.size4, input.size5, .twolan input.size3l, .twolan input.size4l {
+	background-color: #f7f7ef; 
+}
+
+textarea, input.size1, input.size2, input.size3, input.size4, input.size5, input.size3l, input.size4l, editor_field {
+	border-top-color: #646159;
+	border-right-color: #ffffff;
+	border-bottom-color: #ffffff;
+	border-left-color: #646159;
+}
+
+.alert {
+	color: #cf0000;
+}
+
+input.reset {
+	background-color: #e6e1d0;}
+
+input.reset:hover {
+	background-color: #f9f5e2;}
+
+input.submit {
+	color: #ffffff;
+	background-color: #527b52;
+}
+
+input.submit:hover {
+	background-color: #629a68;
+}
+
+input.delete, input.deleteSmall {
+	color: #ffffff;
+	background-color: #803c14;
+}
+
+input.deleteSmallDisab {
+	color: #ffffff;
+	background-color: #c8c9c0;
+}
+
+input.delete:hover, input.deleteSmall:hover {
+	background-color: #a1350b;
+}
+
+/* @end */
+
+/* @group tables */
+
+table.list, table.listheader, table.primheader, table.scndlist {
+	background-color: #e5e5d9;
+	border-top-color: #ffffff;
+	border-right-color: #9e9e95;
+	border-bottom-color: #9e9e95;
+	border-left-color: #ffffff;
+}
+
+th, td {
+	border-right-color: #c8c9c0;
+}
+
+table.list th {
+	border-bottom-color: #9e9e95;
+}
+
+table.primheader {
+	background-color: #d2d2ca;
+}
+
+td.scndheader {
+	background-color: #dbdad2;
+}
+
+table.list th a, table.list th a:hover {
+	color: #3a2611 !important;
+}
+
+table.list td {
+	border-top-color: #ffffff;
+	border-bottom-color: #9e9e95;
+}
+
+table.list tr.l:hover {
+	border-top-color: #d5d0a1;
+	background-color: #d7dac4; 
+}
+
+table.list tr.divider {
+	background-color: #c8c9c0; 
+}
+
+td.footer, td.footer:hover {
+	border-top-color: #ffffff;
+	background-color: transparent; 
+}
+
+
+/* @end */
+
+/* @group FWP - AutoValidate */
+
+span.inputerrfldnm, label.inputerrfldnm, fieldset#dsp label.inputerrfldnm {
+	color: #cf0000;
+	}
+
+div#validerror {
+	background-color: #cf0000;
+	color: white;
+	}
+	
+	/* @end */
+
+/* @group inplace editor */
+
+.singleline, input.editor_field {
+	border-color: #e5e7df;
+}
+
+
+
+/* @end */
+
+

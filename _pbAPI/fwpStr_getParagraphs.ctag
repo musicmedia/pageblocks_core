@@ -1,0 +1,64 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_getParagraphs.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_getParagraphs }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_getParagraphs }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag returns 'max' chars of string 'str' with an
+					intelligent cutoff at whole words. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release - replaces fwpUtil_subWords }
+
+*/
+//.............................................................................
+
+define_tag:'fwpStr_getParagraphs', -priority='replace',
+	-required='str',
+	-required='get';
+
+	local:
+		'fw_get'		= #get,
+		'fw_str'		= (local:'str', -encodebreak),
+		'fw_rtnPieces'	= (array);
+
+//	html or xhtml?
+
+	if: #fw_str >> '<br />';
+		#fw_str = #fw_str->(split:'<br /><br />');
+	else;
+		#fw_str = #fw_str->(split:'<br><br>');
+	/if;
+
+	if: #fw_get > #fw_str->size;
+		#fw_get = #fw_str->size;
+	/if;
+
+	loop: #fw_get;
+		#fw_rtnPieces->(insert:#fw_str->(get:loop_count));
+		#fw_rtnPieces->(insert:'\r\r');
+	/loop;
+	#fw_rtnPieces = #fw_rtnPieces->join;
+	#fw_rtnPieces->(removetrailing:'\r\r');
+
+	return: #fw_rtnPieces;
+
+/define_tag;
+?>

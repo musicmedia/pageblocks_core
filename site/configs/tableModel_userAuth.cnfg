@@ -1,0 +1,62 @@
+[output_none]
+#! dbTbl5
+
+# version:  2007-12-30, last edit by Nikolaj de Fine Licht
+
+{{serverType___		[$fw_gDbServerTypes->find:'auth'] }}
+{{databaseName___	[$fw_gDatabases->find:'auth'] }}
+{{tableName___		[$fw_gTables->find:'userauth'] }}
+{{keyfield___		rcrdNo }}
+{{lockField___		rcrdLockID }}
+{{tableModel___
+
+#inputName		fieldName			dataType	validation codes
+#------------	-----------------	---------	-------------------------------------------
+m_rNo			rcrdNo				string
+m_rNewDate		rcrdCreated			string
+m_rNewBy		rcrdCreatedBy		string
+m_rModDate		rcrdModified		string
+m_rModBy		rcrdModifiedBy		string
+m_rStat			rcrdStatus			string
+m_rLokid		rcrdLockID			string
+m_rLoktm		rcrdLockTime		string
+m_rLokown		rcrdLockOwnr		string
+
+m_rSessID 		sessionNo			string
+m_rSessTime 	sessionTime			string
+m_rSessVars		sessionVars			string
+m_rSessKprs		sessionKeepers		string
+m_rSessProf		sessionProfile		string
+
+
+m_uNameF		userNameFirst		string		req, isExtendedSymbols, label=First Name
+m_uNameL		userNameLast		string		req, isExtendedSymbols, label=Last Name
+m_uOrg			userOrg				string
+m_uPhone		userPhone			string		n
+m_uEmail		userEmail			string		req, isEmail
+m_uPw			userPswd			string
+m_uHint			userHint			string		req
+
+m_uIns			userLogins			integer
+m_uLastIn		userLastLogin		string
+m_uTries		userAttempts		integer
+m_uLokTime		userLockTime		date
+m_uPwNew		userPswdNew			string
+m_uPwDate		userPswdCreated		string		
+m_uPwHist		userPswdHistory		string		
+m_uHosts		userHosts			string
+m_uLang			userLanguage		string
+
+# these are inputs that are part of the model, but not part of the table
+# these are usually interim form inputs used to collect pieces of what
+# ultimately is inserted into a single field
+
+i_uPhoneA		-					-			req, n, len=3
+i_uPhoneP		-					-			req, n, len=3
+i_uPhoneN		-					-			req, n, len=4
+i_uPhoneX		-					-			n
+
+i_up1			_					_			
+i_up2			_					_			
+}}
+[/output_none]

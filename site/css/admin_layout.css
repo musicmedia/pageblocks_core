@@ -1,0 +1,1281 @@
+/*
+	#################################################
+	#												#
+	#	** main page and design element rules **	#
+	#	www.coco.dk admin system					#
+	#	this code is intellectual proporty of		#
+	#	musicmedia.dk, please proceed with caution!	#
+	#												#
+	#################################################
+*/
+
+/*	--------------------------------------------- */
+/*	### major html elements ###  */
+
+html, body, div, form, label, select, input, h1, h2, h3, h4, h5, h6, th, td, ul, li, p {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	margin: 0 auto;
+	text-align: center;
+	margin-top: 10px;
+}
+
+img	{
+	border: none;
+	display: block;
+}
+
+
+/*	--------------------------------------------- */
+/*	### major layout elements ###  */
+
+#contentwrapper {
+	z-index: 0;
+	margin: 0 auto;
+	padding: 0;
+	width: 1006px;
+	text-align: left;
+}
+
+/* @group header */
+
+#header {
+	height: 36px;
+}
+
+/* @group mainlinks */
+
+ul#mainnav {
+	float: left;
+	list-style-type: none;
+}
+
+ul#mainnav li {
+	display: inline;
+	float: left;
+	width: 142px;
+	height: 26px; 
+	text-align: center;
+	border-right: 2px solid;
+}
+
+ul#mainnav li.last {
+	border-right: none;
+}
+
+ul#mainnav a, ul#mainnav div.dim {
+	display: block;
+	width: 142px;
+	height: 21px;
+	padding-top: 5px;
+	line-height: normal;
+}
+
+ul#mainnav a.twoline, ul#mainnav div.dimtwo {
+	padding-top: 3px;
+	padding-bottom: 2px;
+}
+
+/* @end */
+
+
+
+/* @end */
+
+/* @group left */
+
+#left {
+	width: 184px;
+	min-height: 550px; 
+	float: left;
+	padding: 0 8px;
+}
+
+#left div.lefttitle {
+	width: 178px;
+	height: 21px;
+	margin-bottom: 14px;
+	padding: 3px 0 0 6px;
+}
+
+#left #menugrp {
+	width: 182px;
+	margin-bottom: 16px;
+	padding-bottom: 2px;
+	border-top: 1px solid;
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	border-left: 1px solid;
+}
+
+#left #menugrp div.tle {
+	height: 19px;
+	padding: 3px 0 0 8px;
+	margin-bottom: 4px;
+}
+
+#left #menugrp select {
+	width: 166px;
+	margin: 2px 0 5px 8px;
+}
+
+/* @group leftnav */
+
+ul#leftnav {
+	padding: 0 0 5px 8px;
+	list-style-type: none;
+	clear: left;
+}
+
+ul#leftnav li {
+	width: 166px;
+	height: 17px;
+	text-indent: 4px;
+	margin-bottom: 2px; 
+	float: left;
+	overflow: hidden;
+}
+
+ul#leftnav li.divider {
+	border-bottom: 1px solid;
+	height: 1px;
+}
+
+ul#leftnav li.space {
+	margin-bottom: 3px;
+}
+
+ul#leftnav a {
+	display: block;
+	height: 17px;
+	padding-top: 2px;
+	font-weight: normal;
+	line-height: normal;
+	color: #333333;
+}
+
+ul#leftnav a.indent {
+	width: 152px;
+	padding-left: 14px;
+}
+
+/* @end */
+
+/* @end */
+
+/* @group feedback */
+
+#feedback {
+	z-index: 5;
+	width: 784px;
+	height: 52px;
+	float: left;
+	padding: 3px 7px 6px;
+	overflow: hidden;
+}
+
+#feedback div.divider {
+	height: 2px;
+	border-top: 0;
+	border-bottom: 1px solid;
+}
+
+#feedback div.fwerror {
+	position: absolute;
+	margin: 4px 0 0 -7px;
+	width: 600px;
+	padding: 6px 6px 10px 6px;
+	background-color: #ffffcc;
+}
+
+#feedback div.fwerror h3 {
+	margin: 0;
+	margin-bottom: 3px;
+	font-size: 11px;
+	color: #cc0000;
+}
+
+#feedback div.fwerror p {
+	margin-bottom: 0.4em;
+}
+
+
+/* @end */
+
+/* @group main */
+
+#main {
+	z-index: 5;
+	width: 784px;
+	min-height: 461px;
+	float: left;
+	margin: 10px 0;
+	padding: 1px 7px 6px; 
+}
+
+div.links {
+	width: 768px;
+	height: 15px;
+	margin: 7px 0 12px;
+	padding: 3px 8px 4px;
+}
+
+#main legend a {
+	color: #3a2611;
+}
+
+#main div.links a {
+	padding-top: 1px;
+	border-bottom: 1px dotted; 
+}
+
+#main div.links a:hover {
+	border-bottom: 1px solid;
+}
+
+div.links span.left {
+	float: left;
+}
+
+div.links span.right {
+	float: right;
+}
+
+.textColumnLeft {
+	width: 416px;
+}
+
+.textColumnRight {
+	width: 346px;
+}
+
+.textColumnLeftWide {
+	width: 460px;
+}
+
+.tableColumnLeft {
+	width: 600px;
+}
+
+.textColumnRightBorder {
+	width: 260px;
+	padding: 0 20px;
+	border-left: 1px solid #c8c9c0;
+}
+
+.textColumnRightNarrow {
+	width: 200px;
+}
+
+
+/* @end */
+
+/* @group technical */
+
+#clearboth	{
+	height: 1px;
+	width: 0;
+	font-size: 0;
+	border: 0;
+	margin: 0;
+	padding: 0;
+	clear: both;
+}
+
+hr, br	{
+	clear: left;
+}
+
+div.divider, div.dividerright {
+	width: 100%;
+	height: 1px;
+	margin: 2px 0 3px;
+	border-top: 1px solid;
+}
+
+div.divider {
+	clear: left;
+}
+
+div.dividerright {
+	clear: right;
+}
+
+#floatleft, .floatleft {
+	float: left;
+	line-height: normal;
+}
+
+#floatright, .floatright {
+	float: right;
+	line-height: normal;
+}
+
+.clearleft {
+	clear: left;
+}
+
+.clearright {
+	clear: right;
+}
+
+.clearboth {
+	clear: both;
+}
+
+.clearnone {
+	clear: none;
+}
+
+.margin-bottom-8 {
+	margin-bottom: 8px;
+}
+
+.margin-left-1 {
+	margin-left: 1px;
+}
+
+.min-height-110 {
+	min-height: 110px;
+}
+
+.min-height-240 {
+	min-height: 240px;
+}
+
+
+/* @end */
+
+/* @group errors */
+
+h3.errorttl {
+	margin-top: 0;
+}
+
+div.validerror {
+	float: left;
+	clear: left;
+}
+
+/* @end */
+
+/* @group popup links */
+
+a.popup {
+	padding-right: 14px;
+	background: transparent url(/site/media/images/pop_adm.gif) no-repeat right center;
+}
+
+a.popupx, a.externalx {
+	padding-right: 0;
+	background: none;
+}
+
+a.external {
+	padding-right: 12px;
+	background: transparent url(/site/media/images/ext_adm.gif) no-repeat right center;
+}
+
+
+
+/* @end */
+
+
+/* @group boxover rules */
+
+.labelhdr1, .labelhdr2, .labelbdy1, .labelbdy2 {
+	background-color: #e5e7cf;
+	line-height: normal;
+	font-size: 10px;
+	font-weight: bold;
+	text-align: left;
+	border: 1px solid #83837c;
+	border-bottom: 1px solid #C8BA92;
+	padding: 4px;
+}
+
+.labelhdr1, .labelbdy1 {
+	width: 200px;
+}
+
+.labelhdr2, .labelbdy2 {
+	width: 260px;
+}
+ 
+.labelbdy1, .labelbdy2 {
+	background-color: #ffffff;
+	font-weight: normal;
+	border-top: 0;
+	border-bottom: 1px solid #83837c;
+}
+
+/* @end */
+
+/* @group footer */
+
+#footer {
+	clear: both;
+	height: 19px;
+}
+
+ul#footernav {
+	width: 100%;
+	margin-top: 2px;
+	float: left;
+	list-style-type: none;
+}
+
+ul#footernav li {
+	display: inline;
+	height: 14px;
+	float: left;
+	padding: 0 2em;
+	text-align: center;
+/*	margin: 0 !important; */
+	border-right: 1px solid;
+}
+
+ul#footernav li.last {
+	float: right;
+	border-right: none;
+	border-left: 1px solid;
+}
+
+ul#footernav li a {
+	padding-top: 1px;
+	text-decoration: none;
+	border-bottom: 1px dotted;
+}
+
+ul#footernav a:hover {
+	border-bottom: 1px solid;
+}
+
+/* @end */
+
+/* @group various classes */
+
+.mright16 {
+	margin-right: 16px;
+}
+
+.dim {
+	padding-top: 2px;
+	height: 17px;
+}
+
+
+/* @end */
+
+/* @group various form and form elements rules */
+
+legend {
+	padding-bottom: 3px;
+	margin-left: 8px;
+}
+
+select, option {
+	padding-left: 1px;
+}
+
+textarea, label, input, select {
+	margin-bottom: 4px;
+	display: block;
+	float: left;
+}
+
+textarea, input.size1, input.size2, input.size3, input.size4, input.size5, input.size3l, input.size4l, editor_field {
+	padding: 1px;
+	border-top: 1px solid;
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	border-left: 1px solid;
+}
+
+
+/* @end */
+
+/* @group fieldsets & related */
+
+fieldset, fieldset#dsp {
+	display: block;
+	float: left;
+	width: 400px;
+	border: 1px solid;
+	margin: 0 0 8px;
+	padding: 2px 8px 8px;
+}
+
+.textColumnRight fieldset {
+	width: 328px;
+}
+
+fieldset fieldset {
+	width: 382px;
+	border: 1px solid;
+	clear: left;
+}
+
+fieldset.wide, fieldset#dsp.wide {
+	width: 460px;
+}
+
+fieldset.fullwidth {
+	width: 766px;
+}
+
+fieldset var, fieldset#dsp var, div.twolan var {
+	display: block;
+	float: left;
+	margin-top: 0;
+	margin-bottom: 4px;
+}
+
+fieldset var {
+	margin-top: 2px;
+}
+
+div.twolan var {
+	margin: -2px 174px 6px 120px;
+}
+
+div.twolan {
+	background: url(/site/media/images/twolan_bkgr.gif) repeat-y;
+	line-height: normal;
+	float: left;
+	width: 766px;
+	margin-bottom: 4px;
+	padding-top: 6px;
+}
+
+
+/* @end */
+
+/* @group labels */
+
+label {
+	text-align: right; 
+	width: 110px;
+	margin-top: 2px;
+	padding-right: 4px;
+	cursor: pointer;
+	clear: left;
+}
+
+label.wide {
+	width: 130px;
+}
+
+div.twolan label {
+	padding-right: 10px;
+}
+
+label.radio	{
+	width: auto;
+	margin-right: 1em;
+	clear: none;
+}
+
+label.checkbox {
+	padding: 0;
+	margin-bottom: 0px;
+	width: 80px;
+	clear: none;
+}
+
+label.title {
+	cursor: auto;
+}
+
+label.noclear {
+	width: 60px;
+	clear: none;
+}
+
+fieldset fieldset label {
+	width: 92px;
+}
+
+fieldset#dsp label {
+	margin-top: 0;
+	cursor: default;
+}
+
+/* @end */
+
+/* @group inputs */
+
+input.radio, input.checkbox {
+	border: none;
+	margin-left: 0;
+	margin-right: 3px;
+	background: transparent;
+	cursor: pointer;
+}
+
+input.size1	{
+	width: 76px;
+}
+
+input.size2 {
+	margin-right: 5px; 
+	width: 130px;
+}
+
+input.size3 {
+	width: 200px;
+}
+
+input.size4 {
+	width: 280px;
+}
+
+input.size5 {
+	width: 340px;
+}
+
+input.hidden {
+	padding: 0;
+	margin: 0;
+}
+
+.twolan input.size3, input.size3l {
+	width: 203px;
+}
+
+.twolan input.size3l {
+	margin-right: 125px;
+}
+
+.twolan input.size4, input.size4l {
+	width: 303px;
+}
+
+.twolan input.size4l {
+	margin-right: 25px;
+}
+
+/* bruges i ajax forme */
+fieldset fieldset input.size1, fieldset fieldset input.size2, fieldset fieldset input.size3, fieldset fieldset input.size4 {
+	margin-top: 0;
+	margin-right: 2px;
+}
+
+fieldset fieldset input.size1 {
+	width: 60px;
+}
+
+fieldset fieldset input.size2 {
+	width: 100px;
+}
+
+fieldset fieldset input.size3 {
+	width: 130px;
+}
+
+fieldset fieldset input.size4 {
+	width: 164px;
+}
+
+/* @group buttons */
+
+input.file {
+	border: inset 1px #c8c2b4;
+	width: 200px;
+	background: transparent;
+	font-family: arial, verdana, sans-serif;
+	padding: 0;
+	margin: 0px 20px 0px;
+}
+
+input.submit, input.reset, input.delete {
+	clear: left;
+	float: right;
+	padding: 0;
+	width: 110px;
+	margin-left: 18px;
+	margin-bottom: 0;
+	cursor: pointer;
+}
+
+input.deleteSmall, input.deleteSmallDisab {
+	width: 70px;
+	margin-bottom: 0;
+	cursor: pointer;
+}
+
+input.deleteSmallDisab {
+	cursor: auto;
+}
+
+
+/* @end */
+
+/* @end */
+
+/* @group selects */
+
+select	{
+	border: 1px solid;
+	float: left;
+	width: 202px; 
+}
+
+option {
+	margin: 0 1px 1px 2px;
+	background-color: #ffffff;
+	width: 220px; 
+}
+
+select.size1 {
+	width: 50px;
+}
+
+select.size1 option {
+	width: 80px;
+}
+
+select.size2 {
+	width: 80px;
+}
+
+select.size2 option {
+	width: 90px;
+}
+
+select.size3 {
+	width: 130px;
+}
+
+select.size3 option {
+	width: 140px;
+}
+
+select.size5 {
+	width: 260px;
+}
+
+select.size5 option {
+	width: 290px;
+}
+
+select.listbox3 {
+	width: 130px;
+}
+
+select.listbox3 option {
+	margin: 0;
+}
+
+
+
+/* @end */
+
+/* @group textareas */
+
+textarea.size2, .twolan textarea.size2, .twolan textarea.size2l {
+	width: 220px;
+	height: 50px;
+}
+
+textarea.size3 {
+	width: 280px;
+	height: 50px;
+}
+
+textarea.size4, .twolan textarea.size4, .twolan textarea.size4l  {
+	width: 280px;
+	height: 80px;
+}
+
+textarea.size5 {
+	width: 340px;
+	height: 150px;
+}
+
+textarea.size6 {
+	width: 280px;
+	height: 200px;
+}
+
+.twolan textarea.size2l {
+	margin-right: 108px;
+}
+
+.twolan textarea.size4, .twolan textarea.size4l {
+	width: 303px;
+}
+
+.twolan textarea.size4l {
+	margin-right: 25px;
+}
+
+/* @end */
+
+/* @group tables */
+
+table {
+	width: 100%;
+	border: 1px solid;
+	clear: both;
+}
+
+th, td {
+	vertical-align: top;
+	border-right: 1px solid;
+	padding: 1px 3px;
+}
+
+table.list {
+	border-bottom: none;
+}
+
+table.list th {
+	border-bottom: 1px solid;
+	height: 30px;
+}
+
+table.primheader th {
+	border-right: none;
+}
+
+table.listheader th {
+	height: 22px;
+}
+
+th img {
+	display: inline;
+}
+
+td.right {
+	text-align: right;
+}
+
+th.last, td.last {
+	border-right: none;
+}
+
+table.list td {
+	border-top: 1px solid;
+	border-bottom: 1px solid;
+}
+
+td.scndheader {
+	border-right: none;
+}
+
+table.list tr#l:hover {
+	border-top: 1px solid;
+}
+
+th.no, td.no {
+	width: 4%;
+	text-align: right;
+}
+
+.colA {
+	width: 6%;
+}
+
+.colB {
+	width: 7%;
+}
+
+.colC {
+	width: 9%;
+}
+
+.colD {
+	width: 13%
+}
+
+.colE {
+	width: 17%;
+}
+
+.colF {
+	width: 23%;
+}
+
+.colG {
+	width: 28%;
+}
+
+.colH {
+	width: 32%;
+}
+
+.colJ {
+	width: 35%;
+}
+
+.colK {
+	width: 37%;
+}
+
+.colL {
+	width: 50%;
+}
+
+.colP {
+	width: 79%;
+}
+
+td.footer, td.footer:hover {
+	border-top: 1px solid;
+	height: 1em;
+}
+
+
+
+/* @end */
+
+/* @group pageblocks rules */
+
+
+.alerts {
+	width: 100%;
+	vertical-align: middle;
+	padding: 10px;
+	margin-bottom: 10px;
+	text-align: center;
+	background-color: #ff9;
+}
+
+.alerts img {
+	margin-left: 49%
+}
+
+
+/* @end */
+
+/* @group sortable scnd pages */
+
+ul#scndPageList {
+	list-style-type: none;
+	padding: 0;
+}
+
+ul#scndPageList li {
+	width: 380px;
+	height: 32px;
+	background-color: #ffffff;
+	padding: 2px 10px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+	cursor: move;
+	float: left;
+	clear: left;
+}
+
+ul#scndPageList li span.dim {
+	width: 112px;
+	float: left;
+}
+
+ul#scndPageList li.dropover {
+	background-color: #f3f7af;
+}
+
+
+/* @end */
+
+/* @group sortable programmes */
+
+ul.programme, ul.worklisting {
+	list-style-type: none;
+	padding: 0;
+}
+
+ul.programme li {
+	width: 392px;
+	background-color: #ffffff;
+	padding: 3px 4px;
+	margin-bottom: 3px;
+	cursor: move;
+	float: left;
+	clear: left;
+	font-size: 80%;
+}
+
+ul.programme li span.composer {
+	width: 112px;
+	float: left;
+}
+
+ul.programme li span.opus {
+	width: 260px;
+	float: left;
+}
+
+ul.programme li span.remove {
+	float: right;
+	cursor: pointer;
+	padding: 2px;
+}
+
+ul.worklisting li {
+	width: 278px;
+	background-color: #e5e5d9;
+	margin: 0 0 4px;
+	padding: 0.2em 0 0.2em 0.3em;
+	cursor: move;
+	float: left;
+	clear: left;
+	font-size: 80%;
+}
+
+ul.programme li.dropover, ul.worklisting li:hover {
+	background-color: #f3f7af;
+}
+
+ul.worklisting li span.composer, ul.worklisting li span.remove {
+	display: none;
+}
+
+ul.programme li#repertoireitem_intermission {
+	background-color: #e5e5d9;
+}
+
+ul.worklisting li#repertoireitem_intermission {
+	background-color: #c8c9c0;
+}
+
+div.worklistingarea {
+	margin-top: 2px;
+	height: 280px;
+	overflow: auto;
+}
+
+
+
+/* @end */
+
+/* @group ajax ul/li listings */
+
+ul.contactlists {
+	list-style-type: none;
+	padding: 0;
+}
+
+ul.contactlists li {
+	height: 16px;
+	margin-bottom: 2px;
+	padding-bottom: 1px;
+	clear: right;
+}
+
+ul.contactlists li span.name {
+	float: left;
+}
+
+
+/* @end */
+
+/* @group ajax indictors */
+
+.busy, .busyright {
+	width: 16px;
+	height: 16px;
+}
+
+.busy {
+	float: left;
+	margin-left: 8px;
+}
+
+.busyright {
+	float: right;
+	margin-right: 6px;
+}
+
+/* @end */
+
+/* @group ajax autocompleter rules */
+
+div.autoshow, div.autocomplete {
+	position:  absolute;
+	background-color: #ffffff;
+	border: 1px solid #000000;
+	margin: 0px;
+	padding: 0px;
+}
+
+div.autoshow ul, div.autocomplete ul {
+	list-style-type: none;
+	margin: 0px;
+	padding: 0px;
+}
+
+div.autoshow ul li.selected {
+	background-color: #ffffff;
+}
+
+div.autoshow ul li, div.autocomplete ul li {
+	list-style-type: none;
+	border-bottom: 1px solid #dcdcd6;
+	display: block;
+	margin: 0;
+	padding: 0.4em;
+}
+
+div.autocomplete {
+	width: 250px !important;
+}
+
+div.autocomplete ul li.selected {
+	background-color: #ffb;
+}
+
+div.autocomplete ul li {
+	cursor: pointer;
+}
+
+
+
+/* @end */
+
+/* @group ajax inplace editor */
+
+/* editor_field is an ajax inplaceeditor class */
+
+.singleline {
+	line-height: normal;
+	float: left;
+	width: 200px;
+	height: 14px;
+	border: 1px solid;
+}
+
+#annotations {
+	line-height: normal;
+	min-height: 16px;
+	overflow: auto;
+}
+
+textarea.editor_field {
+	height: 220px;
+	width: 320px;
+	padding: 4px 0 4px 5px;
+	background-color: #ffffff;
+	border: none;
+}
+
+input.editor_field {
+	width: 200px;
+	border: 1px solid;
+}
+
+.inplaceeditor-saving {
+	height: 16px;
+	padding-left: 20px; 
+	background: transparent url(/site/media/images/busy.gif) no-repeat left center; 
+	color: #6d6d6d;
+}
+
+/* @end */
+
+/* @group button icons and related */
+
+span.btn-i, a.btn-i {
+	display: block;
+	width: 22px;
+	height: 16px;
+}
+
+span.visible {
+	background: url(/site/media/images/visible.gif) no-repeat left top; 
+}
+
+span.invisible {
+	background: url(/site/media/images/invisible.gif) no-repeat left top; 
+}
+
+span.deleteDisab {
+	background: url(/site/media/images/ibtnDelete-disab.gif) no-repeat left top; 
+}
+
+a.additem {
+	background: url(/site/controls/ibtnAdd.gif) no-repeat left top; 
+}
+
+a.additem:hover {
+	background: url(/site/controls/ibtnAdd-o.gif) no-repeat left top; 
+}
+
+a.edititem {
+	background: url(/site/controls/ibtnEdit.gif) no-repeat left top;
+}
+
+a.edititem:hover {
+	background: url(/site/controls/ibtnEdit-o.gif) no-repeat left top;
+}
+
+a.pdfitem {
+	background: url(/site/controls/ibtnPdf.gif) no-repeat left top;
+}
+
+a.pdfitem:hover {
+	background: url(/site/controls/ibtnPdf-o.gif) no-repeat left top;
+}
+
+a.sortitems {
+	background: url(/site/controls/ibtnSort.gif) no-repeat left top;
+}
+
+a.sortitems:hover {
+	background: url(/site/controls/ibtnSort-o.gif) no-repeat left top; 
+}
+
+a.setillustration {
+	background: url(/site/controls/ibtnPict.gif) no-repeat left top;
+}
+
+a.setillustration:hover {
+	background: url(/site/controls/ibtnPict-o.gif) no-repeat left top; 
+}
+
+a.delitem {
+	background: url(/site/controls/ibtnDelete.gif) no-repeat left top;
+}
+
+a.delitem:hover {
+	background: url(/site/controls/ibtnDelete-o.gif) no-repeat left top; 
+}
+
+
+/* @end */
+
+/* @group buttons */
+
+input.btn-w {
+	margin-left: 4px;
+	display: block;
+	width: 80px;
+	height: 16px;
+	border: 0;
+	cursor: pointer;
+}
+
+input.login-w {
+	background: url(/site/controls/btnWContinue-a_dan.gif) no-repeat left top;
+}
+
+input.login-w:hover {
+	background: url(/site/controls/btnWContinue-o_dan.gif) no-repeat left top;
+}
+
+input.btn {
+	margin-left: 4px;
+	display: block;
+	width: 50px;
+	height: 16px;
+	border: 0;
+	cursor: pointer;
+}
+
+
+/* @end */

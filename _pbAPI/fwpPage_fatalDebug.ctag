@@ -1,0 +1,76 @@
+﻿<?lassoscript 
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_fatalDebug.lgc }
+	{rsrcType=		include }
+	{rsrcName=		fwpPage_fatalDebug.lgc }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_fatalDebug }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+	
+	{desc=			Shows fatal error an debug info.  }
+	
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2007-06-20 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpPage_fatalDebug', 
+	-autooutput,
+	-encodeNone;
+
+	$__html_reply__->(replace:'</body>', '');
+	$__html_reply__->(replace:'</html>', '');
+
+	var:'errorStr' = error_currentError;
+	
+	'<div id="debug">\r\r';
+	'<h3>Lasso Error (webroot)</h3>\r\r';
+	'<p>('; error_currentError: -errorCode; ') -- '; (var:'errorStr', -encodebreak); '</p>\r\r';
+	
+	//	this shows the last page init section that was processed
+	//	if it is before the end of the page init code, 
+	//	then that can help locate the problem too
+	
+	(var:'fw_pageInitSection')
+		? '<p>Last Page Init Section: '; var:'fw_pageInitSection'; '</p>';
+	
+	//	use this to force the vars dump to display by setting it to true
+	
+	'<h1>PageBlocks Debug Output</h1>\r\r';
+	'<p>Turn this output on/off by changing $fw_debug in _initMasters.</p> \r\r';
+	'<p>pb version: '; 
+	fwpAPI_version; 
+	'<br />lasso site: ';
+	site_name; 
+	' ('; 
+	site_ID; 
+	')</p>';
+	
+	local:'fw_debugOutput' = (fwp_showVars:
+		-clearvars	= $fw_debugClearVars,
+		-topvars	= $fw_debugTopVars);
+
+	#fw_debugOutput->showall;
+
+	'</div>\r\r';
+	'</body>\r\r';
+	'</html>\r\r';
+
+/define_tag;
+?>
+

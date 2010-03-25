@@ -1,0 +1,67 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpDate_isLeapYear.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpDate_isLeapYear }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpDate_isLeapYear }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits, Bil Corry }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Returns true if a 4 digit year is a leap year.
+					gregorian leap year algorithm from 
+					http://mindprod.com/jglossleapyear.html (now MIA)
+					valid roughly from 1800 forward }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.7 }
+	{maintdate=		2007-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated for changes to date handling introduced in 8.5.2
+					and generally cleaned up and simplified }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpDate_isLeapYear',
+	-priority='replace',
+	-optional='dateString', -copy;
+	
+	local:'dateString' = local:'dateString';
+
+	if: !#dateString;
+		#dateString = integer:(date->year);
+	else: string:(integer:#dateString) == #dateString;
+		#dateString = integer:#dateString;
+	else: (#dateString != '') && (#dateString !>> '0000') && (valid_date:#dateString);
+		#dateString = integer:((date:#dateString)->year);
+	/if;
+
+	if: #dateString % 4 != 0;
+		return: false;
+	else: #dateString % 100 != 0;
+		return: true; 
+	else: #dateString % 400 != 0;
+		return: false;
+	else;
+		return: true;
+	/if;
+
+/define_tag; 
+?>

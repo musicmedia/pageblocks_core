@@ -1,0 +1,58 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGUI_fmpVListToArray.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpGUI_fmpVListToArray }
+	{rsrcHTTP=		http://www.pageblocks.org/reference/fwpGUI_fmpVListToArray }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			converts a FileMaker value list to an array of pairs
+					with itemTitle = selected where itemTitle is the text of
+					the item and selected is true or false. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpGUI_fmpVListToArray',
+	-priority	= 'replace',
+	-required	= 'field',
+	-required	= 'inline';
+
+	local:
+		'fw_fieldName'		= @#field,
+		'fw_inlineName'		= @#inline,
+		'fw_vlistOptions'	= array,
+		'fw_itemSelected'	= false;
+
+	value_list: #fw_fieldName, -inlinename = #fw_inlineName;
+		
+		(checked)
+			? (#fw_itemSelected = true)
+			| (#fw_itemSelected = false);
+		
+		#fw_vlistOptions->(insert: value_listItem = #fw_itemSelected);
+
+	/value_list;
+
+	return:#fw_vlistOptions;
+
+/define_tag;
+?>

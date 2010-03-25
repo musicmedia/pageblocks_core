@@ -1,0 +1,51 @@
+/*
+	#################################################
+	#												#
+	#	** popup window rules **					#
+	#	www.coco.dk admin system					#
+	#	this code is intellectual proporty of		#
+	#	musicmedia.dk, please proceed with caution!	#
+	#												#
+	#################################################
+*/
+
+/*	--------------------------------------------- */
+
+body {
+	margin: 12px;
+}
+
+#contentwrapper {
+	width: auto;
+	line-height: normal;
+	background-color: transparent;
+}
+
+span.close {
+	display: block;
+	width: 30px;
+	height: 12px;
+	background: url(/site/controls/closewin-over.gif) no-repeat right top; 
+
+}
+
+span.close a {
+	display: block;
+	width: 30px;
+	height: 12px;
+	background: url(/site/controls/closewin.gif) no-repeat right top;
+}
+
+span.close a:hover {
+	background: transparent;
+}
+
+fieldset {
+	width: auto;
+}
+
+fieldset.submit {
+	padding-top: 4px;
+	padding-bottom: 0;
+	margin-bottom: 4px;
+}

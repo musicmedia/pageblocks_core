@@ -1,0 +1,60 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		edpm_usrsBegin.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		 }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			 }
+
+	{maintvsrn=		1.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'edpm_usrsSearch', 'fwp_edpModel',
+	-namespace = '_global_';
+
+
+//=============================================================================
+//
+//	->onCreate
+//
+//	
+//
+
+define_tag:'onCreate';
+
+//	inputFields requires the form names
+//	PrepSelect requires the db field names
+
+	(self->'edp_rootTable')			= @$fw_gTables->find:'userauth';
+	(self->'edp_inputFields')		= '';
+	(self->'edp_updatePrepSelect')	= '';
+
+	(self->init);
+
+/define_tag;
+
+
+// none of the standard member tags are needed
+
+/define_type;
+?>
+

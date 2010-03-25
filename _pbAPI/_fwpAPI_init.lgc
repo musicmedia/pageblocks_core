@@ -1,0 +1,397 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		_fwpAPI_initVars.lgc }
+	{rsrcType=		file }
+	{rsrcName=		_fwpAPI_initVars }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/_fwpAPI_initVars }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes the global vars and resources for
+					the framework, the site, and each page. }
+
+	{maintvsrn=		1.2.7 }
+	{maintrelease=	5.4.0 }
+	{maintdate=		2008-08-01 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	most constants moved to _fwpAPI_initVars.lgc living in LassoStartup
+					constants in this file changed to globals to make it possible to
+					refresh the global namespace (restart PageBlocks) }
+
+	{maintvsrn=		1.2.6 }
+	{maintrelease=	5.4.0 }
+	{maintdate=		2008-03-21 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added custom log vars (bug fix) }
+
+	{maintvsrn=		1.2.5 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_gOSUser, fw_gOSPswd }
+
+	{maintvsrn=		1.2.4 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-22 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_kPageIsWebService, fw_kPageIsAjaxHandler }
+
+	{maintvsrn=		1.2.3 }
+	{maintrelease=	5.2.5 }
+	{maintdate=		2007-07-24 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed typo for spotlight connector }
+
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-20 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added js folders to Paths declarations,
+	 				added fw_kDBConnectors, fw_kUseAppStringsAutoDegrade, 
+	 				fw_kDisabled, fw_kEnabled, fw_kChatty, fw_kVerbose, 
+	 				fw_kUseDefineCSS, fw_kUseDefineJavaScript, 
+	 				fw_kUseDefinePageWrapup, fw_kUseDefinePageHead }
+	
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-06 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added languages folders to Paths declarations }
+	
+	{maintvsrn=		1.2 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-01 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added constants
+					added global cache for errorLanguages }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.0.0 b13 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added $fw_gUsePbUserAuth }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added $fw_gDatabases
+					changed from $fw_gKeysTable to $fw_gTables 
+					deleted $fw_gPbComponentsTable }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+
+
+//============================================================================
+//
+//	(D) Initialize Lasso Security Users
+//
+//	var descriptions below start with the var name and its default value in ()
+//	refer to the documentation for complete descriptions and usage guidelines
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+//	fw_gQueryUser/Pswd - lasso admin user name & password for allowing database access
+//	fw_gFilesUser/Pswd - lasso admin user name & password for allowing files access (within root only access)
+//	fw_gUploadUser/Pswd - lasso admin user name & password for allowing upload access (has outside of root files access)
+//	fw_gOSUser/Pswd - lasso admin user name & password for allowing OS Process tag access
+
+global:
+	'fw_gQueryUser'		= '',
+	'fw_gQueryPswd'		= '',
+	'fw_gFilesUser'		= '',
+	'fw_gFilesPswd'		= '',
+	'fw_gUploadUser'	= '',
+	'fw_gUploadPswd'	= '',
+	'fw_gOSUser'		= '',
+	'fw_gOSPswd'		= '';
+
+
+//============================================================================
+//
+//	(E) Initialize Config Data 
+//
+//	var descriptions below start with the var name and its default value in ()
+//	refer to the documentation for complete descriptions and usage guidelines
+//
+//	Maintenance Notes: some constants replaced by globals
+//								
+//	ver 1.0   (2008-08-01) 	 -- initial release
+//
+//............................................................................
+
+global:
+	'fw_gConfigCache' 					= fwp_configCache,
+	'fw_gDbTableModels' 				= map,
+	
+	'fw_gConfigCache_rwlock'			= thread_rwLock,
+	'fw_gDbTableModels_rwlock'			= thread_rwLock,
+	'fw_gErrorMVSConfigs_rwlock'		= thread_rwLock,
+	'fw_gValidatorMVSConfigs_rwlock'	= thread_rwLock,
+	'fw_gAppStringsMVSConfigs_rwlock'	= thread_rwlock,
+	'fw_gValueListMVSConfigs_rwlock'	= thread_rwlock;
+
+//	the MVS cache rwlock var names are repeated 
+//	inside the controller ctypes. they need to be kept consistent
+
+	$fw_gConfigCache_rwlock			->readLock;
+	$fw_gDbTableModels_rwlock		->readLock;
+	$fw_gErrorMVSConfigs_rwlock		->readLock;
+	$fw_gValidatorMVSConfigs_rwlock	->readLock;
+	$fw_gAppStringsMVSConfigs_rwlock->readLock;
+	$fw_gValueListMVSConfigs_rwlock ->readLock;
+	
+//============================================================================
+//
+//	(F) Initialize Site Constants
+//
+//	these vars tend to be those which control FWPro operation
+//
+//	var descriptions below start with the var name and its default value in ()
+//	refer to the documentation for complete descriptions and usage guidelines
+//
+//	Maintenance Notes:
+//
+//	ver 1.2 (2008-08-01) -- changed some constants back to globals
+//	ver 1.1 (2006-05-26) -- introduced k constants
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+
+	global(
+			'fw_gUseDefineCSS' 			= true,
+			'fw_gUseDefineJavaScript'	= true,
+			'fw_gUseDefinePageWrapup'	= false,
+			'fw_gUseDefinePageHead'		= true,
+			'fw_gCoreLanguage'			= 'dan'
+	);
+
+//	......................................
+//	these are a part of _initMasters (F)
+
+//	fw_gInstalledFrameWorks (array) as each framework init is processed, it adds itself to this array
+//	fw_gAppPrefix			('pb') used to prefix cookies generated by the app, must be set to an app-specific 
+//								   value so that apps generated by pb and visited by the same user don't conflict
+
+//	fw_gUseSessionEachPage		(false) indicates if each page should have a new sessionID {true|false}
+//	fw_gUseInitProfiles 		(false) flags the inclusion of _initProfile to acquire one-to-one profile data from a db {true|false}
+//	fw_gUseInitCustom			(false) flags the inclusion of _initCustom to create app-specific config vars {true|false}
+//	fw_gUsePbUserAuth			(false) flags the activation of the built-in user authentication system {true|false}
+//	fw_gUseSubdomains			(false) flags the use of auto query modification to include a subdomain field {true|false}
+
+//	fw_gLoadCTags 			(false) turns on|off the scanning and loading of all files in /site/tags {true=on|false=off}
+//	fw_gLoadCTypes 			(false) turns on|off the scanning and loading of all files in /site/types {true=on|false=off}
+//	fw_gLoadPlugins 		(false) turns on|off the scanning and loading of all files in /site/plugins {true=on|false=off} -- NOT IN USE YET
+
+//	fw_gLogErr 				(true) turns on|off the logging of errors {true|false}
+//	fw_gLogAuth 			(false) turns on|off the logging of authentication logins {true|false}
+//	fw_gLogDb 				(false) turns on|off the logging of database add/update/delete actions {true|false}
+//	fw_gLogFile 			(false) turns on|off the logging of file create/update/delete actions {true|false} -- NOT IN USE YET
+
+//	fw_gLogErrRoll 			(M) sets rolling frequency of error log files {A|M|W|D} for annual, monthly, weekly, daily
+//	fw_gLogAuthRoll 		(M) sets rolling frequency of auth log files {A|M|W|D} for annual, monthly, weekly, daily
+//	fw_gLogDbRoll 			(M) sets rolling frequency of db action log files {A|M|W|D} for annual, monthly, weekly, daily
+//	fw_gLogFileRoll 		(M) sets rolling frequency of file access log files {A|M|W|D} for annual, monthly, weekly, daily -- NOT IN USE YET
+
+//	fw_gLogErrTarget 		(database) sets destination of log data {file|database}
+//	fw_gLogAuthTarget 		(database) sets destination of log data {file|database}
+//	fw_gLogDbTarget 		(database) sets destination of log data {file|database}
+//	fw_gLogFileTarget 		(database) sets destination of log data {file|database} -- NOT IN USE YET
+
+//	fw_gErrorAlertLevel		(0) sets errorLevel at which emails are sent to fw_gErrorAlertEmail. Set to 0 for no emails (see fwpErr_fwp.lgc)
+//	fw_gErrorAlertEmail 	(empty) the `to` email address for alerts
+//	fw_gErrorAlertFrom		(empty) the `from` email address for alerts
+
+global:
+	'fw_gInstalledFrameWorks'	= array,
+	'fw_gAppPrefix'				= 'kruse',
+
+	'fw_gUseSessionEachPage'	= false,
+	'fw_gUseInitProfiles'		= false,
+	'fw_gUseInitCustom'			= false,
+	'fw_gUsePbUserAuth'			= false,
+	'fw_gUseSubdomains'			= false,
+
+	'fw_gLoadCTags'				= false,
+	'fw_gLoadCTypes'			= false,
+	'fw_gLoadPlugins'			= false,
+
+	'fw_gLogErr'				= false,
+	'fw_gLogErrRoll'			= 'M',
+	'fw_gLogErrTarget'			= 'database',
+	'fw_gLogAuth'				= false,
+	'fw_gLogAuthRoll'			= 'M',
+	'fw_gLogAuthTarget'			= 'database',
+	'fw_gLogDb'					= false,
+	'fw_gLogDbRoll'				= 'M',
+	'fw_gLogDbTarget'			= 'database',
+	'fw_gLogFile'				= false,
+	'fw_gLogFileRoll'			= 'M',
+	'fw_gLogFileTarget'			= 'database',
+	'fw_gLogCustom'				= false,
+	'fw_gLogCustomRoll'			= 'M',
+	'fw_gLogCustomTarget'		= 'database',
+
+	'fw_gErrorAlertLevel'		= 0,
+	'fw_gErrorAlertEmail'		= string,
+	'fw_gErrorAlertFrom'		= string;
+
+//	......................................
+//	these are a part of _initMasters (K)
+
+//	fw_gTables 				(null) used to define abstracted names for database tables
+//	fw_gDatabases 			(null) used to define abstracted names for databases
+//	fw_gDbServerTypes		(null) used to define abstracted names for database engines
+
+global:
+	'fw_gTables'			= map,
+	'fw_gDatabases'			= map,
+	'fw_gDbServerTypes'		= map;
+
+
+	
+//============================================================================
+//
+//	(G) Initialize Module and Site Paths
+//
+//	the application path names can be changed to reflect the site structure
+//	the variable names cannot be changed as many FWPro tags and types require them
+//	additional path definitions can be added to suit the application needs
+//
+//	Maintenance Notes:
+//
+//	ver 1.1 (2006-06-01) -- added apiLanguages
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_type:'fwp_sitePaths';
+
+	local:'style'=(params)->get:1;
+	local:
+		'root'			= '/site/',
+
+		'api'			= '/_pbAPI/',
+		'apiStrings'	= '/_pbStrings/',
+		'init'			= '/_pbInit/',
+		'apiLibs'		= '/_pbLibs/',
+		'admin'			= '/siteMngr/',
+		'adminPanels'	= '/siteMngr/_resources/panels/',
+		'adminControls'	= '/siteMngr/_resources/controls/',
+
+		'configs'		= '/site/configs/',
+		'controls'		= '/site/controls/',
+		'css'			= '/site/css/',
+		'js'			= '/site/js/',
+		'strings'		= '/site/strings/',
+		'libs'			= '/site/libs/',
+		'logs'			= '/site/logs/',
+		'panels'		= '/site/panels/',
+		'plugins'		= '/site/plugins/',
+		'tags'			= '/site/tags/',
+		'types'			= '/site/types/',
+
+		'edp_cntlrs'	= '/site/edp_cntlrs/',
+		'edp_cntlbars'	= '/site/edp_cntlbars/',
+		'edp_classes'	= '/site/edp_classes/',
+		'edp_events'	= '/site/edp_events/',
+		'edp_forms'		= '/site/edp_forms/',
+		'edp_navImgs'	= '/site/edp_navImgs/',
+		'edp_panes'		= '/site/edp_panes/',
+
+		'media'			= '/site/media/',
+		'audio'			= '/site/media/audio/',
+		'banners'		= '/site/media/banners/',
+		'downloads'		= '/site/media/downloads/',
+		'flash'			= '/site/media/flash/',
+		'images'		= '/site/media/images/',
+		'text'			= '/site/media/text/',
+		'video'			= '/site/media/video/',
+
+		'msthd'			= '/site/msthd' + #style + '/',
+		'nav'			= '/site/msthd' + #style + '/',
+		'headers'		= '/site/msthd' + #style + '/',
+		'footers'		= '/site/msthd' + #style + '/',
+		'templates'		= '/site/msthd' + #style + '/templates/',
+		
+		'msthdImgs'		= '/site/msthd' + #style + '/msthdImgs/',
+		'navImgs'		= '/site/msthd' + #style + '/msthdImgs/',
+		'headerImgs'	= '/site/msthd' + #style + '/msthdImgs/',
+		'footerImgs'	= '/site/msthd' + #style + '/msthdImgs/',
+		'rolloverImgs'	= '/site/msthd' + #style + '/msthdImgs/';
+		
+/define_type;
+
+define_type:'fwp_modulePaths';
+
+	local:'style'=(params)->get:1;
+	local:'module'=(params)->get:2;
+	local:
+		'module'		= #module,
+		'root'			= #module + '_resources/',
+
+		'configs'		= #module + '_resources/configs/',
+		'controls'		= #module + '_resources/controls/',
+		'css'			= #module + '_resources/css/',
+		'js'			= #module + '_resources/js/',
+		'strings'		= #module + '_resources/strings/',
+		'libs'			= #module + '_resources/libs/',
+		'logs'			= #module + '_resources/logs/',
+		'panels'		= #module + '_resources/panels/',
+		'tags'			= #module + '_resources/tags/',
+		'types'			= #module + '_resources/types/',
+
+		'edp_cntlrs'	= #module + '_resources/edp_cntlrs/',
+		'edp_cntlbars'	= #module + '_resources/edp_cntlbars/',
+		'edp_classes'	= #module + '_resources/edp_classes/',
+		'edp_events'	= #module + '_resources/edp_events/',
+		'edp_forms'		= #module + '_resources/edp_forms/',
+		'edp_navImgs'	= #module + '_resources/edp_navImgs/',
+		'edp_panes'		= #module + '_resources/edp_panes/',
+
+		'media'			= #module + '_resources/media/',
+		'audio'			= #module + '_resources/media/audio/',
+		'banners'		= #module + '_resources/media/banners/',
+		'downloads'		= #module + '_resources/media/downloads/',
+		'flash'			= #module + '_resources/media/flash/',
+		'images'		= #module + '_resources/media/images/',
+		'text'			= #module + '_resources/media/text/',
+		'video'			= #module + '_resources/media/video/',
+
+		'msthd'			= #module + '_resources/msthd' + #style + '/',
+		'nav'			= #module + '_resources/msthd' + #style + '/',
+		'headers'		= #module + '_resources/msthd' + #style + '/',
+		'footers'		= #module + '_resources/msthd' + #style + '/',
+		'templates'		= #module + '_resources/msthd' + #style + '/templates/',
+
+		'msthdImgs'		= #module + '_resources/msthd' + #style + '/msthdImgs/',
+		'navImgs'		= #module + '_resources/msthd' + #style + '/msthdImgs/',
+		'headerImgs'	= #module + '_resources/msthd' + #style + '/msthdImgs/',
+		'footerImgs'	= #module + '_resources/msthd' + #style + '/msthdImgs/',
+		'rolloverImgs'	= #module + '_resources/msthd' + #style + '/msthdImgs/';
+
+/define_type;
+
+?>

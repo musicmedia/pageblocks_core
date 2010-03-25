@@ -1,0 +1,345 @@
+﻿[output_none]
+//............................................................................
+//
+//	pageblocks: (c) 2002-2006 http://www.pageblocks.org/
+//
+//............................................................................
+//
+//	{fileName=		lang_errCoreVal_da.cnfg }
+//	{rsrcType=		config }
+//	{rsrcName=		lang_errCoreVal }
+//	{rsrcHTTP=		www.pageblocks.org/refc/lang_errCoreVal }
+//	
+//	{lassoVrsnMin=	8.1.0 }
+//	{lassoVrsnMax=	8.5.1 }
+//
+//	{author=		Greg Willits }
+//	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+//	{authorHTTP=	www.pageblocks.org }
+//
+//	{desc=			Language configuration file for core validation codes }
+//
+//	{maintvsrn=		1.0 }
+//	{maintrelease=	5.1.0 }
+//	{maintdate=		2006-01-06 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	initial release }
+//
+//.............................................................................
+//	Preferred Language Codes which will used as the PageBlocks standard
+//	ISO 639 which can be found here:
+//	http://www.oasis-open.org/cover/iso639a.html
+//
+//	The W3C preference appears to be moving to this list
+//	http://www.iana.org/assignments/language-subtag-registry
+//.............................................................................
+
+//=============================================================================
+//	Error Message Language Configuration
+//	- the file name defines the language
+//	- all reusable messages must be defined before they are mentioned by insert___
+//-----------------------------------------------------------------------------
+// 	note that each line will be trimmed,
+//	and all whitespace after ___ will be trimmed,
+//	so use space entity if you want to split the 
+//	msg up into rows of short lengths in source code
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+//
+//	reusable message elements
+//
+//
+//
+
+{{useReusable:
+msg___		some reusable text for strings
+}}
+
+{{plurEnding:
+msg___		er
+}}
+
+
+//=============================================================================
+//
+//	Core Strings
+//
+//
+
+{{somename:
+constant___	app_kSomeName
+msg___		any text that needs to be displayed by the framework on its own
+insert___	useReusable
+}}
+
+{{valFirstWordThe:
+msg___		The
+}}
+
+{{valFirstWordThis:
+msg___		This
+}}
+
+
+
+//	------------------------------
+//:	general use words
+
+{{add:
+msg___	Tilføj
+}}
+
+{{by:
+msg___	af
+}}
+
+{{view:
+msg___	Se
+}}
+
+{{edit:
+msg___	Redigér
+}}
+
+{{addOrEdit:
+msg___	Tilføj eller redigér
+}}
+
+{{delete:
+msg___	Slet
+}}
+
+{{lastUpdate:
+msg___	Sidst rettet
+}}
+
+{{logout:
+msg___	Logout
+}}
+
+{{new:
+msg___	Ny
+}}
+
+{{page:
+msg___	side
+}}
+
+{{select:
+msg___	Vælg
+}}
+
+{{sort:
+msg___	Sortér
+}}
+
+{{sorting:
+msg___	Sortering
+}}
+
+{{startpage:
+msg___	Startside
+}}
+
+{{various:
+msg___	forskellige
+}}
+
+{{webpage:
+msg___	Webside
+}}
+
+{{welcome:
+msg___	Velkommen!
+}}
+
+{{closeWindow:
+msg___	Luk vindue
+}}
+
+
+
+
+//	------------------------------
+//:	general use messages and fragments
+
+{{noRecFound1:
+msg___	(der er ingen&nbsp;
+}}
+
+{{noRecFound2:
+msg___	)
+}}
+
+{{disabled:
+msg___	(Slået fra eller sat til ikke at vises)
+}}
+
+{{notDisplayed:
+msg___	(Visning slået fra)
+}}
+
+{{reqFields:
+msg___	angiver at feltet skal udfyldes
+}}
+
+{{valAlert:
+msg___	Det indtastede i ét eller flere felter gav problemer, se venligst nedenfor!
+}}
+
+{{pageNotFound:
+msg___	Siden blev ikke fundet!
+}}
+
+
+
+//	------------------------------
+//: feedback messages
+
+{{fb_01:
+msg___	Data tilføjet uden problemer
+}}
+
+{{fb_02:
+msg___	Data tilføjet uden problemer, du kan nu foretage yderligere redigering og klikke på 'Gem'
+}}
+
+{{fb_03:
+msg___	Ændringerne er blevet gemt
+}}
+
+{{fb_04:
+msg___	Data slettet
+}}
+
+
+
+
+//	------------------------------
+//: warning messages
+
+{{delRcrdConf:
+msg___	Er du sikker på du vil slette disse data? Det kan ikke fortrydes!
+}}
+
+
+
+//	------------------------------
+//:	various strings
+
+{{fileType:
+msg___	Filtype
+}}
+
+{{fileSize:
+msg___	Filstørrelse
+}}
+
+{{jpgfile:
+msg___	JPEG-billedfil
+}}
+
+{{giffile:
+msg___	GIF-billedfil
+}}
+
+{{tiffile:
+msg___	TIFF-billedfil
+}}
+
+{{pdffile:
+msg___	PDF-fil
+}}
+
+{{docfile:
+msg___	DOC-tekstfil
+}}
+
+{{movfile:
+msg___	QuickTime-musik/videofil
+}}
+
+{{undeffile:
+msg___	(Filtypen kunne ikke genkendes)
+}}
+
+{{clickToDownload:
+msg___	Højre/Ctrl-klik for at downloade
+}}
+
+
+
+//	------------------------------
+//: general labels
+
+{{link:
+msg___	Link
+}}
+
+{{login:
+msg___	Brugernavn (email)
+}}
+
+{{passwd:
+msg___	Adgangskode
+}}
+
+{{emailAddr:
+msg___	Emailadresse
+}}
+
+{{showOnSite:
+msg___	Vises på websitet
+}}
+
+
+//	------------------------------
+//: button values
+
+{{btnAdd:
+msg___	Tilføj
+}}
+
+{{btnSave:
+msg___	Gem
+}}
+
+{{btnContinue:
+msg___	Fortsæt
+}}
+
+{{btnBack:
+msg___	Tilbage
+}}
+
+{{btnUpload:
+msg___	Upload
+}}
+
+{{btnReset:
+msg___	Nulstil
+}}
+
+{{btnCancel:
+msg___	Fortryd
+}}
+
+{{btnSearch:
+msg___	Søg
+}}
+
+{{btnDelete:
+msg___	Slet
+}}
+
+{{btnRemove:
+msg___	Remove
+}}
+
+{{btnUpdate:
+msg___	Opdatér
+}}
+
+
+[/output_none]

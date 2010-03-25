@@ -1,0 +1,49 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpUtil_scrunch.ctag }
+	{rsrcType=		type }
+	{rsrcName=		fwpUtil_scrunch }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpUtil_scrunch }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			serializes and compresses a complex data type 
+					to be web form compatible }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+
+define_tag:'fwpUtil_scrunch', -priority='replace',
+	-required='scrunch';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpUtil_scrunch');
+
+	return: encode_base64:(compress:(#scrunch->serialize));
+
+/define_tag;
+
+?>

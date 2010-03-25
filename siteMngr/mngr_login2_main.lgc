@@ -1,0 +1,59 @@
+﻿<?lassoscript
+
+$fw_pageModes->disableAutoErrorDisplay;
+
+//	validate user login
+
+var:
+	'fw_loginOK' 		= false,
+	'fw_loginNewPswd' 	= false,
+	'fw_s' 				= string;
+
+(var:'fw_initUser') = (fwp_user: 
+	-acct		= (var:'fw_n'), 
+	-pswd		= (encrypt_md5:var:'fw_p'), 
+	-authTbl	= $fw_gTables->(find:'userauth'),
+	-privTbl	= $fw_gTables->(find:'userprivs'),
+	-fltrTbl	= $fw_gTables->(find:'userfltrs'),
+	-config		= 'default');
+
+$fw_initUser->authenticate;
+
+if: (($fw_initUser->'loginValid') == 'Y');
+	$fw_initUser->authorize;
+	$fw_initUser->(storeUser:$fw_initUser);
+	$fw_s = ($fw_initUser->'sessionID');
+/if;
+
+
+//------------
+
+//	finalize redirection target
+
+if: (($fw_initUser->'loginValid') == 'Y') && !($fw_initUser->'loginGetNewPswd');
+
+	header;
+	output: 'HTTP/1.0 302 FOUND\r';
+	output: 'Location: ' + $fw_serverMode + '://' + ($fw_requestPage->'host') + '/siteMngr/_admin/mngr_menu?fw_s=' + $fw_s + '\r';
+	/header;
+
+else: (($fw_initUser->'loginValid') == 'Y') && ($fw_initUser->'loginGetNewPswd');
+
+	header;
+	output: 'HTTP/1.0 302 FOUND\r';
+	output: 'Location: ' + $fw_serverMode + '://' + ($fw_requestPage->'host') + '/siteUsers/newPswd?fw_s=' + $fw_s + '\r';
+	/header;
+
+else;
+
+	//	login not valid so throw an error
+
+	if: ($fw_initUser->'loginValid') >> '```';
+		$fw_error->(insert:((($fw_initUser->'loginValid')->split:'```')->get:1) = ((($fw_initUser->'loginValid')->split:'```')->get:2));
+	else;
+		$fw_error->(insert:($fw_initUser->'loginValid') = 'Authorization denied');
+	/if;
+
+/if;
+
+?>

@@ -1,0 +1,921 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2006 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGui_valueList.ctype }
+	{rsrcType=		type }
+	{rsrcName=		fwp_valueList }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_valueList }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates a valuelist object where list options
+					can be supplied by an array of pairs, a config file,
+					or a database table. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.2 }
+	{maintdate=		2007-07-07 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+//	USAGE
+//------ performed in the logic file ------------
+
+//	var:'vlist_firstName' = (fwp_valueList:
+//		-withoutCaching,
+//		-asVertical, 
+//		-asHorizontal,
+//		-file			= fileName,
+//		-table			= tableName,
+//		-scope			= 'site|module',
+//		-list			= array_of_pairs | listName,
+//		-titleOption	= '',
+//		-currentValue	= '',
+//		-attributes		= (map:
+//			-disabled		= 'disabled',
+//			'id'			= '',
+//			'name'			= '',
+//			'class'			= '',
+//			'tabindex'		= '',
+//			'onblur'		= '',
+//			'onfocus'		= '',
+//			'onchange'		= ''));
+
+//------ performed in the display file ------------
+
+//	$vlist_firstName->(draw:
+//		-diabled 	= string,
+//		-currentValue = string,
+//		-tabIndex	= integer,
+//		-id			= string,
+//		-class		= string);
+
+//............................................................................
+
+
+define_type:'fwp_valueList', -prototype;
+
+	local:
+		'cachedCode'		= string,
+		'listCode'			= string,
+		'listOptions'		= array,
+
+		'sourceFile'		= string,
+		'sourceTable'		= string,
+		'sourceScope'		= string,
+		'sourceList'		= string,
+		'language'			= string,
+		'currentValue'		= string,
+		'titleOption'		= string,
+		'listAttributes' 	= map,
+		'asVertical'		= boolean,
+		'asHorizontal'		= boolean,
+		'withoutCaching'	= boolean,
+		'listCacheID'		= string,
+		'listCacheName'		= string;
+
+
+//============================================================================
+//
+//	->onCreate
+//
+//............................................................................
+
+define_tag:'onCreate',
+	-optional = 'file',
+	-optional = 'table',
+	-optional = 'list',
+	-optional = 'scope',
+	-optional = 'language',
+	-optional = 'currentValue',
+	-optional = 'attributes';
+
+	local:
+		'thisParam'				= pair,
+		'thisAttribute'			= pair;
+
+	self->'sourceFile'			= local:'file';
+	self->'sourceTable'			= local:'table';
+	self->'sourceList'			= local:'list';
+	self->'sourceScope'			= local:'scope';
+	self->'currentValue'		= local:'currentValue';
+	self->'listAttributes'		= local:'attributes';
+
+//	this one is different to allow for an empty value
+//	which gets turned into an empty first option
+
+	if: (params >> '-titleOption');
+		(self->'titleOption') = ((params->find:'-titleOption')->first->second);
+		!(self->'titleOption')
+			? (self->'titleOption') = true;
+	/if;
+	
+	(params >> '-language')
+		? (self->'language') = ((params->find:'-language')->first->second)
+		| (self->'language') = ($fw_client->'language');
+
+	(params >> '-withoutCaching') || (params >> '-withoutCache') || (params >> '-noCache')
+		? self->'withoutCaching' = true
+		| self->'withoutCaching' = false;
+
+	(params >> '-asDisabled') || (params >> '-disabled')
+		? (self->'listAttributes')->(insert: 'disabled'='disabled');
+	
+	(params >> '-asVertical')
+		? self->'asVertical' = true
+		| self->'asVertical' = false;
+
+	(params >> '-asHorizontal')
+		? self->'asHorizontal' = true
+		| self->'asHorizontal' = false;
+
+	!(self->'asVertical') && !(self->'asHorizontal')
+		? self->'asHorizontal' = true;
+
+	(self->'sourceTable') && !(self->'sourceScope')
+		? self->'sourceScope' = 'site';
+
+//	essentially insert these as minimums
+
+	!((self->'listAttributes')->find:'name')
+		? (self->'listAttributes')->(insert:'name' = '');
+
+	!((self->'listAttributes')->find:'class')
+		? (self->'listAttributes')->(insert:'class' = '');
+
+//	insert these as defaults to be modified at draw time
+
+	!((self->'listAttributes')->find:'id')
+		? (self->'listAttributes')->(insert:'id' = ((self->'listAttributes')->find:'name'));
+		
+	!((self->'listAttributes')->find:'disabled')
+		? (self->'listAttributes')->(insert:'disabled' = '');
+
+	!((self->'listAttributes')->find:'tabindex')
+		? (self->'listAttributes')->(insert:'tabindex' = '');
+
+//	caching vlists code is trickier that it looks
+//	the many options means that there could be similar but not identical uses
+//	of the vlist itself, so after several failed ideas, I use a concat 
+//	of every input and MD5ing that to create what should be a unique fingerprint
+
+	iterate: params, #thisParam;
+		if: #thisParam->type == 'pair';
+			if: (#thisParam->get:1) == '-attributes';
+				iterate: #thisParam->get:2, #thisAttribute;
+					(self->'listCacheID') += (string:(#thisAttribute->get:2));
+				/iterate;
+			else;
+				(self->'listCacheID') += (string:(#thisParam->get:2));
+			/if;
+		else;
+			(self->'listCacheID') += #thisParam;
+		/if;
+	/iterate;
+	(self->'listCacheID')->(replace:'-','');
+	(self->'listCacheName') = 'fw_ggCache_vList_' + string:(encrypt_MD5: (self->'listCacheID'));
+
+	self->loadConfig;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->loadConfig
+//
+//	acquire config data from file, table, or cache
+//
+//............................................................................
+
+define_tag:'loadConfig';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_valueList->loadConfig');
+
+	if: (self->'sourceList')->type == array;
+		(self->'listOptions') = @(self->'sourceList');
+		return;
+	/if;
+
+//:	retrieve from cache
+
+	if: ($fw_gConfigCache->'varNames') >> (self->'listCacheName');
+		(self->'cachedCode') = global:(self->'listCacheName');
+	/if;
+
+	if: !(self->'cachedCode');
+		if: (self->'sourceFile');
+	
+			local:'fileName' = ('valueLists_' + (self->'sourceFile') + '_' + (self->'language') + fw_kCnfgExt);
+			(self->'listOptions') = fwpCnfg_loadBlocks:#fileName;
+		
+			if: (self->'listOptions');
+				(self->'listOptions') = fwpCnfg_splitBlockLines:((self->'listOptions')->find:(self->'sourceList'));
+			/if;
+		
+		else: (self->'sourceTable');
+	
+			local:
+				'vlistRecords' 	= fwp_recordData:($fw_gTables->find:(self->'sourceTable')),
+				'thisRecord'	= array;
+	
+			#vlistRecords->(select(
+				-withRecordsArrays,
+				-select 	= 'm_vlLabel, m_vlValue',
+				-where		= "m_vlName = '" + self->('sourceList') + "' AND m_vlScope = '" + self->('sourceScope') + "' AND m_vlLang = '" + self->('language') + "'",
+				-orderBy 	= 'm_vlOrder asc',
+				-limit 		= '*',
+			));
+
+			iterate: #vlistRecords->'records', #thisRecord;
+				(self->'listOptions')->(insert: (#thisRecord->get:1) = (#thisRecord->get:2));
+			/iterate;
+	
+		else;
+			(self->'sourceList') = (array: '' = '');
+		/if;
+
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->storeToCache
+//
+//	store code to cache only if the list came from a vlist file
+//............................................................................
+
+define_tag:'storeToCache';
+
+	if: (self->'sourceFile') && (self->'sourceList') && !(self->'withoutCaching');
+	
+		$fw_debug ? $fw_tagTracer->(add:'fwp_valueList->storeToCache', -name = (self->'listAttributes')->find:'name');
+			
+		$fw_gConfigCache->(add:
+			-name  = self->'listCacheName',
+			-value = (self->'listCode'));
+			
+		(self->'cachedCode') = (self->'listCode');
+	/if;
+	
+/define_tag;
+
+
+//============================================================================
+//
+//	->processAttributes
+//
+//............................................................................
+
+define_tag:'processAttributes';
+
+	local:
+		'thisAttribute'		= pair,
+		'thisAttrCount'		= integer,
+		'thisOptionValue'	= null;
+
+	params >> '-forInput'
+		? #thisAttrCount = integer:((params->find:'-forInput')->first->second);
+
+	params >> '-withValue'
+		? #thisOptionValue = ((params->find:'-withValue')->first->second);
+
+	iterate: (self->'listAttributes'), #thisAttribute;
+		(self->'listCode') += #thisAttribute->first;
+		(self->'listCode') += '="';
+		(self->'listCode') += #thisAttribute->second;
+
+		#thisAttrCount && (#thisAttribute->first == 'disabled')
+			? (self->'listCode') += #thisOptionValue;
+
+		#thisAttrCount && (#thisAttribute->first == 'tabindex')
+			? (self->'listCode') += (9000 + #thisAttrCount);
+
+		#thisAttrCount && (#thisAttribute->first == 'id')
+			? (self->'listCode') += #thisAttrCount;
+
+		(self->'listCode') += '" ';
+	/iterate;
+
+	(self->'listCode')->(removeTrailing:' ');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->postProcessSelectMarkup
+//
+//............................................................................
+
+define_tag:'postProcessSelectMarkup',
+	-required = 'instanceParams';
+
+	if: #instanceParams >> '-currentValue';
+	
+		if: ((self->'listAttributes')->find:'multiple') && ((#instanceParams->find:'-currentValue')->first->second) >> '\r';
+			local:
+				'currentValues' = ((#instanceParams->find:'-currentValue')->first->second)->split:'\r',
+				'thisValue'		= string;
+
+			iterate: #currentValues, #thisValue;
+				(self->'listCode')=(string_replaceRegExp: 
+					(self->'listCode'), 
+					-find		= ('value="' + #thisValue + '"'),
+					-replace	= ('value="' + #thisValue + '" selected="selected" '),
+					-ignoreCase);
+			/iterate;
+		else;
+			(self->'listCode')=(string_replaceRegExp: 
+				(self->'listCode'), 
+				-find		= ('value="' + ((#instanceParams->find:'-currentValue')->first->second) + '"'),
+				-replace	= ('value="' + ((#instanceParams->find:'-currentValue')->first->second) + '" selected="true" '),
+				-ignoreCase);
+		/if;
+
+	else: (self->'currentValue');
+
+		if: ((self->'listAttributes')->find:'multiple') && (self->'currentValue') >> '\r';
+			local:
+				'currentValues' = (self->'currentValue')->split:'\r',
+				'thisValue'		= string;
+
+			iterate: #currentValues, #thisValue;
+				(self->'listCode')=(string_replaceRegExp: 
+					(self->'listCode'), 
+					-find		= ('value="' + #thisValue + '"'),
+					-replace	= ('value="' + #thisValue + '" selected="true"'),
+					-ignoreCase);
+			/iterate;
+		else;
+			(self->'listCode')=(string_replaceRegExp: 
+				(self->'listCode'), 
+				-find		= ('value="' + (self->'currentValue') + '"'),
+				-replace	= ('value="' + (self->'currentValue') + '" selected="true" '),
+				-ignoreCase);
+		/if;
+	/if;
+
+	if: #instanceParams >> '-id';
+		(self->'listCode')=(string_replaceRegExp: 
+			(self->'listCode'), 
+			-find		= 'id="\\w*?"',
+			-replace	= ('id="' + ((#instanceParams->find:'-id')->first->second) + '"'),
+			-ignoreCase);
+	/if;
+
+	if: #instanceParams >> '-class';
+		(self->'listCode')=(string_replaceRegExp: 
+			(self->'listCode'), 
+			-find		= 'class=".*?"',
+			-replace	= ('class="' + ((#instanceParams->find:'-class')->first->second) + '"'),
+			-ignoreCase);
+	/if;
+
+	if: #instanceParams >> '-tabindex';
+		(self->'listCode')=(string_replaceRegExp: 
+			(self->'listCode'), 
+			-find		= 'tabindex="\\d*?"',
+			-replace	= ('tabindex="' + ((#instanceParams->find:'-tabindex')->first->second) + '"'),
+			-ignoreCase);
+	else;
+		(self->'listCode')=(string_replaceRegExp: 
+			(self->'listCode'), 
+			-find		= 'tabindex=""',
+			-replace	= '',
+			-ignoreCase);
+	/if;
+
+	if: (#instanceParams >> '-disabled') && (((#instanceParams->find:'-disabled')->first->second) == true);
+		(self->'listCode')=(string_replaceRegExp: 
+			(self->'listCode'), 
+			-find		= 'disabled=""',
+			-replace	= ('disabled="disabled"'),
+			-ignoreCase);
+	else;
+		(self->'listCode')=(string_replaceRegExp: 
+			(self->'listCode'), 
+			-find		= 'disabled="\\w*?"',
+			-replace	= '',
+			-ignoreCase);
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->postProcessInputMarkup
+//
+//............................................................................
+
+define_tag:'postProcessInputMarkup',
+	-required = 'instanceParams';
+
+//	---------------------------------
+
+	if: #instanceParams >> '-currentValue';
+	
+		if: ((#instanceParams->find:'-currentValue')->first->second) >> '\r';
+			local:
+				'currentValues' = ((#instanceParams->find:'-currentValue')->first->second)->split:'\r',
+				'thisValue'		= string;
+
+			iterate: #currentValues, #thisValue;
+				(self->'listCode')=(string_replaceRegExp: 
+					(self->'listCode'), 
+					-find		= ('value="' + #thisValue + '" '),
+					-replace	= ('value="' + #thisValue + '" checked="true" '),
+					-ignoreCase);
+			/iterate;
+		else;
+			(self->'listCode')=(string_replaceRegExp: 
+				(self->'listCode'), 
+				-find		= ('value="' + ((#instanceParams->find:'-currentValue')->first->second) + '" '),
+				-replace	= ('value="' + ((#instanceParams->find:'-currentValue')->first->second) + '" checked="true" '),
+				-ignoreCase);
+		/if;
+
+	else: (self->'currentValue');
+
+		if: (self->'currentValue') >> '\r';
+			local:
+				'currentValues' = (self->'currentValue')->split:'\r',
+				'thisValue'		= string;
+
+			iterate: #currentValues, #thisValue;
+				(self->'listCode')=(string_replaceRegExp: 
+					(self->'listCode'), 
+					-find		= ('value="' + #thisValue + '" '),
+					-replace	= ('value="' + #thisValue + '" checked="true" '),
+					-ignoreCase);
+			/iterate;
+		else;
+			(self->'listCode')=(string_replaceRegExp: 
+				(self->'listCode'), 
+				-find		= ('value="' + (self->'currentValue') + '" '),
+				-replace	= ('value="' + (self->'currentValue') + '" checked="true" '),
+				-ignoreCase);
+		/if;
+	/if;
+
+//	---------------------------------
+
+	if: #instanceParams >> '-tabindex';
+		loop: (self->'listOptions')->size;
+			(self->'listCode')=(string_replaceRegExp: 
+				(self->'listCode'), 
+				-find		= 'tabindex="' + (9000 + loop_count) + '"',
+				-replace	= 'tabindex="' + ((integer:(#instanceParams->find:'-tabindex')->first->second) + loop_count -1 ) + '"',
+				-ignoreCase);
+		/loop;
+	/if;
+
+//	---------------------------------
+
+	if: (#instanceParams >> '-disabled') && ((#instanceParams->find:'-disabled')->first->second);
+
+		local:'disabledData' = ((#instanceParams->find:'-disabled')->first->second);
+
+		if: #disabledData === true;
+			(self->'listCode')=(string_replaceRegExp: 
+				(self->'listCode'), 
+				-find		= ('disabled="\\w*?" '),
+				-replace	= ('disabled="true" '),
+				-ignoreCase);
+
+		else;
+
+			local:
+				'disableValues'	= array,
+				'thisValue'		= string;
+
+			if: #disabledData->type == 'array';
+				#disableValues = @#disabledData;
+			else: (#disabledData->type == 'string') && (#disabledData >> '\r');
+				#disableValues = #disabledData->split:'\r';
+			else: (#disabledData->type == 'string') && (#disabledData >> ',');
+				#disableValues = fwpCnfg_splitComma:#disabledData;
+			/if;
+			
+			iterate: #disableValues, #thisValue;
+				(self->'listCode')=(string_replaceRegExp: 
+					(self->'listCode'), 
+					-find		= ('disabled="' + #thisValue + '" '),
+					-replace	= ('#disabled# '),
+					-ignoreCase);
+			/iterate;
+
+			(self->'listCode')=(string_replaceRegExp: 
+				(self->'listCode'), 
+				-find		= 'disabled="\\w*?"',
+				-replace	= '',
+				-ignoreCase);
+	
+			(self->'listCode')=(string_replaceRegExp: 
+				(self->'listCode'), 
+				-find		= '#disabled#',
+				-replace	= ('disabled="true"'),
+				-ignoreCase);
+		/if;
+
+	else;
+		(self->'listCode')=(string_replaceRegExp: 
+			(self->'listCode'), 
+			-find		= 'disabled="\\w*?"',
+			-replace	= '',
+			-ignoreCase);
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->setCurrentValue
+//
+//	updates default value
+//............................................................................
+
+define_tag:'setCurrentValue',
+	-required = 'value';
+	
+	self->'currentValue' = #value;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->setDisabled
+//
+//	updates disabled value
+//............................................................................
+
+define_tag:'setDisabled',
+	-required = 'disabled';
+	
+	#disabled == true
+		? (self->'listAttributes')->(insert:'disabled' = 'disabled')
+		| (self->'listAttributes')->(remove:'disabled');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawPopup
+//
+//	assembles and returns the HTML for a popup menu
+//
+//............................................................................
+
+define_tag:'drawAsPopup';
+
+	(self->'listCode') = (self->'cachedCode');
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_valueList->drawAsPopup', 
+									-name = (self->'listAttributes')->find:'name',
+									-id = (params >> '-id') ? (params->find:'-id')->first->second);
+
+	if: !(self->'listCode');
+
+		$fw_debug >= fw_kChatty ? $fw_tagTracer->(add:'fwp_valueList->drawAsPopup : create listCode', 
+										-name = (self->'listAttributes')->find:'name',
+										-id = (params >> '-id') ? (params->find:'-id')->first->second);
+
+		local:
+			'thisOption' 		= pair,
+			'thisOptionName'	= string,
+			'thisOptionValue'	= string;
+
+		!((self->'listAttributes')->find:'class')
+			? (self->'listAttributes')->(insert:'class' = 'fwppopup');
+	
+		(self->'listCode') = '\r<select size="1" ';
+		self->processAttributes;
+		(self->'listCode') += '>';
+	
+		if: self->'titleOption';
+			(self->'listCode') += '\r<option value="">';
+			((self->'titleOption')->type == 'string')
+				? (self->'listCode') += (self->'titleOption');
+			(self->'listCode') += '</option>';
+		/if;
+	
+		iterate: (self->'listOptions'), #thisOption;
+	
+			if: (#thisOption)->type == 'pair';
+				#thisOptionName	 = #thisOption->get:1;
+				#thisOptionValue = #thisOption->get:2;
+			else;
+				#thisOptionName  = #thisOption;
+				#thisOptionValue = #thisOption;
+			/if;
+	
+			(self->'listCode') += '\r<option value="';
+			(self->'listCode') += #thisOptionValue;
+			(self->'listCode') += '">';
+			(self->'listCode') += #thisOptionName;
+			(self->'listCode') += '</option>';
+		/iterate;
+	
+		(self->'listCode') += '\r</select>';
+
+		self->storeToCache;
+	/if;
+	
+	self->(postProcessSelectMarkup:params);
+
+	return: @(self->'listCode');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawAsListBox
+//
+//	assembles and returns the HTML for a list box
+//
+//............................................................................
+
+define_tag:'drawAsListBox';
+
+	(self->'listCode') = (self->'cachedCode');
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_valueList->drawAsListBox', 
+									-name = (self->'listAttributes')->find:'name',
+									-id = (params >> '-id') ? (params->find:'-id')->first->second);
+
+	if: !(self->'listCode');
+
+		$fw_debug >= fw_kChatty ? $fw_tagTracer->(add:'fwp_valueList->drawAsListBox : create listCode', 
+										-name = (self->'listAttributes')->find:'name',
+										-id = (params >> '-id') ? (params->find:'-id')->first->second);
+
+		local:
+			'thisOption' 		= pair,
+			'thisOptionName'	= string,
+			'thisOptionValue'	= string;
+
+		!((self->'listAttributes')->find:'class')
+			? (self->'listAttributes')->(insert:'class' = 'fwplistbox');
+	
+		!((self->'listAttributes')->find:'size')
+			? (self->'listAttributes')->(insert:'size' = '4');
+
+		(self->'listCode') = '\r<select ';
+		self->processAttributes;
+		(self->'listCode') += '>';
+	
+		if: self->'titleOption';
+			(self->'listCode') += '\r<option value="">';
+			((self->'titleOption')->type == 'string')
+				? (self->'listCode') += (self->'titleOption');
+			(self->'listCode') += '</option>';
+		/if;
+	
+		iterate: (self->'listOptions'), #thisOption;
+
+			if: (#thisOption)->type == 'pair';
+				#thisOptionName	 = #thisOption->get:1;
+				#thisOptionValue = #thisOption->get:2;
+			else;
+				#thisOptionName  = #thisOption;
+				#thisOptionValue = #thisOption;
+			/if;
+	
+			(self->'listCode') += '\r<option value="';
+			(self->'listCode') += #thisOptionValue;
+			(self->'listCode') += '">';
+			(self->'listCode') += #thisOptionName;
+			(self->'listCode') += '</option>';
+		/iterate;
+	
+		(self->'listCode') += '\r</select>';
+
+		self->storeToCache;
+	/if;
+	
+	self->(postProcessSelectMarkup:params);
+
+	return: @(self->'listCode');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawAsRadioBtns
+//
+//	assembles and returns the HTML for a list box
+//
+//............................................................................
+
+define_tag:'drawAsRadioBtns';
+
+	(self->'listCode') = (self->'cachedCode');
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_valueList->drawAsRadioBtns', 
+									-name = (self->'listAttributes')->find:'name',
+									-id = (params >> '-id') ? (params->find:'-id')->first->second);
+
+	if: !(self->'listCode');
+
+		$fw_debug >= fw_kChatty ? $fw_tagTracer->(add:'fwp_valueList->drawAsRadioBtns : create listCode', 
+										-name = (self->'listAttributes')->find:'name',
+										-id = (params >> '-id') ? (params->find:'-id')->first->second);
+
+		local:
+			'thisOption' 		= pair,
+			'thisOptionName'	= string,
+			'thisOptionValue'	= string;
+
+		!((self->'listAttributes')->find:'class')
+			? (self->'listAttributes')->(insert:'class' = 'fwpradiobtn');
+	
+//	begin HTML
+
+		if: (self->'titleOption');
+			(self->'listCode') += '\r<fieldset class="';
+			(self->'listCode') += (self->'listAttributes')->find:'class';
+			(self->'listCode') += '">';
+			(self->'listCode') += '\r<legend class="';
+			(self->'listCode') += (self->'listAttributes')->find:'class';
+			(self->'listCode') += '">';
+			(self->'listCode') += (self->'titleOption');
+			(self->'listCode') += '</legend>';
+		/if;
+
+		iterate: (self->'listOptions'), #thisOption;
+
+			if: (#thisOption)->type == 'pair';
+				#thisOptionName	 = #thisOption->get:1;
+				#thisOptionValue = #thisOption->get:2;
+			else;
+				#thisOptionName  = #thisOption;
+				#thisOptionValue = #thisOption;
+			/if;
+	
+//	start writing the HTML code for the radio buttons
+
+			(self->'listCode') += '\r<span class="nobr">';
+
+			(self->'listCode') += '<label class="';
+			(self->'listCode') += (self->'listAttributes')->find:'class';
+			(self->'listCode') += '" style="cursor:arrow">';
+
+			(self->'listCode') += '<input type="radio" ';
+
+			(self->'listCode') += 'value="';
+			(self->'listCode') += #thisOptionValue;
+			(self->'listCode') += '" ';
+
+			self->(processAttributes: -forInput=loop_count);
+			
+//	close up the HTML code
+
+			(self->'listCode') += ' />';
+			(self->'listCode') += #thisOptionName;
+			(self->'listCode') += '</label></span>';
+	
+//	and add HTML to determine vert or horz layout
+	
+			if: (self->'asVertical');
+				(self->'listCode') += '<br />';
+			else;
+				(self->'listCode') += '&nbsp;&nbsp;&nbsp;';
+			/if;
+
+		/iterate;
+
+		if: (self->'titleOption');
+			(self->'listCode') += '</fieldset>';
+		/if;
+	
+		self->storeToCache;
+	/if;
+
+	self->(postProcessInputMarkup:params);
+	
+	return: @(self->'listCode');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawAsCheckboxes
+//
+//	assembles and returns the HTML for a list box
+//
+//............................................................................
+
+define_tag:'drawAsCheckboxes';
+
+	(self->'listCode') = (self->'cachedCode');
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_valueList->drawAsCheckboxes', 
+									-name = (self->'listAttributes')->find:'name',
+									-id = (params >> '-id') ? (params->find:'-id')->first->second);
+
+	if: !(self->'listCode');
+
+		$fw_debug >= fw_kChatty ? $fw_tagTracer->(add:'fwp_valueList->drawAsCheckboxes : create listCode', 
+										-name = (self->'listAttributes')->find:'name',
+										-id = (params >> '-id') ? (params->find:'-id')->first->second);
+
+		local:
+			'thisOption' 		= pair,
+			'thisOptionName'	= string,
+			'thisOptionValue'	= string;
+
+		!((self->'listAttributes')->find:'class')
+			? (self->'listAttributes')->(insert:'class' = 'fwpcheckbox');
+	
+//	begin HTML
+
+		if: (self->'titleOption');
+			(self->'listCode') += '\r<fieldset class="';
+			(self->'listCode') += (self->'listAttributes')->find:'class';
+			(self->'listCode') += '">';
+			(self->'listCode') += '\r<legend class="';
+			(self->'listCode') += (self->'listAttributes')->find:'class';
+			(self->'listCode') += '">';
+			(self->'listCode') += (self->'titleOption');
+			(self->'listCode') += '</legend>';
+		/if;
+
+		iterate: (self->'listOptions'), #thisOption;
+
+			if: (#thisOption)->type == 'pair';
+				#thisOptionName	 = #thisOption->get:1;
+				#thisOptionValue = #thisOption->get:2;
+			else;
+				#thisOptionName  = #thisOption;
+				#thisOptionValue = #thisOption;
+			/if;
+	
+//	start writing the HTML code for the radio buttons
+
+			(self->'listCode') += '\r<span class="nobr">';
+
+			(self->'listCode') += '<label class="';
+			(self->'listCode') += (self->'listAttributes')->find:'class';
+			(self->'listCode') += '" style="cursor:arrow">';
+
+			(self->'listCode') += '<input type="checkbox" ';
+
+			(self->'listCode') += 'value="';
+			(self->'listCode') += #thisOptionValue;
+			(self->'listCode') += '" ';
+
+			self->(processAttributes: -forInput=loop_count, -withValue=#thisOptionValue);
+			
+//	close up the HTML code
+
+			(self->'listCode') += ' />';
+			(self->'listCode') += #thisOptionName;
+			(self->'listCode') += '</label></span>';
+	
+//	and add HTML to determine vert or horz layout
+	
+			if: (self->'asVertical');
+				(self->'listCode') += '<br />';
+			else;
+				(self->'listCode') += '&nbsp;&nbsp;&nbsp;';
+			/if;
+
+		/iterate;
+	
+		if: (self->'titleOption');
+			(self->'listCode') += '</fieldset>';
+		/if;
+
+		self->storeToCache;
+	/if;
+
+	self->(postProcessInputMarkup:params);
+	
+	return: @(self->'listCode');
+
+/define_tag;
+
+/define_type;
+?>

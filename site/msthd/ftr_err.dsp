@@ -1,0 +1,1 @@
+<p class="dim"><br /><br /><br />&copy; 2002-2007, pageblocks.org<br /><br /></p>

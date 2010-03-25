@@ -1,0 +1,367 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpSrch_nemoyCriteria.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_nemoyCriteria }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_nemoyCriteria }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			parses and stores search criteria }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_nemoyCriteria', -prototype;
+
+	local:
+		'defaultRankEngine'	= string,
+		'defaultSrchConfig'	= string,
+		'searchString'		= string,
+		
+		'useLemmatization'	= integer,
+		'lemmataData'		= string,
+		'lemmataLines'		= array,
+
+		'rankEngine'		= string,
+		'srchConfig'		= string,
+		
+		'searchTerms'		= map;
+
+//==============================================================================
+//	->onCreate
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'onCreate',
+	-optional = 'defaultSrchConfig',
+	-optional = 'defaultRankEngine';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyCriteria->onCreate');
+
+	self->'defaultsrchConfig' = #defaultsrchConfig;
+	self->'srchConfig' = #defaultsrchConfig;
+
+	self->'defaultRankEngine' = #defaultRankEngine;
+	self->'rankEngine' = #defaultRankEngine;
+
+/define_tag;
+
+
+//==============================================================================
+//	->init
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'init',
+	-required = 'searchGETParams',
+	-optional = 'searchString';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyCriteria->init');
+
+	$fw_timer->(start:'criteriaInit');
+
+	local:
+		'thisLabel'			= string,
+		'acceptedLabels' 	= (array:'searchfor', 'lookfor', 's', 'search', 'srch', 'find', 'fetch', 'f', 'get');
+
+	(#searchGETParams->(find:'srchConfig'))
+		? (self->'srchConfig') = ((#searchGETParams->(find:'srchConfig'))->last)->second;
+	
+	!(self->'srchConfig')
+		? (self->'srchConfig') = (self->'defaultSrchConfig');
+
+	(#searchGETParams->(find:'rankEngine'))
+		? (self->'rankEngine') = ((#searchGETParams->(find:'rankEngine'))->last)->second;
+	
+	!(self->'rankEngine')
+		? (self->'rankEngine') = (self->'defaultRankEngine');
+
+	#searchGETParams->(find:'useLemmatization')
+		? (self->'useLemmatization') = true
+		| (self->'useLemmatization') = false;
+
+
+	if: !local:'searchString';
+		iterate: #acceptedLabels, #thisLabel;
+			(#searchGETParams >> #thisLabel) 
+				? (self->'searchString') =  ((#searchGETParams->(find:#thisLabel))->last)->second;
+			(self->'searchString') 
+				? loop_abort;
+		/iterate;
+	/if;
+
+	(self->'searchString')->trim;
+
+	$fw_timer->(stop:'criteriaInit');
+
+	self->parseTerms;
+
+/define_tag;
+
+
+
+//==============================================================================
+//	->parseTerms
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'parseTerms';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyCriteria->parseTerms');
+
+	!(self->'searchString') ? return: false;
+
+//	copy the search string because we're going to mangle it up a bit
+
+	$fw_timer->(start:'criteriaParse');
+
+	local:
+		'searchString' 	= (self->'searchString'),
+		'firstChar'		= string,
+		'searchWords'	= array,
+		'thisWord'		= string,
+		'thisTerm'		= string,
+		'thisLemma'		= string,
+		'lemmata'		= string,
+		'lemmaWords'	= array;
+
+//	------------------------------------
+//	if first term is not modified, then force it to be a +
+//	this improves query logic significantly
+
+	#searchString->trim;
+	#firstChar = (#searchString->get:1);
+	(#firstChar != '+') && (#firstChar != '-')	&& (#firstChar != '"')	&& (#firstChar != '*')
+		? #searchString = '+' + #searchString;
+
+//	------------------------------------
+//	parse terms into categories
+
+	(self->'searchTerms')->(insert:'lemmaTerms' = map);
+
+
+//	required literals and terms
+
+	(self->'searchTerms')->(insert:
+		'requiredLiterals' = (string_findRegExp: #searchString, -find='\\+\\"[\\s\\S]+?\\"'));
+
+		iterate: ((self->'searchTerms')->find:'requiredLiterals'), local:'thisTerm';
+			#searchString->(replace: #thisTerm, '');
+		/iterate;
+	
+		iterate: ((self->'searchTerms')->find:'requiredLiterals'), #thisWord;
+			#thisWord->removeLeading:'+';
+			#thisWord->removeLeading:'"';
+			#thisWord->removeTrailing:'"';
+		/iterate;
+
+	(self->'searchTerms')->(insert:
+		'requiredTerms' = (string_findRegExp: #searchString, -find='\\+\\S+'));
+
+		iterate: ((self->'searchTerms')->find:'requiredTerms'), local:'thisTerm';
+			#searchString->(replace: #thisTerm, '');
+		/iterate;
+	
+		iterate: ((self->'searchTerms')->find:'requiredTerms'), #thisWord;
+			#thisTerm = #thisWord;
+			#thisWord->removeLeading:'+';
+			(self->'useLemmatization')
+				? #lemmata = self->(addLemmata:#thisWord);
+		/iterate;
+
+	((self->'searchTerms')->find:'requiredTerms')->(merge: ((self->'searchTerms')->find:'requiredLiterals'));
+	((self->'searchTerms')->remove:'requiredLiterals');
+
+
+
+//	excluded literals and terms
+
+	(self->'searchTerms')->(insert:
+		'excludedLiterals' = (string_findRegExp: #searchString, -find='\\-\\"[\\s\\S]+?\\"'));
+
+		iterate: ((self->'searchTerms')->find:'excludedLiterals'), local:'thisTerm';
+			#searchString->(replace: #thisTerm, '');
+		/iterate;
+	
+		iterate: ((self->'searchTerms')->find:'excludedLiterals'), #thisWord;
+			#thisWord->removeLeading:'-';
+			#thisWord->removeLeading:'"';
+			#thisWord->removeTrailing:'"';
+		/iterate;
+
+	(self->'searchTerms')->(insert:
+		'excludedTerms' = (string_findRegExp: #searchString, -find='\\-\\S+'));
+
+		iterate: ((self->'searchTerms')->find:'excludedTerms'), local:'thisTerm';
+			#searchString->(replace: #thisTerm, '');
+		/iterate;
+	
+		iterate: ((self->'searchTerms')->find:'excludedTerms'), #thisWord;
+			#thisWord->removeLeading:'-';
+		/iterate;
+
+	((self->'searchTerms')->find:'excludedTerms')->(merge: ((self->'searchTerms')->find:'excludedLiterals'));
+	((self->'searchTerms')->remove:'excludedLiterals');
+
+
+//	beginsWith and endsWith
+
+	(self->'searchTerms')->(insert:
+		'beginsTerms' = (string_findRegExp: #searchString, -find='\\S+\\*'));
+
+		iterate: ((self->'searchTerms')->find:'beginsTerms'), local:'thisTerm';
+			#searchString->(replace: #thisTerm, '');
+		/iterate;
+	
+		iterate: ((self->'searchTerms')->find:'beginsTerms'), #thisWord;
+			#thisWord->removeTrailing:'*';
+		/iterate;
+
+	(self->'searchTerms')->(insert:
+		'endsTerms' = (string_findRegExp: #searchString, -find='\\*\\S+'));
+
+		iterate: ((self->'searchTerms')->find:'endsTerms'), local:'thisTerm';
+			#searchString->(replace: #thisTerm, '');
+		/iterate;
+	
+		iterate: ((self->'searchTerms')->find:'endsTerms'), #thisWord;
+			#thisWord->removeLeading:'*';
+		/iterate;
+
+//	plain quoted and plain unquoted terms
+
+	(self->'searchTerms')->(insert:
+		'quotedTerms' = (string_findRegExp: #searchString, -find='\\"[\\S\\s]+?\\"'));
+
+		iterate: ((self->'searchTerms')->find:'quotedTerms'), local:'thisTerm';
+			#searchString->(replace: #thisTerm, '');
+		/iterate;
+
+		iterate: ((self->'searchTerms')->find:'quotedTerms'), #thisWord;
+			#thisWord->removeLeading:'"';
+			#thisWord->removeTrailing:'"';
+		/iterate;
+
+	(self->'searchTerms')->(insert:
+		'plainTerms' = (string_findRegExp: #searchString, -find='\\s*\\w+'));
+	
+		iterate: ((self->'searchTerms')->find:'plainTerms'), #thisWord;
+			#thisWord->trim;
+			(self->'useLemmatization')
+				? #lemmata = self->(addLemmata:#thisWord);
+		/iterate;
+
+	#searchWords->(merge: (self->'searchTerms')->find:'requiredTerms');
+	#searchWords->(merge: (self->'searchTerms')->find:'excludedTerms');
+	#searchWords->(merge: (self->'searchTerms')->find:'beginsTerms');
+	#searchWords->(merge: (self->'searchTerms')->find:'endsTerms');
+	#searchWords->(merge: (self->'searchTerms')->find:'quotedTerms');
+	#searchWords->(merge: (self->'searchTerms')->find:'plainTerms');
+	(self->'searchTerms')->(insert:'searchWords' = #searchWords);	
+
+	(self->'searchTerms')->(insert:'lemmaWords' = array);	
+	(self->'searchTerms')->(insert:'searchAndLemmaTerms' = array);	
+	(self->'searchTerms')->(insert:'useLemmatization' = (self->'useLemmatization'));
+	
+	if: (self->'useLemmatization');
+		iterate: ((self->'searchTerms')->find:'lemmaTerms'), #thisLemma;
+			#lemmaWords->(merge: #thisLemma->second);
+		/iterate;
+		(self->'searchTerms')->(insert:'lemmaWords' = #lemmaWords);	
+
+		(self->'searchTerms')->(insert:'searchAndLemmaTerms' = #searchWords);	
+		((self->'searchTerms')->find:'searchAndLemmaTerms')->(merge: #lemmaWords);
+		(self->'searchTerms')->(insert:'useLemmatization' = (self->'useLemmatization'));
+	/if;
+
+	(self->'searchTerms')->(insert:'hasRequiredTerms' = false);
+	((self->'searchTerms')->find:'requiredTerms')->size ? (self->'searchTerms')->(insert:'hasRequiredTerms' = true);
+	((self->'searchTerms')->find:'excludedTerms')->size ? (self->'searchTerms')->(insert:'hasRequiredTerms' = true);
+	((self->'searchTerms')->find:'beginsTerms')->size ? (self->'searchTerms')->(insert:'hasRequiredTerms' = true);
+	((self->'searchTerms')->find:'endsTerms')->size ? (self->'searchTerms')->(insert:'hasRequiredTerms' = true);
+	((self->'searchTerms')->find:'quotedTerms')->size ? (self->'searchTerms')->(insert:'hasRequiredTerms' = true);
+
+	(self->'searchTerms')->(insert:'hasExclusions' = false);
+	((self->'searchTerms')->find:'excludedTerms')->size ? (self->'searchTerms')->(insert:'hasExclusions' = true);
+
+	$fw_timer->(stop:'criteriaParse');
+
+/define_tag;
+
+
+//==============================================================================
+//	->checkLemmata
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'addLemmata',
+	-required = 'searchWord';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyCriteria->addLemmata');
+
+	local:
+		'lemmataPath' 	= $nemoyLinguisticsPath + 'lemmata.txt',
+		'lemmataLineNo'	= string,
+		'lemmataLine'	= string,
+		'lemmataWords'	= array,
+		'thisOne'		= string;
+
+	if: (file_exists: #lemmataPath) && !(self->'lemmataData');
+		(self->'lemmataData') 	= (file_read: #lemmataPath); 
+		(self->'lemmataLines') 	= fwpCnfg_splitLines:(self->'lemmataData');
+	/if;
+
+	#lemmataLineNo = (string_findRegExp:
+		(self->'lemmataData'),
+ 		-find 	= '(\\d+?) : [\\s\\w]*?' + #searchWord + '[\\s\\w]*?',
+ 		-ignoreCase)->last;
+
+
+
+	if: #lemmataLineNo;
+		#lemmataLine = (self->'lemmataLines')->get:(integer:#lemmataLineNo); 
+		#lemmataLine = (string_replaceRegExp:
+			#lemmataLine,
+ 			-find 		= '(\\d+?) :',
+ 			-replace 	= '',
+ 			-ignoreCase);
+		#lemmataLine = (string_replaceRegExp:
+			#lemmataLine,
+ 			-find 		= '\\b' + #searchWord '\\b',
+ 			-replace 	= '',
+ 			-ignoreCase);
+ 		#lemmataLine->trim;
+ 		#lemmataLine->(replace:'  ', ' ');
+ 		#lemmataLine->(replace:' ', ',');
+
+		#lemmataLine = fwpCnfg_splitComma:#lemmataLine;
+	
+		((self->'searchTerms')->find:'lemmaTerms')->(insert:#searchWord = #lemmataLine);
+ 	/if;
+
+/define_tag;
+/define_type;
+
+?>

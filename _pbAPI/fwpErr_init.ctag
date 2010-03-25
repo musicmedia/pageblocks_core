@@ -1,0 +1,53 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpErr_init.ctag }
+	{rsrcType=		ctag }
+	{rsrcName=		fwpErr_init }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpErr_init }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes	the page level vars and resources
+					of the fwpErr framework. }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+//
+//	fw_errorsEmail				(empty) email address site visitors use to send more info about page errors
+//	fw_formIsNotValid		(boolean) state of whether current form is valid or not
+//	fw_formIsValid			(boolean) state of whether current form is valid or not
+//	fw_edvCurrentView		(empty) the current form, usually interpreted as the form just submitted
+//	fw_edvShowConfirmation	(false) triggers when to show confirmation of form action
+//	fw_customValidatorsReset 	(boolean) state of whether custom validation ctypes are to be reloaded
+//
+//............................................................................
+
+define_tag:'fwpErr_init';
+
+	var:
+		'fw_errorsEmail' 			= string,
+		'fw_formIsNotValid'			= boolean,
+		'fw_formIsValid'			= boolean,
+		'fw_edvCurrentView'			= string,
+		'fw_edvShowConfirmation'	= false,
+		'fw_customValidatorsReset'	= false;
+
+/define_tag;
+
+?>

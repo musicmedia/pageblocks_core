@@ -1,0 +1,45 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_routeURLToPage.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpPage_routeURLToPage }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			routes a URL to an internal age location, and
+					rewrites internal references and decompositions of
+					the request URL so that a fake URL can be mapped
+					to a real application page handler }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpPage_routeURLToPage',
+	-required='pagePath';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_mapURLToPage', -pagePath=#pagePath);
+
+	$fw_requestPage	= (fwp_requestPageElements:#pagePath);
+	$fw_sPath		= (fwp_sitePaths: $fw_myStyle);
+	$fw_mPath		= (fwp_modulePaths: $fw_myStyle, $fw_requestPage->'module');
+
+/define_tag;
+?>

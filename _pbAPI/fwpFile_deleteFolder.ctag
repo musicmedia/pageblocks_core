@@ -1,0 +1,66 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpFile_deleteFolder.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpFile_deleteFolder }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpFile_deleteFolder }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits, Johan Solve }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine accepts the name of a folder
+					and deletes all files and subfolders.}
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag: 'fwpFile_deleteFolder', -priority='replace',
+	-required='fw_fileNm';
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpFile_deleteFolder');
+
+	local:'thisItem'=(string);
+
+//	if the file is a folder, acquire a content list
+//	else just delete the file
+//	if the content list includes subfolders, 
+//	use the tag recursively to delete them
+
+	inline:
+		-username=$fw_gFilesUser,
+		-username=$fw_gFilesPswd;
+		if: #fw_fileNm->endswith:'/';
+			local:'fldrItems' = (file_listdirectory: #fw_fileNm);
+			iterate: #fldrItems, #thisItem;
+				if: #thisItem->(endswith:'/');
+					fwpFile_deleteFolder: #fw_fileNm + #thisItem;
+				/if;
+				file_delete: #fw_fileNm + #thisItem;
+			/iterate;
+		/if;
+		file_delete: #fw_fileNm;
+	/inline;
+/define_tag;
+?>

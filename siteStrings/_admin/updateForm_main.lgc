@@ -1,0 +1,41 @@
+<?lassoscript
+ 
+	if($fw_user->'loginValid' == 'Y');
+	
+		var('tableDataObject'	= fwp_recordData('appstrings'));
+		var('fw_edvFormInputs'	= 'm_rStat, m_strPath, m_strName, m_strValue, m_strMedia, m_strVariant'
+		);
+		
+//-----------------------------------------------------------------------------
+
+		if(var('btnFormCancel.x'));
+		
+			redirect_url('list?fw_s=' + $fw_s);
+			
+		else(var('btnViewList.x'));
+		
+			redirect_url('list?fw_s=' + $fw_s);
+			
+		else(var('btnFormSave.x'));
+		
+			$tableDataObject->updateUsingLock(
+				-inputs		= $fw_edvFormInputs, 
+				-lockval	= $fw_edvLockID, 
+				-lockName	= 'stringsUpdateRcrd'
+			);
+			
+		/if;
+		
+		$tableDataObject->getRecordUsingLock(
+			-select		= '*', 
+			-keyval		= $fw_r, 
+			-lockval	= var('fw_edvLockID'), 
+			-lockName	= 'stringsUpdateRcrd', 
+			-withMakeVars
+		);
+		
+		var('fw_edvLockID'	= $tableDataObject->('lock'));
+		
+	/if;
+	
+?>

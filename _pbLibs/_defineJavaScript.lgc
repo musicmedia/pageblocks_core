@@ -1,0 +1,72 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_jsScripts.lgc }
+	{rsrcType=		include }
+	{rsrcName=		fwpPage_jsScripts }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_jsScripts }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This file is loaded when $fw_gUseDefineJavaScript in 
+					_fwpAPI_init is set to true. Use this file to define 
+					<script> tags for the page <head>. Define small scripts
+					here, or use this file to define which JavaScripts 
+					libraries should be loaded under app-specific conditions. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-20 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+	$fw_pageModes->'usePrototype' 
+		? '\r\t<script charset="utf-8" type="text/javascript" src="/site/js/prototype.js"></script>'; 
+
+	$fw_pageModes->'useScriptaculous' 
+		? '\r\t<script charset="utf-8" type="text/javascript" src="/site/js/scriptaculous.js"></script>'; 
+		
+	$fw_pageModes->'useJquery' 
+		? '\r\t<script charset="utf-8" type="text/javascript" src="/site/js/jquery.js"></script>'; 
+
+?>
+	[if(var('elfoc'))]<script charset="utf-8" type="text/javascript">
+		function elfoc() { 
+			var f = document.getElementById('[$elfoc]'); 
+			f.focus(); 
+			f.style.backgroundColor = "#ffffff";
+		}
+	</script>
+[/if][if(var('uploadStatusFile'))]<script charset="utf-8" type="text/javascript">
+
+		if (typeof document.attachEvent != 'undefined') {
+			window.attachEvent('onload',fileuploadStatus);
+			} else {
+			window.addEventListener('load',fileuploadStatus,false);
+		}
+		
+		function fileuploadStatus() {
+			statusUpdater = new Ajax.PeriodicalUpdater(
+				'statusDisplay',
+				'uploadStatus.lasso?fw_s=[$fw_s]', {
+					method: 'get',
+					frequency: 2
+				}
+			);
+		}
+				
+	</script>
+[/if]

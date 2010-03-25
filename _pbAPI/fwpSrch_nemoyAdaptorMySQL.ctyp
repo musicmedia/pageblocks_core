@@ -1,0 +1,307 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpSrch_nemoyAdaptorMySQL.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwpSrch_nemoyAdaptorMySQL }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			creates query string for SQL datasources }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-05-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added lemmatization }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-05-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwpSrch_nemoyAdaptorMySQL';
+
+
+//==============================================================================
+//	->buildAllCountQuery
+//
+//------------------------------------------------------------------------------
+
+define_tag:'buildAllCountQuery',
+	-required = 'db',
+	-required = 'tbl',
+	-required = 'keyField',
+	-required = 'requiredPhrase';
+
+	local:'sqlQuery' = string;
+
+	#sqlQuery  = 'SELECT ';
+	#sqlQuery += #keyField;
+	#sqlQuery += ' FROM ';
+	#sqlQuery += #tbl;
+	#sqlQuery += ' WHERE ';
+	#sqlQuery += #requiredPhrase;
+		
+	return: #sqlQuery;
+	
+/define_tag;
+
+
+//==============================================================================
+//	->buildQuery
+//
+//	creates select statement based on search criteria
+//	this is a smaller version of the select system built into PageBlocks
+//------------------------------------------------------------------------------
+
+define_tag:'buildQuery',
+	-required = 'db',
+	-required = 'tbl',
+	-required = 'keyField',
+	-required = 'requiredPhrase',
+	-required = 'selectFields',
+	-required = 'contentFields', -copy,
+	-required = 'searchTerms';
+
+	local:'sqlQuery' = string;
+
+	#sqlQuery  = 'SELECT ';
+	#sqlQuery += #selectFields;
+	#sqlQuery += ' FROM ';
+	#sqlQuery += #tbl;
+	#sqlQuery += ' WHERE ';
+	#sqlQuery += self->(buildWhereClause:
+		-requiredPhrase	= #requiredPhrase,
+		-searchTerms 	= #searchTerms,
+		-contentFields 	= #contentFields);
+		
+	return: #sqlQuery;
+	
+/define_tag;
+
+
+//==============================================================================
+//	->encodeLIKE
+//
+//------------------------------------------------------------------------------
+
+define_tag:'encodeLIKE',
+	-required = 'searchTerm', -copy;
+
+	#searchTerm = encode_sql:#searchTerm;
+	#searchTerm->(replace:'\\','\\\\');
+	#searchTerm->(replace:'%','\\%');
+	#searchTerm->(replace:'_','\\_');
+	return: #searchTerm;
+
+/define_tag;
+
+
+//==============================================================================
+//	->buildWhereClause
+//
+//	creates select statement based on search criteria
+//	this is a smaller version of the select system built into PageBlocks
+//------------------------------------------------------------------------------
+
+define_tag:'buildWhereClause',
+	-required = 'requiredPhrase',
+	-required = 'searchTerms',
+	-required = 'contentFields';
+
+	local:
+		'contentFields' = (fwpCnfg_splitComma:#contentFields),
+		'thisField'		= string;
+
+	local:
+		'sqlWhere' 		= string,
+		'sqlWhereReqd' 	= string,
+		'sqlWhereReqd2'	= string,
+		'sqlOrderBy'	= string,
+		'termSet' 		= pair,
+		'termType'		= string,
+		'theseTerms'	= array,
+		'thisTerm'		= string,
+		'thisLemma'		= string;
+
+	#sqlWhere = ' (';
+
+	iterate: #contentFields, #thisField;
+
+		if: (#searchTerms->find:'hasRequiredTerms');
+	
+			#sqlWhereReqd = ' (';
+			#sqlWhereReqd += #requiredPhrase;
+	
+			iterate: #searchTerms, #termSet;
+				#termType 	= #termSet->first;
+				#theseTerms = #termSet->second;
+				select: #termType;
+					case:'requiredTerms';
+
+						iterate: #theseTerms, #thisTerm;
+						
+							if: ((#searchTerms->find:'lemmaTerms')->find:#thisTerm)->size;
+
+								#sqlWhereReqd += " AND (";
+
+								#sqlWhereReqd += #thisField;
+								#sqlWhereReqd += " LIKE '%";
+								#sqlWhereReqd += ((self->encodeLIKE:#thisTerm));
+								#sqlWhereReqd += "%' ";
+
+								#sqlWhereReqd2 = "";
+								iterate: ((#searchTerms->find:'lemmaTerms')->find:#thisTerm), #thisLemma;
+									#sqlWhereReqd2 += " OR ";
+									#sqlWhereReqd2 += #thisField;
+									#sqlWhereReqd2 += " LIKE '%";
+									#sqlWhereReqd2 += (self->encodeLIKE:#thisLemma);
+									#sqlWhereReqd2 += "%' ";
+								/iterate;
+								#sqlWhereReqd += #sqlWhereReqd2;
+								#sqlWhereReqd += ")";
+
+							else;
+								#sqlWhereReqd += " AND ";
+								#sqlWhereReqd += #thisField;
+								#sqlWhereReqd += " LIKE '%";
+								#sqlWhereReqd += (self->encodeLIKE:#thisTerm);
+								#sqlWhereReqd += "%' ";
+							/if;
+						/iterate;
+
+					case:'excludedTerms';
+						iterate: #theseTerms, #thisTerm;
+							#sqlWhereReqd += "AND ";
+							#sqlWhereReqd += #thisField;
+							#sqlWhereReqd += " NOT LIKE '%";
+							#sqlWhereReqd += (self->encodeLIKE:#thisTerm);
+							#sqlWhereReqd += "%' ";
+						/iterate;
+					case:'beginsTerms';
+						iterate: #theseTerms, #thisTerm;
+							#sqlWhereReqd += "AND ";
+							#sqlWhereReqd += #thisField;
+							#sqlWhereReqd += " LIKE '% ";
+							#sqlWhereReqd += (self->encodeLIKE:#thisTerm);
+							#sqlWhereReqd += "%' ";
+						/iterate;
+					case:'endsTerms';
+						// ::Note::
+						//	to be more effective,there could be an array of word endings so each coud be represented in the OR
+						iterate: #theseTerms, #thisTerm;
+							#sqlWhereReqd += " AND (";
+							#sqlWhereReqd += #thisField;
+							#sqlWhereReqd += " LIKE '%";
+							#sqlWhereReqd += (self->encodeLIKE:#thisTerm);
+							#sqlWhereReqd += " %' ";
+							#sqlWhereReqd += " OR ";
+							#sqlWhereReqd += #thisField;
+							#sqlWhereReqd += " LIKE '%";
+							#sqlWhereReqd += (self->encodeLIKE:#thisTerm);
+							#sqlWhereReqd += ".%' ";
+							#sqlWhereReqd += " OR ";
+							#sqlWhereReqd += #thisField;
+							#sqlWhereReqd += " LIKE '%";
+							#sqlWhereReqd += (self->encodeLIKE:#thisTerm);
+							#sqlWhereReqd += ",%') ";
+						/iterate;
+					case:'quotedTerms';
+						iterate: #theseTerms, #thisTerm;
+							#sqlWhereReqd += " AND ";
+							#sqlWhereReqd += #thisField;
+							#sqlWhereReqd += " LIKE '% ";
+							#sqlWhereReqd += (self->encodeLIKE:#thisTerm);
+							#sqlWhereReqd += " %' ";
+						/iterate;
+				/select;
+			/iterate;
+			#sqlWhereReqd += ") ";
+			#sqlWhere += #sqlWhereReqd;
+		/if;
+	
+		#theseTerms	= (#searchTerms->find:'plainTerms');
+//		#theseTerms	= (#searchTerms->find:'lemmaTerms');
+	
+		if: #theseTerms;
+			if: #sqlWhereReqd;
+				
+				iterate: #theseTerms, #thisTerm;
+					#thisTerm->(removeLeading:' ');
+	
+					#sqlWhereReqd2 = #sqlWhereReqd;
+					#sqlWhereReqd2->removeTrailing:') ';
+	
+					#sqlWhereReqd2 += " AND ";
+					#sqlWhereReqd2 += #thisField;
+					#sqlWhereReqd2 += " LIKE '%";
+					#sqlWhereReqd2 += (self->encodeLIKE:#thisTerm);
+					#sqlWhereReqd2 += "%') ";
+	
+					#sqlWhere += ' OR ';
+					#sqlWhere += #sqlWhereReqd2;
+				/iterate;
+	
+			else;
+				#sqlWhere += " OR (";
+				#sqlWhere += #requiredPhrase;
+				#sqlWhere += " AND (";
+				iterate: #theseTerms, #thisTerm;
+					#sqlWhere += #thisField;
+					#sqlWhere += " LIKE '%";
+					#sqlWhere += (self->encodeLIKE:#thisTerm);
+					#sqlWhere += "%' OR ";
+				/iterate;
+				#sqlWhere->(removeLeading:' OR ');
+				#sqlWhere->(removeTrailing:'OR ');
+				#sqlWhere += '))';
+			/if;
+		/if;
+
+		#sqlWhere += ' OR ';
+		
+	/iterate;
+
+	#sqlWhere->(removeTrailing:' OR ');
+
+	#sqlWhere += ') ';
+
+//	::Hack::
+//	a bit hacky, but it works
+//	cleans up exclusion for multi-field searches where boolean can allow records that should not be included
+
+	if: (#contentFields->size > 1) && (#searchTerms->find:'hasExclusions');
+		iterate: #contentFields, #thisField;
+			iterate: (#searchTerms->find:'excludedTerms'), #thisTerm;
+				#sqlWhere += "AND ";
+				#sqlWhere += #thisField;
+				#sqlWhere += " NOT LIKE '%";
+				#sqlWhere += (self->encodeLIKE:#thisTerm);
+				#sqlWhere += "%' ";
+			/iterate;
+		/iterate;
+	/if;
+	
+	return: #sqlWhere;
+	
+/define_tag;
+
+/define_type;
+?>
+

@@ -1,0 +1,65 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpErr_cleanInput.ctyp }
+	{rsrcType=		tag }
+	{rsrcName=		fwpErr_cleanInput }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpErr_cleanInput }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Wilits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			cleans an input value to remove HTML and JavaScript
+					injection attempts. Needed only when validator
+					is not used }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpErr_cleanInput',
+	-required = 'inputValue';
+	
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpErr_cleanInput');
+
+	local:'fw_thisInput' = #inputValue;
+
+//	trim value unless notrim was specified
+
+	#fw_thisInput->trim;
+
+//	convert < and > to entities unless htmlok was specified
+
+	#fw_thisInput->(replace: '>', '&gt;');
+	#fw_thisInput->(replace: '<', '&lt;');
+		
+//	modify javascript: and <script to entities unless scriptok was specified
+//	to allow <script requires both scriptok and htmlok codes specified
+
+	#fw_thisInput->(replace: 'javascript:', 'javascript&#58;');
+	#fw_thisInput->(replace: '<script', '&lt;script');
+	
+	return: #fw_thisInput;
+
+/define_tag;
+?>

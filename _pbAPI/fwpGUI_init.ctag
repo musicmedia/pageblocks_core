@@ -1,0 +1,43 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGUI_init.ctag }
+	{rsrcType=		ctag }
+	{rsrcName=		fwpGUI_init }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpGUI_init }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes	the page level vars and resources
+					of the fwpGUI framework. }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+//
+//	fw_listRcrdsMax			(12) default records to show in lists on public pages
+//
+//............................................................................
+
+define_tag:'fwpGUI_init';
+
+	var:
+		'fw_listRcrdsMax'		= 15;
+
+/define_tag;
+
+?>

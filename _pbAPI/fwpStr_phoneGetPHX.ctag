@@ -1,0 +1,49 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_phoneGetPHX.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_phoneGetPHX }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_phoneGetPHX }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			gets the extension from a packed phone number }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+//
+//	packed format should be 0001112222333333
+//	where:	000 = area code
+//			111 = prefix
+//			2222 = number
+//			333333 = extension
+//	where there is no area code, the data should be padded with 000
+//	there is no need to pad the extension
+//.............................................................................
+
+define_tag:'fwpStr_phoneGetPHX', -priority='replace',
+	-required='fw_phRaw';
+
+	if: local:'fw_phRaw';
+		return: #fw_phRaw->(substring:11);
+	/if;
+
+/define_tag;
+?>

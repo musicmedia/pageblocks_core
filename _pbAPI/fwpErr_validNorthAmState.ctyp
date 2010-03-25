@@ -1,0 +1,230 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpErr_validNorthAmState.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwp_northAmStateValidator }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_northAmStateValidator }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			tests a string for a recognized state or province
+					name or abbreviation in North America  }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-09-11 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_northAmStateValidator', -prototype;
+
+	local:'statesProvsShortLong' = map;
+	local:'statesProvsLongShort' = map;
+
+define_tag:'onCreate';
+
+	if: !(self->'statesProvsShortLong');
+		(self->'statesProvsShortLong')->(insert: 'AL' = 'Alabama');
+		(self->'statesProvsShortLong')->(insert: 'AK' = 'Alaska');
+		(self->'statesProvsShortLong')->(insert: 'AB' = 'Alberta');
+		(self->'statesProvsShortLong')->(insert: 'AZ' = 'Arizona');
+		(self->'statesProvsShortLong')->(insert: 'AR' = 'Arkansas');
+		(self->'statesProvsShortLong')->(insert: 'BC' = 'British Columbia');
+		(self->'statesProvsShortLong')->(insert: 'CA' = 'California');
+		(self->'statesProvsShortLong')->(insert: 'CO' = 'Colorado');
+		(self->'statesProvsShortLong')->(insert: 'CT' = 'Connecticut');
+		(self->'statesProvsShortLong')->(insert: 'DE' = 'Delaware');
+		(self->'statesProvsShortLong')->(insert: 'DC' = 'District Of Columbia');
+		(self->'statesProvsShortLong')->(insert: 'FL' = 'Florida');
+		(self->'statesProvsShortLong')->(insert: 'GA' = 'Georgia');
+		(self->'statesProvsShortLong')->(insert: 'HI' = 'Hawaii');
+		(self->'statesProvsShortLong')->(insert: 'ID' = 'Idaho');
+		(self->'statesProvsShortLong')->(insert: 'IL' = 'Illinois');
+		(self->'statesProvsShortLong')->(insert: 'IN' = 'Indiana');
+		(self->'statesProvsShortLong')->(insert: 'IA' = 'Iowa');
+		(self->'statesProvsShortLong')->(insert: 'KS' = 'Kansas');
+		(self->'statesProvsShortLong')->(insert: 'KY' = 'Kentucky');
+		(self->'statesProvsShortLong')->(insert: 'NL' = 'Labrador');
+		(self->'statesProvsShortLong')->(insert: 'LA' = 'Louisiana');
+		(self->'statesProvsShortLong')->(insert: 'ME' = 'Maine');
+		(self->'statesProvsShortLong')->(insert: 'MB' = 'Manitoba');
+		(self->'statesProvsShortLong')->(insert: 'MD' = 'Maryland');
+		(self->'statesProvsShortLong')->(insert: 'MA' = 'Massachusetts');
+		(self->'statesProvsShortLong')->(insert: 'MI' = 'Michigan');
+		(self->'statesProvsShortLong')->(insert: 'MN' = 'Minnesota');
+		(self->'statesProvsShortLong')->(insert: 'MS' = 'Mississippi');
+		(self->'statesProvsShortLong')->(insert: 'MO' = 'Missouri');
+		(self->'statesProvsShortLong')->(insert: 'MT' = 'Montana');
+		(self->'statesProvsShortLong')->(insert: 'NE' = 'Nebraska');
+		(self->'statesProvsShortLong')->(insert: 'NV' = 'Nevada');
+		(self->'statesProvsShortLong')->(insert: 'NB' = 'New Brunswick');
+		(self->'statesProvsShortLong')->(insert: 'NL' = 'Newfoundland');
+		(self->'statesProvsShortLong')->(insert: 'NH' = 'New Hampshire');
+		(self->'statesProvsShortLong')->(insert: 'NJ' = 'New Jersey');
+		(self->'statesProvsShortLong')->(insert: 'NM' = 'New Mexico');
+		(self->'statesProvsShortLong')->(insert: 'NY' = 'New York');
+		(self->'statesProvsShortLong')->(insert: 'NC' = 'North Carolina');
+		(self->'statesProvsShortLong')->(insert: 'ND' = 'North Dakota');
+		(self->'statesProvsShortLong')->(insert: 'NT' = 'Northwest Territories');
+		(self->'statesProvsShortLong')->(insert: 'NS' = 'Nova Scotia');
+		(self->'statesProvsShortLong')->(insert: 'NU' = 'Nunavut');
+		(self->'statesProvsShortLong')->(insert: 'OH' = 'Ohio');
+		(self->'statesProvsShortLong')->(insert: 'OK' = 'Oklahoma');
+		(self->'statesProvsShortLong')->(insert: 'ON' = 'Ontario');
+		(self->'statesProvsShortLong')->(insert: 'OR' = 'Oregon');
+		(self->'statesProvsShortLong')->(insert: 'PA' = 'Pennsylvania');
+		(self->'statesProvsShortLong')->(insert: 'PE' = 'Prince Edward Island');
+		(self->'statesProvsShortLong')->(insert: 'PR' = 'Puerto Rico');
+		(self->'statesProvsShortLong')->(insert: 'QC' = 'Quebefw');
+		(self->'statesProvsShortLong')->(insert: 'RI' = 'Rhode Island');
+		(self->'statesProvsShortLong')->(insert: 'SK' = 'Saskatchewan');
+		(self->'statesProvsShortLong')->(insert: 'SC' = 'South Carolina');
+		(self->'statesProvsShortLong')->(insert: 'SD' = 'South Dakota');
+		(self->'statesProvsShortLong')->(insert: 'TN' = 'Tennessee');
+		(self->'statesProvsShortLong')->(insert: 'TX' = 'Texas');
+		(self->'statesProvsShortLong')->(insert: 'UT' = 'Utah');
+		(self->'statesProvsShortLong')->(insert: 'VT' = 'Vermont');
+		(self->'statesProvsShortLong')->(insert: 'VI' = 'Virgin Islands');
+		(self->'statesProvsShortLong')->(insert: 'VA' = 'Virginia');
+		(self->'statesProvsShortLong')->(insert: 'WA' = 'Washington');
+		(self->'statesProvsShortLong')->(insert: 'WV' = 'West Virginia');
+		(self->'statesProvsShortLong')->(insert: 'WI' = 'Wisconsin');
+		(self->'statesProvsShortLong')->(insert: 'WY' = 'Wyoming');
+		(self->'statesProvsShortLong')->(insert: 'YT' = 'Yukon');
+	/if;
+	
+//	-------------------------
+
+	if: !(self->'statesProvsLongShort');
+		(self->'statesProvsLongShort')->(insert: 'Alabama' = 'AL');
+		(self->'statesProvsLongShort')->(insert: 'Alaska' = 'AK');
+		(self->'statesProvsLongShort')->(insert: 'Alberta' = 'AB');
+		(self->'statesProvsLongShort')->(insert: 'Arizona' = 'AZ');
+		(self->'statesProvsLongShort')->(insert: 'Arkansas' = 'AR');
+		(self->'statesProvsLongShort')->(insert: 'British Columbia' = 'BC');
+		(self->'statesProvsLongShort')->(insert: 'California' = 'CA');
+		(self->'statesProvsLongShort')->(insert: 'Colorado' = 'CO');
+		(self->'statesProvsLongShort')->(insert: 'Connecticut' = 'CT');
+		(self->'statesProvsLongShort')->(insert: 'Delaware' = 'DE');
+		(self->'statesProvsLongShort')->(insert: 'District Of Columbia' = 'DC');
+		(self->'statesProvsLongShort')->(insert: 'Florida' = 'FL');
+		(self->'statesProvsLongShort')->(insert: 'Georgia' = 'GA');
+		(self->'statesProvsLongShort')->(insert: 'Hawaii' = 'HI');
+		(self->'statesProvsLongShort')->(insert: 'Idaho' = 'ID');
+		(self->'statesProvsLongShort')->(insert: 'Illinois' = 'IL');
+		(self->'statesProvsLongShort')->(insert: 'Indiana' = 'IN');
+		(self->'statesProvsLongShort')->(insert: 'Iowa' = 'IA');
+		(self->'statesProvsLongShort')->(insert: 'Kansas' = 'KS');
+		(self->'statesProvsLongShort')->(insert: 'Kentucky' = 'KY');
+		(self->'statesProvsLongShort')->(insert: 'Labrador' = 'NL');
+		(self->'statesProvsLongShort')->(insert: 'Louisiana' = 'LA');
+		(self->'statesProvsLongShort')->(insert: 'Maine' = 'ME');
+		(self->'statesProvsLongShort')->(insert: 'Manitoba' = 'MB');
+		(self->'statesProvsLongShort')->(insert: 'Maryland' = 'MD');
+		(self->'statesProvsLongShort')->(insert: 'Massachusetts' = 'MA');
+		(self->'statesProvsLongShort')->(insert: 'Michigan' = 'MI');
+		(self->'statesProvsLongShort')->(insert: 'Minnesota' = 'MN');
+		(self->'statesProvsLongShort')->(insert: 'Mississippi' = 'MS');
+		(self->'statesProvsLongShort')->(insert: 'Missouri' = 'MO');
+		(self->'statesProvsLongShort')->(insert: 'Montana' = 'MT');
+		(self->'statesProvsLongShort')->(insert: 'Nebraska' = 'NE');
+		(self->'statesProvsLongShort')->(insert: 'Nevada' = 'NV');
+		(self->'statesProvsLongShort')->(insert: 'New Brunswick' = 'NB');
+		(self->'statesProvsLongShort')->(insert: 'Newfoundland' = 'NL');
+		(self->'statesProvsLongShort')->(insert: 'New Hampshire' = 'NH');
+		(self->'statesProvsLongShort')->(insert: 'New Jersey' = 'NJ');
+		(self->'statesProvsLongShort')->(insert: 'New Mexico' = 'NM');
+		(self->'statesProvsLongShort')->(insert: 'New York' = 'NY');
+		(self->'statesProvsLongShort')->(insert: 'North Carolina' = 'NC');
+		(self->'statesProvsLongShort')->(insert: 'North Dakota' = 'ND');
+		(self->'statesProvsLongShort')->(insert: 'Northwest Territories' = 'NT');
+		(self->'statesProvsLongShort')->(insert: 'Nova Scotia' = 'NS');
+		(self->'statesProvsLongShort')->(insert: 'Nunavut' = 'NU');
+		(self->'statesProvsLongShort')->(insert: 'Ohio' = 'OH');
+		(self->'statesProvsLongShort')->(insert: 'Oklahoma' = 'OK');
+		(self->'statesProvsLongShort')->(insert: 'Ontario' = 'ON');
+		(self->'statesProvsLongShort')->(insert: 'Oregon' = 'OR');
+		(self->'statesProvsLongShort')->(insert: 'Pennsylvania' = 'PA');
+		(self->'statesProvsLongShort')->(insert: 'Prince Edward Island' = 'PE');
+		(self->'statesProvsLongShort')->(insert: 'Puerto Rico' = 'PR');
+		(self->'statesProvsLongShort')->(insert: 'Quebefw' = 'QC');
+		(self->'statesProvsLongShort')->(insert: 'Rhode Island' = 'RI');
+		(self->'statesProvsLongShort')->(insert: 'Saskatchewan' = 'SK');
+		(self->'statesProvsLongShort')->(insert: 'South Carolina' = 'SC');
+		(self->'statesProvsLongShort')->(insert: 'South Dakota' = 'SD');
+		(self->'statesProvsLongShort')->(insert: 'Tennessee' = 'TN');
+		(self->'statesProvsLongShort')->(insert: 'Texas' = 'TX');
+		(self->'statesProvsLongShort')->(insert: 'Utah' = 'UT');
+		(self->'statesProvsLongShort')->(insert: 'Vermont' = 'VT');
+		(self->'statesProvsLongShort')->(insert: 'Virgin Islands' = 'VI');
+		(self->'statesProvsLongShort')->(insert: 'Virginia' = 'VA');
+		(self->'statesProvsLongShort')->(insert: 'Washington' = 'WA');
+		(self->'statesProvsLongShort')->(insert: 'West Virginia' = 'WV');
+		(self->'statesProvsLongShort')->(insert: 'Wisconsin' = 'WI');
+		(self->'statesProvsLongShort')->(insert: 'Wyoming' = 'WY');
+		(self->'statesProvsLongShort')->(insert: 'Yukon' = 'YT');
+	/if;
+
+/define_tag;
+
+//-------------------------------
+define_tag:'isStateAbbreviation',
+	-required='str';
+
+	#str->trim;
+
+	(self->'statesProvsShortLong')->find:#str
+		? return: true
+		| return: false;
+
+/define_tag;
+
+//-------------------------------
+define_tag:'isStateFull',
+	-required='str';
+
+	#str->trim;
+
+	(self->'statesProvsLongShort')->find:#str
+		? return: true
+		| return: false;
+
+/define_tag;
+
+//-------------------------------
+//-------------------------------
+define_tag:'getStateAbbreviation',
+	-required='str';
+
+	#str->trim;
+
+	return: ((self->'statesProvsLongShort')->find:#str);
+
+/define_tag;
+
+//-------------------------------
+define_tag:'getStateFull',
+	-required='str';
+
+	#str->trim;
+
+	return: (self->'statesProvsShortLong')->find:#str;
+
+/define_tag;
+
+/define_type;
+?>

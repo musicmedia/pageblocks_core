@@ -1,0 +1,78 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGIS_googleGeocode.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpGIS_googleGeocode }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpGIS_googleGeocode }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Returns the lat/long coordinates of a USA address.
+	 				Refer to the googld geocode API HTTP Request section of
+	 				http://www.google.com/apis/maps/documentation/#Geocoding_Examples }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.2 }
+	{maintdate=		2007-07-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:	'fwpGIS_googleGeocode',
+	-required = 'key',
+	-required = 'q',
+	-optional = 'minPrecision';
+
+	local:
+		'location' 		= #q,
+		'reqPrecision'	= local:'minPrecision';
+
+	local:
+		'serviceURL'	= 'http://maps.google.com/maps/geo',
+		'GETParams' 	= (array: 'key' = #key),
+		'GISResults'	= string,
+		'GISCoords'		= (map: 'latitude' = 0, 'longitude' = 0, 'precision' = 0),
+		'GISInvalid'	= (map: 'latitude' = 0, 'longitude' = 0, 'precision' = 0),
+		'GISPrecision'	= (array: 'unknown','country','state','county','city','zipcode','street','intersection','address');
+
+//	convert user's text into an integer to compare to google API integer
+
+	#reqPrecision	= #GISPrecision->(findPosition:#reqPrecision);
+
+	#GETParams->(insert:'output' = 'csv');
+
+	#location->(replace:' ','+');
+	#GETParams->(insert:'q' = #location);
+	
+	#GISResults = (include_url: #serviceURL, -getParams = #GETParams);
+	
+	#GISResults = #GISResults->split:',';
+
+	if: #GISResults->get:1 == '200';
+		#GISCoords->(find:'latitude') 	= #GISResults->get:3;
+		#GISCoords->(find:'longitude') 	= #GISResults->get:4;
+		#GISCoords->(find:'precision') 	= #GISPrecision->get:(#GISResults->get:2)+1;
+	/if;
+
+	if: ((#GISResults->get:2) + 1) >= #reqPrecision;
+		return: #GISCoords;
+	else;
+		return: #GISInvalid;
+	/if;
+
+/define_tag;
+
+?>

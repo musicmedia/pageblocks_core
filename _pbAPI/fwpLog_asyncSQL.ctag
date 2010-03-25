@@ -1,0 +1,70 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpLog_asyncSQL.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpLog_asyncSQL }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpLog_asyncSQL }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Launches an async write to a MySQL table. }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added log_critical }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpLog_asyncSQL', 
+	-async,
+	-required	= 'user',
+	-required	= 'pswd',
+	-required	= 'db',
+	-required	= 'tbl',
+	-required	= 'keyfld',
+	-required	= 'logPairs';
+	
+	local('query'	= string);
+	#query		= 'INSERT INTO ' + #db + '.' + #tbl + ' SET';
+	iterate(#logPairs, local('i'));
+		#query += (" " + #i->first + " = '" #i->second + "',");
+	/iterate;
+	#query->(removetrailing(','));
+	inline:
+		#logPairs,
+		-username	= #user,
+		-password	= #pswd,
+		-database	= #db,
+		-table		= #tbl,
+		-keyfield	= #keyfld,
+		-sql		= #query;
+		
+		if: error_code != 0;
+			log_critical:('pbError : fwpLog_asyncSQL -- ' + error_currentError);
+		/if;
+		
+	/inline;
+
+/define_tag;
+?>
+

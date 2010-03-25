@@ -1,0 +1,399 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_loadTemplate.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpPage_loadTemplate }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_loadTemplate }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine loads a template with or without 
+					auth requirements. }
+
+	{maintvsrn=		2.1 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-22 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_kPageIsWebService, fw_kPageIsAjaxHandler options }
+
+	{maintvsrn=		2.0.2 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	removed whitespace from DOCTYPE, and moved things
+	 				around so http-equiv and meta tags are right after 
+	 				the head, fixed bug that didn't close meta tags }
+	
+	{maintvsrn=		2.0.1 }
+	{maintrelease=	5.2.5 }
+	{maintdate=		2007-07-24 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	bug fix that prevented the loading _definePageHead,
+	 				change fw_http vars to fw_headMetaTags,
+	 				added useJSLibrary }
+	
+	{maintvsrn=		2.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-20 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	integrated the previously separate fwpPage_templateHead 
+					and fwpPage_wrapup files }
+	
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.1.3 }
+	{maintdate=		2006-11-03 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	modified pageblocks comment banner }
+	
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.1 }
+	{maintdate=		2006-08-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	removed _page suffic to page logic file calc }
+	
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed the pbComponents system to pageStrings }
+	
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace,
+					removed fw_debugStackPageBlocks,
+					changed fw_pgLogic filename to work around Apache problem }
+	
+	{maintvsrn=		1.0.2 }
+	{maintrelease=	5.0.2 }
+	{maintdate=		2006-04-11 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_debugStackPageBlocks }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.1 }
+	{maintdate=		2006-04-05 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed obsolete var name for fw_pgTitle }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpPage_loadTemplate', -priority='replace',
+	-optional='pgTitle',
+	-optional='pgTemplate',
+	-optional='pgPrivilege';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadTemplate', -pgTemplate = #pgTemplate);
+
+	//	pgUser is required if pgPrivilege is used
+
+	local:
+		'fw_pgTemplate'		= @local:'pgTemplate',
+		'fw_pgTitle'		= @local:'pgTitle',
+		'fw_pgPrivilege'	= @local:'pgPrivilege',
+		'fw_pgLogic'		= ($fw_requestPage->'path') + ($fw_requestPage->'name') + fw_kLogicExt,
+		'fw_tmpltCode' 		= string;
+
+//	yes, this next line is redundant when using _pageConfig, 
+//	but it`s needed for stub files that use this tag directly
+
+	var:'fw_pgTitle' = #fw_pgTitle;
+
+//	--------------------------------------------------------------------------
+//:	(A) Load Page Strings & Logic
+
+if: $fw_pgAuthRequired;
+
+//	..... if the pageAuth var is Y or the tag was supplied with a pgPrivilege then
+//		..... validate that the user`s permission profile allows access to this page
+//		..... load the pageLogic file if present
+//		..... proceed with including the pageTemplate 
+//	..... otherwise go ahead and load the template w/o authentication
+
+	$fw_debug ? $fw_tagTracer->(add:'loadTemplate', 
+		-prvlgName = #fw_pgPrivilege,
+		-prvlgValue = #fw_pgPrivilege);
+
+	if: #fw_pgPrivilege;
+	
+		if: (process: ('[$' + #fw_pgPrivilege + ']')) == 'Y';
+			if: $fw_pageModes->'usePageStrings';
+				!var_defined:'fw_pageStrings'
+					? var:'fw_pageStrings' = fwp_pageStrings;
+				$fw_pageStrings->getStringsForPage;
+			/if;
+			inline:
+				-username=$fw_gFilesUser,
+				-password=$fw_gFilesPswd;
+				(file_exists:#fw_pgLogic)
+					? library: #fw_pgLogic;
+			/inline;
+		else;
+			if: ((var:$fw_userVarName)->'loginValid') == '5012' 
+				|| ((var:$fw_userVarName)->'loginValid') == '';
+				$fw_error->(insert: '5012' = 'Session timeout');
+			else;
+				$fw_error->(insert: '5011' = 'Access denied');
+			/if;
+		/if;
+	else;
+		$fw_error->(insert:'5201'='fwpPage_loadTemplate');
+		$fw_debug ? $fw_tagTracer->(add:'fwpPage_loadTemplate', -ERROR = 'authRequired true, but fw_pgPrivilege not defined');
+	/if;
+else;
+	if: $fw_pageModes->'usePageStrings';
+		!var_defined:'fw_pageStrings'
+			? var:'fw_pageStrings' = fwp_pageStrings;
+		$fw_pageStrings->getStringsForPage;
+	/if;
+	inline:
+		-username=$fw_gFilesUser,
+		-password=$fw_gFilesPswd;
+		(file_exists:#fw_pgLogic)
+			? library: #fw_pgLogic;
+	/inline;
+/if;
+
+
+if: (#fw_pgTemplate == fw_kPageIsWebService) || (#fw_pgTemplate == fw_kPageIsAjaxHandler);
+
+	local:
+		'fw_responseLanguage' 	= string,
+		'fw_responseOutput'		= string,
+		'fw_responseBlock'		= string;
+		
+	(#fw_pgTemplate == fw_kPageIsWebService)
+		? #fw_responseBlock = '_service';
+
+	(#fw_pgTemplate == fw_kPageIsAjaxHandler)
+		? #fw_responseBlock = '_ajax';
+	
+	library: ($fw_requestPage->'path') + ($fw_requestPage->'name') + #fw_responseBlock + fw_kLogicExt;
+	#fw_responseOutput += (include: ($fw_requestPage->'path') + ($fw_requestPage->'name') + #fw_responseBlock + fw_kDisplayExt);
+
+	return: @#fw_responseOutput;
+
+/if;
+
+//	--------------------------------------------------------------------------
+//:	(B) Set Error Template
+
+//	if we have an error already, there's usually something major that is wrong
+//	so we should use the simplified error template to minimize the effects 
+//	by reducing the amountt of app code called
+
+if: ($fw_pageModes->'useAutoErrorDisplay') && ($fw_error->size > 0);
+	#fw_pgTemplate = 'error';
+/if;
+
+
+//	--------------------------------------------------------------------------
+//:	(C) Generate Page Head
+
+inline:
+	-username = $fw_gFilesUser,
+	-password = $fw_gFilesPswd;
+
+	$fw_templateActive = true;
+
+	local:
+		'thisFile' 	= string,
+		'thisTag' 	= string;
+
+	if: $fw_gUseDefinePageHead && file_exists:(($fw_sPath->'apiLibs') + '_definePageHead.lgc');
+		#fw_tmpltCode = include: (($fw_sPath->'apiLibs') + '_definePageHead.lgc');
+	else;
+		$__html_reply__ = '';
+		#fw_tmpltCode = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> \r';
+		#fw_tmpltCode += '<html xml:lang="' + ($fw_client->'language') + '" lang="' + ($fw_client->'language') + '" xmlns="http://www.w3.org/1999/xhtml"> \r\r';
+		#fw_tmpltCode += '<head> \r';
+
+		if: ($fw_headContent->'httpEquivTags')->size;
+			iterate: ($fw_headContent->'httpEquivTags'), #thisTag;
+				#fw_tmpltCode += ('\t<meta http-equiv="' + (#thisTag->first) +  '" content="' + (#thisTag->second) + '"> \r');
+			/iterate;
+		/if;
+		
+		if: $fw_pageModes->'usePreventCache';
+			#fw_tmpltCode += '\t<meta http-equiv="pragma" content="no-cache" />\r';
+			#fw_tmpltCode += '\t<meta http-equiv="expires" content="-1" />\r';
+		/if;
+
+		#fw_tmpltCode += '\r';
+		if: ($fw_headContent->'metaTags')->size;
+			iterate: ($fw_headContent->'metaTags'), #thisTag;
+				#fw_tmpltCode += ('\t<meta name="' + (#thisTag->first) +  '" content="' + (#thisTag->second) + '" /> \r');
+			/iterate;
+		/if;
+
+		#fw_tmpltCode += '\r\t<title>' + $fw_pgTitle + '</title>\r';
+		
+		#fw_tmpltCode += '\r';
+		$fw_gUseDefineCSS && file_exists:(($fw_sPath->'apiLibs') + '_defineCSS.lgc')
+			? #fw_tmpltCode += (include:(($fw_sPath->'apiLibs') + '_defineCSS.lgc'));
+
+		if: ($fw_headContent->'cssFiles')->size;
+			iterate: ($fw_headContent->'cssFiles'), #thisFile;
+				#fw_tmpltCode += ('\t<link rel="stylesheet" type="text/css" href="' + #thisFile + '" /> \r');
+			/iterate;
+		/if;
+
+		#fw_tmpltCode += '\r';
+		$fw_gUseDefineJavaScript && file_exists:(($fw_sPath->'apiLibs') + '_defineJavaScript.lgc')
+			? #fw_tmpltCode += (include:(($fw_sPath->'apiLibs') + '_defineJavaScript.lgc'));
+
+		if: ($fw_headContent->'scriptFiles')->size;
+			iterate: ($fw_headContent->'scriptFiles'), #thisFile;
+				#fw_tmpltCode += ('\t<script type="text/javascript" language="JavaScript" src="' + #thisFile + '"></script> \r');
+			/iterate;
+		/if;
+
+		if: $fw_pageModes->'useJSPerPage';
+			file_exists:(($fw_requestPage->'path') + ($fw_requestPage->'name') + '.js')
+				? #fw_tmpltCode += (include: ($fw_requestPage->'path') + ($fw_requestPage->'name') + '.js');
+		/if;
+		
+		#fw_tmpltCode += '\r</head> \r\r';
+
+	/if;
+/inline;
+
+
+//	--------------------------------------------------------------------------
+//:	(D) Include Master Template
+
+#fw_tmpltCode += (include: (($fw_sPath->'templates') + 'template' + $fw_myStyle + '_' + #fw_pgTemplate + fw_kDisplayExt));
+
+#fw_tmpltCode->trim;
+#fw_tmpltCode->(removeTrailing:'</body>');
+
+
+//	--------------------------------------------------------------------------
+//:	(E) Include Custom Wrapup
+
+if: $fw_gUseDefinePageWrapup;
+	inline:
+		-username = $fw_gFilesUser,
+		-password = $fw_gFilesPswd;
+	
+		if: file_exists:(($fw_sPath->'apiLibs') + '_definePageWrapup.lgc');
+			include:(($fw_sPath->'apiLibs') + '_definePageWrapup.lgc');
+		/if;
+	/inline;
+/if;
+
+//	--------------------------------------------------------------------------
+//:	(F) Wrapup Auth Logging
+//
+//	if the built-in user management system is active, and this page was 
+//	viewed as part of an active login session, and the auth log is enabled
+//	then log this page access 
+//
+
+if: $fw_gLogAuth && $fw_gUsePbUserAuth && (var:'fw_s') && $fw_pgAuthRequired;
+	fwpLog_auth: 
+		-status		= 'session',
+		-usrsession	= (var:$fw_userVarName)->'fw_s',
+		-usrAcct	= (var:$fw_userVarName)->'loginAccount',
+		-usrRcrd	= (var:$fw_userVarName)->(getProfile:'userRcrdID'),
+		-usrName	= (var:$fw_userVarName)->(getProfile:'userName'),
+		-pageInfo	= $fw_logPageInfo;
+/if;
+
+//	--------------------------------------------------------------------------
+//:	(G) Wrapup Session Vars
+//
+//	store session vars
+//	regular ones can be added here, 
+//	but others may have been added throughout the page
+
+if: $fw_gUsePbUserAuth && (var:'fw_s') && $fw_pgAuthRequired;
+	(var:$fw_userVarName)->(addVars: 'fw_r, fw_lock');
+	(var:$fw_userVarName)->(storeVars);
+/if;
+
+//	everything that's part of the normal page processing should be done now
+//	so this is where we establish the page processing end time
+$fw_timer->(stop:'pageTotal');
+
+//	--------------------------------------------------------------------------
+//:	(H) Wrapup Debug Display
+//
+//	-clearvars is a list of vars that you do not want included in the output
+//	either due to sensitivity, or to their just being too big to bother with
+//	on every page. Many generally unuseful framework vars are cleared by 
+//	default to reduce the bulk
+//	-topvars is a list of vars that you're most interested in seeing most
+//	often to keep track of status and are displayed at the top of the output
+//	The HTML is just a generic table to help contain the output w/o the need
+//	for matching CSS styles. Change the layout as you see fit.
+
+($fw_debugTimers && ($fw_debugIPFilter >> $fw_client->'ip'))
+	? #fw_tmpltCode += fwpPage_timerResults;
+
+if: $fw_debug && ($fw_debugIPFilter >> $fw_client->'ip');
+
+	#fw_tmpltCode += '\r<div id="debug">\r\r';
+	
+	#fw_tmpltCode += '<h1>PageBlocks Debug Output</h1>\r\r';
+	#fw_tmpltCode += '<p>Turn this output on/off by changing $fw_debug in _initMasters.</p> \r\r';
+	#fw_tmpltCode += '<p>pb version: '; 
+	#fw_tmpltCode += fwpAPI_version; 
+	#fw_tmpltCode += '<br />lasso site: ';
+	#fw_tmpltCode += site_name; 
+	#fw_tmpltCode += ' ('; 
+	#fw_tmpltCode += site_ID; 
+	#fw_tmpltCode += ')</p>';
+
+	if: $fw_apiError->size > 0;
+		$fw_tagTracer->(add:'fwpPage_wrapup : apiErrors');
+		$fw_apiError->(handleAllErrors);
+		#fw_tmpltCode += '<h2>Developer API Errors</h2> \r';
+		#fw_tmpltCode += $fw_apiError->'errorMsgs';
+	/if;
+
+	local:'fw_debugOutput' = (fwp_showVars:
+		-clearvars	= $fw_debugClearVars,
+		-topvars	= $fw_debugTopVars);
+
+	#fw_tmpltCode += #fw_debugOutput->showall;
+	#fw_tmpltCode += '\r</div>\r\r';
+
+/if;
+
+#fw_tmpltCode += '</body>\r</html>';
+
+//	--------------------------------------------------------------------------
+//:	(I) PageBlocks Banner
+
+#fw_tmpltCode += '\r\r<!--\r';
+#fw_tmpltCode += '//===========================================================================================\r';
+#fw_tmpltCode += '//  This page built using the pageblocks web application framework (tm) version ' + fwpAPI_version + '\r';
+#fw_tmpltCode += '//\r';
+#fw_tmpltCode += '//	                  (c) 2002-2008   :::   http://www.pageblocks.org/\r';
+#fw_tmpltCode += '//===========================================================================================\r';
+#fw_tmpltCode += '-->';
+
+return: @#fw_tmpltCode;
+
+/define_tag;
+?>

@@ -1,0 +1,49 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwp_map.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_map }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_map }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Subclasses the map type and allows map elements  
+					to be retrieved without using ->find: }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+//
+//	Usage:
+//
+//	works just like a regular map, except that 
+//	instead of $mymap->find:'color';
+//	use $mymap->color
+//	
+//	do not use quotes!! 
+//
+//.............................................................................
+
+define_type:'fwp_map', 'map', -prototype;
+	define_tag:'_unknownTag';
+		return:self->(find:tag_name);
+	/define_tag;
+/define_type;
+
+?>

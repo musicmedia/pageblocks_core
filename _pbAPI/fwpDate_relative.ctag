@@ -1,0 +1,104 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpDate_relative.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpDate_relative }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpDate_relative }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits, Chris Corwin, Doug Burchard, Bil Corry }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Returns a date in a variety of formats including
+					relative names like Today, Yesterday, Tomorrow
+					and uses the other fwpDate format tags as options }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag: 'fwpDate_relative', 
+	-priority = 'replace', 
+	-required = 'date';
+
+	local: 
+		'fw_thisDate' 	= (date: #date),
+		'fw_resultDate'	= (string),
+		'fw_timeformat'	= (string);
+
+	// set the formats to display.
+
+	if: (params->find:'-timeformat')->size == 0;
+		#fw_timeformat = '';
+	else;
+		#fw_timeformat = ' ' + #fw_timeformat;
+	/if;
+	if: (params->find:'-tomorrowStr')->size == 0;
+		local: 'tomorrowStr' = 'Tomorrow';
+	/if;
+	if: (params->find:'-todayStr')->size == 0;
+		local: 'todayStr' = 'Today';
+	/if;
+	if: (params->find:'-yesterdayStr')->size == 0;
+		local: 'yesterdayStr' = 'Yesterday';
+	/if;
+	if: (params->find:'-default')->size == 0;
+		local: 'default' = '%b %d, %Y';
+	/if;
+
+	// calculate the difference (in days) between today and the passed date
+	local:'dayOrigin' = date;
+	#dayOrigin->(SetFormat:'%D');
+	local: 'difference' = 
+		(date_difference: (string: #dayOrigin + ' 12:00:00'), '1/1/1970 12:00:00', -day) - 
+		(date_difference: (string: #fw_thisDate + ' 12:00:00'), '1/1/1970 12:00:00', -day);
+
+	var:'fw_relDateDifference' = #difference;
+
+
+	// calculate which format to return.
+	if: #difference == 0;
+		#fw_resultDate = #fw_thisDate -> (format: #todayStr + #fw_timeformat);
+	else: #difference == (-1);
+		#fw_resultDate = #fw_thisDate -> (format: #tomorrowStr + #fw_timeformat);
+	else: #difference == 1;
+		#fw_resultDate = #fw_thisDate -> (format: #yesterdayStr + #fw_timeformat);
+	else;
+		if: (params->find:'-mmShort')->size > 0;
+			#fw_resultDate = fwpDate_mmShort: string:#fw_thisDate;
+		else: (params->find:'-mmShort4')->size > 0;
+			#fw_resultDate = fwpDate_mmShort4: string:#fw_thisDate;
+		else: (params->find:'-mmLong4')->size > 0;
+			#fw_resultDate = fwpDate_mmLong4: string:#fw_thisDate;
+		else: (params->find:'-usSlash2')->size > 0;
+			#fw_resultDate = fwpDate_usSlash2: string:#fw_thisDate;
+		else: (params->find:'-usSlash4')->size > 0;
+			#fw_resultDate = fwpDate_usSlash4: string:#fw_thisDate;
+		else: (params->find:'-euroSlash2')->size > 0;
+			#fw_resultDate = fwpDate_euroSlash2: string:#fw_thisDate;
+		else: (params->find:'-euroSlash4')->size > 0;
+			#fw_resultDate = fwpDate_euroSlash4: string:#fw_thisDate;
+		else;
+			#fw_resultDate = #fw_thisDate -> (format: #default  + #fw_timeformat);
+		/if;
+	/if;
+
+	return: @#fw_resultDate;
+
+/define_tag;
+
+?>

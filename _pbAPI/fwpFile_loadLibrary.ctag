@@ -1,0 +1,125 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpFile_loadLibrary.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpFile_loadLibrary }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpFile_loadLibrary }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag simple includes a file with the library tag,
+					but it searches for the file in the FWPro libs folders }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpFile_loadLibrary', -priority='replace',
+	-required='file',
+	-optional='username',
+	-optional='password';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpFile_loadLibrary');
+
+	local:
+		'fw_fileNm'		= local:'file',
+		'fw_libsPath'	= string,
+		'fw_gLibsPath'	= string,
+		'fw_mLibsPath'	= string,
+		'fw_gfilePath'	= string,
+		'fw_mfilePath'	= string,
+		'fw_fileError'	= false,
+		'fw_fileMerge'	= true;
+
+//	look for inputs of PageBlocks mode or full spec mode
+//	username and password for file tags
+
+	if: !(local_defined:'username');
+		local:'fw_nm' = $fw_gFilesUser;
+		local:'fw_pw' = $fw_gFilesPswd;
+	else;
+		local:'fw_nm' = @local:'username';
+		local:'fw_pw' = @local:'password';
+	/if;
+
+//	location and type of libs files
+
+	if: (#fw_fileNm >> '/');
+		//	use supplied file name as complete pathname
+		#fw_libsPath = #fw_fileNm;
+	else;
+		//	convert file name to FWPro libs paths
+		#fw_gLibsPath = (var:'fw_sPath')->'libs';
+		#fw_mLibsPath = (var:'fw_mPath')->'libs';
+	/if;
+
+
+//	load the file data
+
+	if: #fw_gLibsPath;
+
+		#fw_gfilePath = #fw_gLibsPath + #fw_fileNm;
+		#fw_mfilePath = #fw_mLibsPath + #fw_fileNm;
+
+		if: (file_exists: #fw_gfilePath) || (file_exists: #fw_mfilePath);
+			if: (file_exists: #fw_gfilePath);
+				library: #fw_gfilePath;
+			/if;
+			if: (file_exists: #fw_mfilePath);
+				library: #fw_mfilePath;
+			/if;
+		else;
+			#fw_fileError = true;
+		/if;
+
+	else;
+		//	manually specified files
+
+		if: (file_exists: #fw_libsPath);
+			library: #fw_libsPath;
+		else;
+			#fw_fileError = true;
+		/if;
+	/if;
+
+
+//	error handling
+
+	if: #fw_fileError;
+		$fw_error->(insert:'5201'='fwpFile_loadLibrary');
+		$fw_debug ? $fw_tagTracer->(add:'fwpFile_loadLibrary', -ERROR = 'file not found or access not allowed: ' + #fw_fileNm);
+		$fw_criticalLog ? log_critical:('pbError : fwpFile_loadLibrary could not find, or could not access, file ' + #fw_fileNm);
+		return: string;
+	/if;
+
+/define_tag;
+
+?>

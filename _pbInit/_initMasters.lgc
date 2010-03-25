@@ -1,0 +1,432 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		_initMasters.lgc }
+	{rsrcType=		file }
+	{rsrcName=		_initMasters }
+	{rsrcHTTP=		www.pageblocks.org/refc/_initMasters }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Initializes the global vars and resources for
+					pageblocks, the site, and each page. These vars are
+					overrides for the defaults declared in 
+					_fwpAPI_initVars.lgc in /LassoStartup }
+
+	{maintvsrn=		1.4 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-12 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added $fw_logoutPagePath }
+
+	{maintvsrn=		1.3 }
+	{maintrelease=	5.2.5 }
+	{maintdate=		2007-07-24 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added $fw_headContent }
+
+	{maintvsrn=		1.2 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-04-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added the deployment vars }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	removed some globals that are now controlled by constants
+					defined in _fwpAPI_initVars.lgc }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+
+//	During development, it's handy to override vars in (D) (E) and (F) here.
+//	Once the site is in production, the values should be transferred to the 
+//	_fwpAPI_init.lgc file, and the sections here should be commented out
+//	to save a little time per page
+
+//............................................................................
+
+
+
+//============================================================================
+//
+//:	(D) Lasso Security Users
+//
+//............................................................................
+
+//	fw_gQueryUser/Pswd - lasso admin user name & password for allowing database access
+//	fw_gFilesUser/Pswd - lasso admin user name & password for allowing files access (within root only access)
+//	fw_gUploadUser/Pswd - lasso admin user name & password for allowing upload access (has outside of root files access)
+//	fw_gOSUser/Pswd - lasso admin user name & password for OS Process tags access
+
+	$fw_gQueryUser		= 'pbqueries';
+	$fw_gQueryPswd		= 'pbuserQ';
+	$fw_gFilesUser		= 'pbfiles';
+	$fw_gFilesPswd		= 'pbuserF';
+	$fw_gUploadUser		= 'pbuploads';
+	$fw_gUploadPswd		= 'pbuserU';
+//	$fw_gOSUser			= 'pbos';
+//	$fw_gOSPswd			= 'pbuserO';
+	
+//============================================================================
+//
+//:	(E) Development, Maintenance, and Deployment Switches
+//
+//	these vars providing development and maintenance functions
+//
+//............................................................................
+
+//	fw_resetAllCaches	(false) a flag to toggle the clearing of all caches for each page load
+//	fw_debug			(fw_kDisabled) a flag to toggle display of debugging info {fw_kDisabled | fw_kEnabled | fw_kChatty | fw_kVerbose}
+//	fw_criticalLog		(false) a flag to toggle logging of debug error to Lasso's critical log
+//	fw_debugTimers		(false) a flag to toggle activation of code timers
+//	fw_debugIPFilter	(127.0.0.1) defines what terminals debug data can be displayed on (a comma separated list of IP addresses)
+
+//	fw_maintenance		(false) a flag to toggle the display of a maintenance message
+//	fw_construction		(false) a flag to toggle the display of a under construction message
+//	fw_dataOffline		(false) a flag to toggle the display of a data offline message
+//	fw_disableLogin		(false) a flag to toggle the availability of a login form
+
+//	for fw_maintenance, set it to false, or to activate it
+//		use two Lasso DateTime (24-hr time!) values as in this example:
+//		08/14/2004 15:00:00```08/14/2004 17:00:00
+//		this will activate the maintenance message and will also
+//		automatically switch on fw_disableLogin during that time
+
+	$fw_resetAllCaches 		= true;
+
+	$fw_debug				= fw_kVerbose;
+	$fw_debug				= fw_kChatty;
+	$fw_debug				= fw_kEnabled;
+//	$fw_debug				= fw_kDisabled;
+	$fw_criticalLog			= true;
+	$fw_debugTimers			= false;
+	$fw_debugIPFilter		= '127.0.0.1';
+	$fw_debugIPFilter		= '127.0.0.1,63.139.169.107';
+
+//	vars to show at the top of debug output
+//	and vars to set to empty before debug vars are shown to prevent exposing them
+
+	$fw_debugTopVars		= '';
+	$fw_debugClearVars		= 'fw_gQueryUser, fw_gQueryPswd, fw_gFilesUser, fw_gFilesPswd, ' +
+								'fw_gUploadUser, fw_gUploadPswd, fw_gPassthruUser, fw_gPassthruPswd,' +
+								'fw_gDatabases, fw_gTables, fw_gDbTableModels, fw_gHexMap, fw_rollovers';
+
+//	$fw_maintenance			= '08/08/2008 15:00:00```08/08/2008 23:59:59';
+	$fw_maintenance			= false;
+	$fw_construction		= false;
+	$fw_dataOffline			= false;
+	$fw_disableLogin		= false;
+
+	$fw_deploymentHosts->(insert: 'krusedesign.dk' 	= 'production');
+	$fw_deploymentHosts->(insert: '--------------' 	= 'beta');
+	$fw_deploymentHosts->(insert: 'krdestest.dev'  	= 'test');
+	$fw_deploymentHosts->(insert: 'krusedesign.dev' = 'dev');
+
+	$fw_deploymentMode = $fw_deploymentHosts->(find: ($fw_requestPage->'domain'));
+
+//============================================================================
+//
+//:	(F) Global-level Config Settings
+//
+//	These vars tend to be those which control core pageblocks operations, and
+//	are set once and not changed on specific pages due to their Global scope.
+//
+//	var descriptions below start with the var name and its default value in ()
+//	refer to the documentation for complete descriptions and usage guidelines
+//
+//............................................................................
+
+//	fw_gAppPrefix			('pb') used to prefix cookies generated by the app, must be set to an app-specific 
+//								   value so that apps generated by pb and visited by the same user don't conflict
+
+//	fw_gUseSessionEachPage	(false) indicates if each page should have a new sessionID {true|false}
+//	fw_gUseInitProfiles 	(false) flags the inclusion of _initProfile to acquire one-to-one profile data from a db {true|false}
+//	fw_gUseInitCustom		(false) flags the inclusion of _initCustom to create app-specific config vars {true|false}
+//	fw_gUsePbUserAuth		(false) flags the activation of the built-in user authentication system {true|false}
+//	fw_gUseSubdomains		(false) flags the use of auto query modification to include a subdomain field {true|false}
+
+//	fw_gLoadCTags 			(false) turns on|off the scanning and loading of all files in /site/tags {true=on|false=off}
+//	fw_gLoadCTypes 			(false) turns on|off the scanning and loading of all files in /site/types {true=on|false=off}
+//	fw_gLoadPlugins 		(false) turns on|off the scanning and loading of all files in /site/plugins {true=on|false=off} -- NOT IN USE YET
+
+//	fw_gLogErr 				(false) turns on|off the logging of errors {true|false}
+//	fw_gLogAuth 			(false) turns on|off the logging of authentication logins {true|false}
+//	fw_gLogDb 				(false) turns on|off the logging of database add/update/delete actions {true|false}
+//	fw_gLogFile 			(false) turns on|off the logging of file create/update/delete actions {true|false} -- NOT IN USE YET
+
+//	fw_gLogErrRoll 			('M') sets rolling frequency of error log files {A|M|W|D} for annual, monthly, weekly, daily
+//	fw_gLogAuthRoll 		('M') sets rolling frequency of auth log files {A|M|W|D} for annual, monthly, weekly, daily
+//	fw_gLogDbRoll 			('M') sets rolling frequency of db action log files {A|M|W|D} for annual, monthly, weekly, daily
+//	fw_gLogFileRoll 		('M') sets rolling frequency of file access log files {A|M|W|D} for annual, monthly, weekly, daily -- NOT IN USE YET
+
+//	fw_gLogErrTarget 		('database') sets destination of log data {file|database}
+//	fw_gLogAuthTarget 		('database') sets destination of log data {file|database}
+//	fw_gLogDbTarget 		('database') sets destination of log data {file|database}
+//	fw_gLogFileTarget 		('database') sets destination of log data {file|database} -- NOT IN USE YET
+
+//	fw_gErrorAlertLevel		(0) sets errorLevel at which emails are sent to fw_gErrorAlertEmail. Set to 0 for no emails (see fwpErr_fwp.lgc)
+//	fw_gErrorAlertEmail 	(empty) the `to` email address for alerts
+//	fw_gErrorAlertFrom		(empty) the `from` email address for alerts
+
+	$fw_gAppPrefix			= 'kruse';
+
+//	$fw_gUseSessionEachPage = true;
+//	$fw_gUseInitProfiles	= true;
+	$fw_gUseInitCustom		= true;
+	$fw_gUsePbUserAuth		= true;
+//	$fw_gUseSubdomains		= true;
+
+	$fw_gLoadCTags			= true;
+//	$fw_gLoadCTypes			= true;
+//	$fw_gLoadPlugins		= true;
+//
+//	$fw_gLogErr				= true;
+//	$fw_gLogErrRoll			= 'M';
+//	$fw_gLogErrTarget		= 'database';
+//	$fw_gLogAuth			= true;
+//	$fw_gLogAuthRoll		= 'M';
+//	$fw_gLogAuthTarget		= 'database';
+//	$fw_gLogDb				= true;
+//	$fw_gLogDbRoll			= 'M';
+//	$fw_gLogDbTarget		= 'database';
+//	$fw_gLogFile			= false;
+//	$fw_gLogFileRoll		= 'M';
+//	$fw_gLogFileTarget		= 'database';
+
+//	$fw_gErrorAlertLevel	= 0;
+//	$fw_gErrorAlertEmail	= 'alert@example.com';
+//	$fw_gErrorAlertFrom		= 'admin@example.com';
+
+
+//################# End of Globals, Start of Page Vars #######################
+
+
+//============================================================================
+//
+//:	(H) Page-level Config Settings
+//
+//	these vars tend to be those which control sitewide page handling / output
+//	though they are intended to overridden per page as necessary
+//
+//	var descriptions below start with the var name and its default value in ()
+//	refer to the documentation for complete descriptions and usage guidelines
+//
+//............................................................................
+
+//	$fw_headContent			see docs
+//	$fw_pageModes			see docs
+
+//	$fw_client
+//	->decimalChar			('.') default character for decimal in fwpNum and fwpMath tags
+//	->thousandsChar			(',') default character for thousands grouping in fwpNum and fwpMath tags
+//	->language				('eng') default language 
+//	->media					('all') default media browser type
+//	->variant				('default') default strings variant
+
+//	fw_serverMode 			('http') identifies whether redirects should point to HTTP or HTTPS
+
+//	fw_uploadMIMEs 			(empty) comma list of file MIME types allowed for upload. Set to empty string for no restrictions
+//	fw_uploadSizeMax 		(0) indicates in bytes the maximum file upload size. Set to 0 for no limit
+//	fw_userVarName			(fw_user) the default name of the authenticated user object
+//	fw_loginPagePath		(/sitemngr/) sets the default user login page location in case of errors or session expiration
+
+//	fw_SMTPServer			(empty) an SMTP server name or IP address for sending email via Lasso
+//	fw_SMTPUser				(empty) an SMTP user name for SMTP authentication
+//	fw_SMTPPswd				(empty) an SMTP user password for SMTP authentication
+//	fw_errorsEmail			(empty) email address site visitors use to send more info about page errors
+//	fw_helpAccountsEmail	(empty) email address for users to get tech support (usually just for the admin sections)
+//	fw_helpAccountsPhone	(empty) phone number for users to get tech support (usually just for the admin sections)
+//	fw_getPswdSubject		(empty) email subject when emailing user password hint
+
+//	fw_listRcrdsMax			(12) default records to show in lists on public pages
+//	fw_rcrdLockDelay		(20) max duration of a record lock session before it expires
+//	fw_sessionTimeout		(30) max duration of a login session before it expires
+
+//	all these vars can be overidden in _pageConfig
+
+//	$fw_headContent->(addHttpEquiv:	(pair:'expires'='0'));
+	$fw_headContent->(addHttpEquiv:	(pair:'Content-Type'='text/html; charset=utf-8'));
+	$fw_headContent->(addMetaTag: 	(pair:'author'='Nikolaj de Fine Licht'));
+	$fw_headContent->(addMetaTag: 	(pair:'description'='Jens Kruse Grafisk Design - '));
+	$fw_headContent->(addMetaTag: 	(pair:'keywords'='jens kruse, krusedesign, kruse, grafisk design, visuel identitet, kommunikation, visuel kommunikation'));
+
+	$fw_headContent->(addCssFile: 	($fw_sPath->'css') + 'pb_apiStyles.css');
+	$fw_headContent->(addCssFile: 	($fw_sPath->'css') + 'styles_main.css');
+
+	$fw_headContent->(addScriptFile: ($fw_sPath->'js') + 'scripts_main.js');
+
+//	$fw_pageModes->enableJSPerPage;
+//	$fw_pageModes->enablePrototype;
+//	$fw_pageModes->enableScriptaculous;
+//	$fw_pageModes->enableJquery;
+//	$fw_pageModes->enablePageStrings;
+//	$fw_pageModes->enablePageRouter;
+//	$fw_requestPage->'path' !>> 'admin' ? $fw_pageModes->enablePageRouter;
+//	$fw_pageModes->enableBlockTemplates;
+//	$fw_pageModes->enableRepeatBlocks;
+//	$fw_pageModes->enableMultiLanguageBlocks;
+//	$fw_pageModes->enableAutoErrorDisplay;
+	$fw_pageModes->enableAutoRestoreSession;
+//	$fw_pageModes->enablePreventCache;
+
+//	$fw_client->(setDecimalChar: 	'.');
+//	$fw_client->(setThousandsChar:	',');
+//	$fw_client->(setLanguage:		'eng');
+//	$fw_client->(setMedia:			'all');
+//	$fw_client->(setVariant:		'default');
+
+//	$fw_serverMode			= 'http';
+
+	$fw_uploadMIMEs			= (array: 'pdf','jpeg','gif','text');
+//	$fw_uploadSizeMax		= 0;
+//	$fw_userVarName			= 'fw_user';
+//	$fw_loginPagePath		= '/sitemngr/';
+//	$fw_logoutPagePath		= '/sitemngr/';
+
+//	$fw_SMTPServer			= (string);
+//	$fw_SMTPUser			= (string);
+//	$fw_SMTPPswd			= (string);
+//	$fw_errorsEmail			= 'weberror@example.com';
+//	$fw_helpAccountsEmail	= 'webhelp@example.com';
+//	$fw_helpAccountsPhone	= '888-555-1212';
+//	$fw_getPswdSubject		= 'Your Account Info';
+
+	$fw_listRcrdsMax		= 100;
+	$fw_rcrdLockDelay		= 55;
+	$fw_sessionTimeout		= 60;
+
+
+//============================================================================
+//	(I) Unused
+//............................................................................
+
+
+//============================================================================
+//
+//:	(J) Default Page Layout Config
+//
+//	these vars tend to be those which control page configuration
+//	they are intended to overridden per page as necessary
+//	but are all defined here to allow for easier $ notation
+//
+//	var descriptions below start with the var name and its default value in ()
+//	refer to the documentation for complete descriptions and usage guidelines
+//
+//............................................................................
+
+//	fw_pgTitle			(empty) the string to display in the browser title bar
+//	fw_pgTemplate		(empty) the abbreviate name of the template file to use for the page
+//	fw_pgHeader			(empty) the name of the file to use for the page header
+//	fw_pgFooter			(empty) the name of the file to use for the page footer
+//	fw_pgAuthRequired	(false) sets whether the page requires authorization (which refreshed the user session) {true|false}
+//	fw_pgPrivilege		(empty) the user authorization privilege required for page access (see docs for formatting rules)
+//	fw_mnuDefns			(empty) the menu names array for AutoRollover to initialize rollover menus
+
+	$fw_pgTitle			= 'Kruse Design';
+	$fw_pgTemplate		= 'sub';
+	$fw_pgHeader		= 'hdr_genl.dsp';
+	$fw_pgFooter		= 'ftr_genl.dsp';
+//	$fw_pgAuthRequired	= false;
+//	$fw_pgPrivilege		= string;
+//	$fw_mnuDefns		= string;
+
+
+//============================================================================
+//
+//:	(K) Database and Table Names
+//
+//	this section simply provides a way to abstract the database names
+//	so that if they need to change, there is only one location in which
+//	that has to be done.
+//
+//............................................................................
+
+//	if you prefer to use real table names throughout the source code 
+//	when using fwp_recordData, then don't define $fw_gTables at all.
+
+//	abstractedName = realName
+//	required abstract names include: auth, logs, site
+//	the abstracted names list here must be identical 
+//	to the abstracted names list in fw_gDatabases
+
+	$fw_gDbServerTypes = (map:
+		'talk'	= 'mysql',
+		'auth'	= 'mysql',
+		'logs'	= 'mysql',
+		'site'	= 'mysql');
+
+//	-------
+//	required abstract names include: 
+//		userauth, userprof, userprivs, userfltrs if user auth system is used
+//		logauth, logdata, logerr if the default logging systems are used
+//		pbappstrings is also required if the appStrings system will be used
+
+	$fw_gTables	= map(
+		'userauth'			= 'userAuth',
+		'userprof'			= 'userProfile',
+		'userprivs'			= 'userPrivileges',
+		'userfltrs'			= 'userFilters',
+		'logauth'			= 'logauth',
+		'logdata'			= 'logdata',
+		'logerr'			= 'logerr',
+		'vlists'			= 'valueLists',
+		'appstrings'		= 'appStrings'
+	);
+
+//	-------
+//	abstractedName = realName
+//	typical required abstract names include: auth, logs, site
+
+//	use ($fw_requestPage->'domain') if separate domains are used
+//	use ($fw_requestPage->'subdomain') if subdomains are used
+
+	select($fw_deploymentMode);
+		case('production');
+			$fw_gDatabases = (map(
+				'auth'	= 'kru_database',
+				'logs'	= 'kru_database',
+				'site'	= 'kru_database'
+				)
+			);
+		case('beta');
+			$fw_gDatabases = (map(
+				'auth'	= 'krusedesign',
+				'logs'	= 'krusedesign',
+				'site'	= 'krusedesign'
+				)
+			);
+		case('test');
+			$fw_gDatabases = (map(
+				'auth'	= 'krusedesign',
+				'logs'	= 'krusedesign',
+				'site'	= 'krusedesign'
+				)
+			);
+		case;
+			$fw_gDatabases = (map(
+				'auth'	= 'krusedesign',
+				'logs'	= 'krusedesign',
+				'site'	= 'krusedesign'
+				)
+			);
+	/select;
+
+?>

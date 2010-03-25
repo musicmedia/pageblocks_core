@@ -1,0 +1,151 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		edpm_usrsSummary.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		 }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			 }
+
+	{maintvsrn=		1.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'edpm_usrsSummary', 'fwp_edpModel', -namespace = '_global_';
+
+
+//=============================================================================
+//
+//	->onCreate
+//
+//	
+//
+
+define_tag:'onCreate';
+
+	(self->'edp_rootTable')	= @$fw_gTables->find:'userauth';
+
+	(self->'edp_inputFields') = 'm_rStat';
+
+	(self->'edp_updatePrepSelect') = 
+		'm_rStat, m_rModDate, m_uNameL, m_uNameF, ' +
+		'm_uEmail, m_uPw, m_uHint, m_uIns, ' +
+		'm_uLastIn, m_uTries, m_uLokTime, m_uPwNew, ' +
+		'm_uPwDate, m_uPwHist, m_uHosts';
+
+	(self->'edp_deletePrepSelect') = @(self->'edp_updatePrepSelect')
+
+	(self->init);
+
+//	special case code for this Users system
+//	the recursive Filters tab will mess up fw_r
+//	so if the Summary tab is clicked we need to
+//	manually restore the var to the user rcrdNo
+
+	if: var:'btnNavSummary.x';
+		var:'fw_r' = $edp_selectedRcrdID;
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->validate
+//
+//	method for EDP system
+//
+//	Use this method to test input validity, create/modify vars based on inputs.
+//	To perform other actions, code that action as a member tag or custom tag, then
+//	call the tag from here (this makes those actions available to other models
+//	and controllers if needed).
+//
+
+define_tag:'validate';
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->postProcess
+//
+//	method for EDP system
+//
+//	Use this method to manage logic flow of when to trigger post processess, but
+//	to perform those processes, code them as a separate member tag or custom tag.
+//	Call the tag from here (this makes those actions available to other models
+//	and controllers if needed).
+//
+
+define_tag:'postProcess';
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->displayPrep
+//
+//	method for EDP system
+//
+//	Use this method to control logic for preparing display data and 
+//	display control flags, but if that prep requires db access calls
+//	code them as a separate member tag or custom tag.
+//	Call the tag from here (this makes those actions available to other models
+//	and controllers if needed).
+//
+
+define_tag:'displayPrep';
+
+	$edpMainController->(storeSelection);
+
+	//	auth table data would be picked up automatically by the updatePrep
+	//	now we need permissions table data
+	//	and filters table data
+
+	var:'permsTable' = (fwp_autoPerms:'default');
+
+	$permsTable->(load: 
+		-table	= @$fw_gTables->find:'userprivs', 
+		-userID = $edp_selectedRcrdID);
+
+	//	experiencing a very bizarre bug where any string concats in the actual parameter value
+	//	ends up with an empty value. Not reproducible in lowest terms code though!?
+	//	so concat here and use var as param value is working. bizarre!
+	var:'filterParam' = ('userFltrID = "' + $edp_selectedRcrdID + '" ');
+
+	var:'filtersListSummary'= (fwp_listRcrds:
+		-ignoreCache = true,
+		-name	= 'filtersListSummary',
+		-config	= 'fwpUserFiltersSummary',
+		-table	= @$fw_gTables->find:'userfltrs',
+		-select	= 'm_rNo, m_ufName, m_ufTbl, m_ufFld, m_ufMat, m_ufOp',
+		-sort	= 'm_ufName```asc```alphabetically by name',
+		-keyfld = 'rcrdNo',
+		-where	= $filterParam,
+		-limit = '*');
+
+	$fw_error->(removeCode:'5100');
+
+/define_tag;
+
+/define_type;
+?>

@@ -1,0 +1,38 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_addPrep.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_addPrep }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpActn_addPrep }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine prepares a page block for adding a record.
+					Essentially all it does is execute the fwpStr_randomID tag, 
+					Redundant layering, but it helps keep the actionShell
+					interface uniform. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpActn_addPrep', -priority='replace';
+	return: (fwpStr_randomID:(params->get:1));
+/define_tag;
+?>

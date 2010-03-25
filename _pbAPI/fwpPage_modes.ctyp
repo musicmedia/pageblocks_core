@@ -1,0 +1,238 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_modes.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_pageModes }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_pageModes }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			consolidates a number of page assembly mode control 
+					variables into a single object }
+
+	{maintvsrn=		1.1.2 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2008-03-05 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	added usePrototype, useScriptaculous and useJquery }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.2.5 }
+	{maintdate=		2007-07-24 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added useJSLibrary }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-20 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	removed useSetCSS and useJScripts }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-12-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed pageMapper to pageRouter }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-01 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_type:'fwp_pageModes';
+
+	local('useJSPerPage'			= boolean,
+		  'useJSLibrary'			= boolean,
+		  'usePrototype'			= boolean, 
+		  'useScriptaculous'		= boolean,
+		  'useJquery'				= boolean,
+		  'usePageStrings'			= boolean,
+		  'usePageRouter'			= boolean,
+		  'useBlockTemplates'		= boolean,
+		  'useRepeatBlocks'			= boolean,
+		  'useMultiLanguageBlocks'	= boolean,
+		  'useAppStringsDataTables'	= boolean,
+		  'useAutoErrorDisplay'		= boolean,
+		  'useAutoRestoreSession'	= boolean,
+		  'usePreventCache'			= boolean
+	);
+
+	local('repeatLogicBlocks'		= array,
+		  'repeatAboveBlocks'		= array,
+		  'repeatBelowBlocks'		= array
+	);
+
+//: -
+//============================================================================
+define_tag:'enableJSPerPage';
+	(self->'useJSPerPage') = true;
+/define_tag;
+
+define_tag:'disableJSPerPage';
+	(self->'useJSPerPage') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enableJSLibrary';
+	(self->'useJSLibrary') = true;
+/define_tag;
+
+define_tag:'disableJSLibrary';
+	(self->'useJSLibrary') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag('enablePrototype'); 
+	(self->'usePrototype') = true;
+/define_tag;
+
+define_tag('disablePrototype'); 
+	(self->'usePrototype') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag('enableScriptaculous'); 
+	(self->'useScriptaculous') = true;
+/define_tag;
+
+define_tag('disableScriptaculous'); 
+	(self->'useScriptaculous') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag('enableJquery'); 
+	(self->'useJquery') = true;
+/define_tag;
+
+define_tag('disableJquery'); 
+	(self->'useJquery') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enablePageStrings';
+	(self->'usePageStrings') = true;
+/define_tag;
+
+define_tag:'disablePageStrings';
+	(self->'usePageStrings') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enablePageRouter';
+	(self->'usePageRouter') = true;
+/define_tag;
+
+define_tag:'disablePageRouter';
+	(self->'usePageRouter') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enableBlockTemplates';
+	(self->'useBlockTemplates') = true;
+/define_tag;
+
+define_tag:'disableBlockTemplates';
+	(self->'useBlockTemplates') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enableRepeatBlocks';
+	(self->'useRepeatBlocks') = true;
+/define_tag;
+
+define_tag:'disableRepeatBlocks';
+	(self->'useRepeatBlocks') = false;
+/define_tag;
+
+define_tag:'setRepeatLogic',
+	-required = 'blockList', -type = array;
+	(self->'repeatLogicBlocks') = #blockList;
+/define_tag;
+
+define_tag:'setRepeatAbove',
+	-required = 'blockList', -type = array;
+	(self->'repeatAboveBlocks') = #blockList;
+/define_tag;
+
+define_tag:'setRepeatBelow',
+	-required = 'blockList', -type = array;
+	(self->'repeatBelowBlocks') = #blockList;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enableAutoErrorDisplay';
+	(self->'useAutoErrorDisplay') = true;
+/define_tag;
+
+define_tag:'disableAutoErrorDisplay';
+	(self->'useAutoErrorDisplay') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enableAutoRestoreSession';
+	(self->'useAutoRestoreSession') = true;
+/define_tag;
+
+define_tag:'disableAutoRestoreSession';
+	(self->'useAutoRestoreSession') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enableMultiLanguageBlocks';
+	(self->'useMultiLanguageBlocks') = true;
+/define_tag;
+
+define_tag:'disableMultiLanguageBlocks';
+	(self->'useMultiLanguageBlocks') = false;
+/define_tag;
+
+
+//: -
+//============================================================================
+define_tag:'enablePreventCache';
+	(self->'usePreventCache') = true;
+/define_tag;
+
+define_tag:'disablePreventCache';
+	(self->'usePreventCache') = false;
+/define_tag;
+
+/define_type;
+?>

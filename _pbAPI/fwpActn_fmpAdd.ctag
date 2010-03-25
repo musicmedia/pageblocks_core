@@ -1,0 +1,242 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_fmpAdd.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_fmpAdd }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpActn_fmpAdd }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Adds a record to a FileMaker database. It 
+					automates the sequence of events following a form submission 
+					through to the -ADD action. }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpActn_fmpAdd', -priority='replace',
+	-optional='inlineName',
+	-optional='db',
+	-optional='tbl',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='inputs',
+	-optional='confirm',
+	-optional='reactn',
+	-optional='continue';
+
+$fw_debugTimers ? $fw_timer->(start:'fmpTagAdd');
+
+local:
+	'fw_actnInlineNm'	= @(local:'inlineName'),
+	'fw_actnDb'			= @(local:'db'),
+	'fw_actnTbl'		= @(local:'tbl'),
+	'fw_actnKeyFld'		= @(local:'keyfld'),
+	'fw_actnKeyVal'		=  (local:'keyval'),
+	'fw_actnInputs'		=  (local:'inputs'),
+	'fw_actnCnfrmFld'	=  (local:'confirm'),
+	'fw_actnReactn'		= @(local:'reactn'),
+	'fw_actnContinue'	= @(local:'continue');
+
+
+//	don`t split these yet so we can use them in a SELECT
+if:	#fw_actnCnfrmFld;
+	#fw_actnCnfrmFld = (fwpCnfg_splitComma: #fw_actnCnfrmFld, -nosplit=true);
+/if;
+
+if:	#fw_actnInputs;
+	#fw_actnInputs = (fwpCnfg_splitComma: #fw_actnInputs);
+/if;
+
+//	local variables generated within this include file 
+
+//	fw_reactnInfo	= a custom type of various info to return as the action response
+//	fw_usrName		= a name string to stamp the record with
+//	fw_sqlActn 		= contains the constructed SQL statement string 
+//	fw_tableConfig	= the table definition file
+//	fw_vfileName	= the name of the validation file
+
+local:
+	'fw_reactInfo'		= (fwp_collection),
+	'fw_usrName'		= (string),
+	'fw_usrRcrd'		= (string),
+	'fw_fmpActionPairs'	= (array),
+	'fw_tableConfig'	= (fwp_tableConfig: #fw_actnDb),
+	'fw_indx'			= 0;
+
+if: ((var:$fw_userVarName)->'loginValid') == 'Y';
+	#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+	#fw_usrRcrd = (var:$fw_userVarName)->(getProfile:'userRcrdID');
+else;
+	#fw_usrName = 'Anonymous';
+	#fw_usrRcrd = 'Anonymous';
+/if;
+
+//	............................................................................
+
+//	field-specific data validation stuff is located in an include named validate_{tableName}.lgc 
+//	located in either the module`s libs folder or the global libs folder
+//	if a validation error occurs, the error should be inserted into $fw_error
+
+fwpFile_loadLibrary: ('validate_' + #fw_actnDb + fw_kLogicExt);
+
+
+if: $fw_error->size > 0;
+
+//	make sure there`s a rcrdNo 
+//	also verify that there isn`t already a record with this rcrdNo to prevent duplicates
+
+	if: #fw_actnKeyVal;
+
+		$fw_debugTimers ? $fw_timer->(start:'fmpQryAddGet');
+
+		inline:
+			-search,
+			-username=$fw_gQueryUser,
+			-password=$fw_gQueryPswd,
+			-database=#fw_actnDb,
+			-layout='fwproRcrdFields',
+			#fw_actnKeyFld = ('==' + #fw_actnKeyVal);
+
+			$fw_debugTimers ? $fw_timer->(stop:'fmpQryAddGet');
+			
+//	we expect to NOT find any records from the above search
+
+			if: (found_count) == 0;
+
+//	all is good, let`s go ahead and add the record
+//	create the INSERT statement
+//	starting with the standard FrameWork fields and values for an add
+//	then adding the fields affected by the current form
+
+				#fw_fmpActionPairs->(insert: (pair:#fw_actnKeyFld = #fw_actnKeyVal));
+				#fw_fmpActionPairs->(insert: (pair:'rcrdCreated' = (date_format: (date), -DateFormat='%Y-%m-%d %T')));
+				#fw_fmpActionPairs->(insert: (pair:'rcrdCreatedBy' = #fw_usrName));
+				#fw_fmpActionPairs->(insert: (pair:'rcrdModified' = (date_format: (date), -DateFormat='%Y-%m-%d %T')));
+				#fw_fmpActionPairs->(insert: (pair:'rcrdModifiedBy' = #fw_usrName));
+
+				#fw_fmpActionPairs->(insert: (pair:'rcrdLock'=''));
+				#fw_fmpActionPairs->(insert: (pair:'rcrdLockTime'=''));
+				#fw_fmpActionPairs->(insert: (pair:'rcrdLockOwnr'=''));
+				#fw_fmpActionPairs->(insert: (pair:'rcrdLockID'=''));
+
+				if: $fw_gUseSubdomains;
+					#fw_fmpActionPairs->(insert: (pair:'rcrdSubHost' = ('==' + $fw_requestPage->'subhost')));
+				/if;
+
+//	iterate through the input list
+//	find the input name in the config data, and store the index position
+//	use the index position to acquire the field name
+//	insert a pair of the field name and the submitted form value
+
+				iterate: #fw_actnInputs, local:'thisInput';
+					#fw_indx = ((#fw_tableConfig->'inputNames')->findindex:#thisInput)->last;
+					#fw_fmpActionPairs->(insert: (pair:((#fw_tableConfig->'fieldNames')->get:#fw_indx) = (var:(#fw_tableConfig->'inputNames')->get:#fw_indx)));
+				/iterate;
+
+				$fw_debug
+					? var:'api_fwpActn_fmpAdd_pairs' = #fw_fmpActionPairs;
+
+//	perform the database action
+
+				$fw_debugTimers ? $fw_timer->(start:'fmpQryAdd');
+
+				inline: 
+					(#fw_fmpActionPairs),
+					-add,
+					-inlinename=#fw_actnInlineNm,
+					-username=$fw_gQueryUser,
+					-password=$fw_gQueryPswd,
+					-database=#fw_actnDb,
+					-layout=#fw_actnTbl;
+
+					$fw_debugTimers ? $fw_timer->(stop:'fmpQryAdd');
+
+//	log the action
+
+					if: $fw_gLogDb;
+						fwpLog_data: 
+							-usrName=#fw_usrName,
+							-usrRcrd=#fw_usrRcrd,
+							-table=#fw_actnTbl,
+							-rcrd=#fw_actnKeyVal,
+							-action='add';
+					/if;
+
+//	verify that no lasso errors occured with the INSERT action
+
+					if: !((error_currenterror: -errorcode) == 0);
+						$fw_error->(insert: '5024' = ('Record could not be added due to Lasso error: ' + 
+							(error_currentError) + ' (' + (error_currentError: -errorCode) + ')'));
+					/if;
+				/inline;
+
+//	our test for an existing record way above actually found one
+//	or we had some other database error while looking
+
+			else;
+				if: ((error_currenterror: -errorcode) == 0);
+					$fw_error->(insert: '5110' = 'Record number already exists');
+				else;
+					$fw_error->(insert: '5022' = ('Record could not be found due to Lasso error: ' + 
+					(error_currentError) + ' (' + (error_currentError: -errorCode) + ')'));
+				/if;
+			/if;
+		/inline;
+
+//	our test to ensure there is a keyValue failed
+
+	else;
+		$fw_error->(insert: '5022' = 'Record number empty');
+	/if;
+
+else;
+
+//	the field validation include should have already built up the fw_error variable
+//	nothing else needs to be done here
+
+/if;
+
+
+//	if requested, store data needed to build a response using data from the record
+
+if: local_defined:'fw_actnReactn';
+	if: #fw_actnCnfrmFld;
+		#fw_actnCnfrmFld = #fw_actnCnfrmFld->split:',';
+	/if;
+	#fw_reactInfo=(fwp_collection:
+		-type='add',
+		-error=$fw_error,
+		-continue=#fw_actnContinue,
+		-confirmFields=#fw_actnCnfrmFld,
+		-inlineName=#fw_actnInlineNm);
+	return: #fw_reactInfo;
+/if;
+
+$fw_debugTimers ? $fw_timer->(stop:'fmpTagAdd');
+
+/define_tag;
+?>

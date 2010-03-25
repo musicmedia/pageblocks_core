@@ -1,0 +1,101 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_splitBlockLines.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpCnfg_splitBlockLines }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpCnfg_splitBlockLines }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine converts a EOL delimited list of label___value
+	 				items into an array of pairs or a map. }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.2 }
+	{maintdate=		2007-07-03 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	allowed label lines to be entries w/o ___ delimiters
+	 				which creates entries where label & value are the same text}
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpCnfg_splitBlockLines', -priority='replace',
+	-required='labels';
+
+//	-asMap | -intoMap (-makemap deprecated)
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpCnfg_splitBlockLines');
+
+	local:
+		'configData'		= #labels,
+		'asMap'				= false,
+		'thisLine'			= string,
+		'pairDelimiter'		= string,
+		'splitResults'		= array;
+
+	(params->find:'-intoMap') || (params->find:'-asMap') || (params->find:'-makeMap')
+		? #asMap = true;
+
+	#asMap
+		? #splitResults = map;
+
+	if: #configData;
+
+		if: ((#configData->type != 'string') && (#configData->type != 'bytes'));
+			$fw_error->(insert:'5201'='fwpCnfg_splitBlockLines');
+			$fw_debug ? $fw_apiError->(insert:'5246'=(#labels->type));
+			$fw_debug ? $fw_tagTracer->(add:'fwpCnfg_splitBlockLines', -ERROR = 'input was not a string or bytes');
+			$fw_criticalLog ? log_critical:'pbError : input to fwpCnfg_splitBlockLines was not a string or bytes';
+		else;
+
+//	yes, it is redundant, but it is faster
+
+			if: #configData >> '___';
+
+				#configData = (string_replaceRegExp: 
+					#configData, 
+					-find='(\\w+)___\\s*',
+					-replace='\\1___');
+	
+				(#configData = (fwpCnfg_splitLines:#configData));
+		
+				iterate: #configData, #thisLine;
+					#splitResults->(insert(#thisLine->(split('___'))->(get:1) = #thisLine->(split('___'))->(get:2)));
+				/iterate;
+
+			else;
+
+				(#configData = (fwpCnfg_splitLines:#configData));
+		
+				iterate: #configData, #thisLine;
+					#splitResults->(insert: #thisLine=#thisLine);
+				/iterate;
+
+			/if;
+		
+			return: #splitResults;
+		/if;
+	else;
+		($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpCnfg_splitBlockLines', -status = 'input was empty');
+	/if;
+/define_tag;
+?>
+

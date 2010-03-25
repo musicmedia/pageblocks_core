@@ -1,0 +1,50 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpNum_int.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpNum_int }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpNum_int }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			formats an integer with thousands separators }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.5 }
+	{maintdate=		2006-07-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added comma stripping so strings like 1,000 would
+	 				convert properly }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpNum_int', -priority='replace';
+
+	local:'fw_num' = string:(params->get:1);
+	#fw_num->(replace:',','');
+	#fw_num = integer:#fw_num;
+
+	#fw_num->(setformat: -groupchar=($fw_client->'thousandsChar'));
+
+	return: #fw_num;
+
+/define_tag;
+?>

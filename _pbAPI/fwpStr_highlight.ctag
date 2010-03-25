@@ -1,0 +1,85 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_highlight.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_highlight }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_highlight }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag returns the string 'str' with each substring 
+					listed in 'terms' marked up with a CSS span with a
+					"highlight" class name. }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-30 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added support for partial words }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpStr_highlight', -priority='replace',
+	-required='terms',
+	-required='str',
+	-optional='ignorecase',
+	-optional='showSubWords';
+
+	local:
+		'fw_srchTerms'	= @local:'terms',
+		'fw_newTxt'		= local:'str',
+		'fw_thisTerm'	= string,
+		'fw_wordDelim'	= string;
+		#fw_srchTerms	= #fw_srchTerms->split:' ';
+
+	(params->contains:'-showSubWords')
+		? #fw_wordDelim = #fw_thisTerm
+		| #fw_wordDelim = '\\b';
+
+	if: (params)->find:'-ignorecase';
+
+		iterate: #fw_srchTerms, #fw_thisTerm;
+	
+			#fw_newTxt=(string_replaceRegExp:
+				#fw_newTxt,
+				-find	 = #fw_wordDelim + '(' + #fw_thisTerm + ')' + #fw_wordDelim,
+				-replace = '<span class="highlight">\\1</span>',
+				-ignorecase);
+	
+		/iterate;
+
+	else;
+	
+		iterate: #fw_srchTerms, #fw_thisTerm;
+	
+			#fw_newTxt=(string_replaceRegExp:
+				#fw_newTxt,
+				-find	 = #fw_wordDelim + '(' + #fw_thisTerm + ')' + #fw_wordDelim,
+				-replace = '<span class="highlight">\\1</span>');
+	
+		/iterate;
+
+	/if;
+
+	return: @#fw_newTxt;
+
+/define_tag;
+?>

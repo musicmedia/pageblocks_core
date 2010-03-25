@@ -1,0 +1,150 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		rankEngine_robertson.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		rankEngine_robertson }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			implements one particular Nemoy Rank Engine.
+	 				Derived from paper by S.E. Robertson and K. Spärk Jones 
+	 				of Cambridge University }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-05-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added lemmatization }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-05-18 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type: 'rankEngine_robertson';
+
+
+//==============================================================================
+//	->calcRelevanceOf
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'calcRelevanceOf',
+	-required = 'records',
+	-required = 'allCount',
+	-required = 'searchTerms',
+	-required = 'contentFields',
+	-required = 'contentWeights',
+	-required = 'lemmaWeight';
+	
+
+	$fw_timer->(start:'calcRanking');
+
+	local:
+		'recordCount'		= #records->size,
+		'searchWords'		= #searchTerms->find:'searchWords',
+		'lemmaWords'		= #searchTerms->find:'lemmaWords',
+		'useLemmatization'	= #searchTerms->find:'useLemmatization';
+		
+	local:'searchAndLemmaWords' = #searchTerms->(find:'searchWords');
+	#searchAndLemmaWords->(merge: #lemmaWords);
+
+	#contentFields 	= (fwpCnfg_splitComma:#contentFields);
+
+	if: #recordCount;
+
+		local:
+			'globalWeight'		= decimal,
+			'recordLength'		= decimal,
+			'recordLengths'		= array,
+			'avgRecordLength'	= decimal,
+			'thisRecord' 		= pair,
+			'thisWord'			= string,
+			'wordIsLemma'		= boolean,
+			'fieldName'			= string,
+			'fieldContent'		= string,
+			'wordCount'			= decimal,
+			'termCount'			= integer,
+			'fieldweight'		= integer,
+			'termInfluence' 	= 2,
+			'lengthInfluence'	= .6;
+
+			
+		#globalWeight = (math_log:#allCount) - (math_log:#recordCount);
+
+
+		iterate: #records, #thisRecord;
+			#recordLength = 0;
+			iterate: #contentFields, #fieldName;
+				#recordLength += ((#thisRecord->second)->find:#fieldName)->size;
+			/iterate;
+			#recordLengths->(insert:#recordLength);
+		/iterate;
+		
+		#avgRecordLength = (#recordLengths->join) / #records->size;
+
+		iterate: #records, #thisRecord;
+	
+			#termCount 		= 0;
+			#recordLength 	= 0;
+	
+			iterate: #contentFields, #fieldName;
+
+				#fieldContent 	= (#thisRecord->second)->find:#fieldName;
+				#fieldWeight 	= #contentWeights->(find:#fieldName);
+				#wordIsLemma 	= false;
+				#recordLength 	+= ((#thisRecord->second)->find:#fieldName)->size;
+		
+				iterate: #searchAndLemmaWords, #thisWord;
+					// prevent regex injection/crashes by escaping special characters
+					('!@#$%^&*()-[{<.,:;|`' >> #thisWord) ? #thisWord = '\\' + #thisWord;
+
+					(#lemmaWords >> #thisWord)
+						? #wordIsLemma = true;
+
+					#wordCount = (string_findRegExp:
+						#fieldContent,
+						-find = #thisWord,
+						-ignoreCase)->size;
+
+					#wordIsLemma
+						? #termCount += (#wordCount * #lemmaWeight)
+						| #termCount += #wordCount;
+
+				/iterate;
+		
+				#termCount = #termCount * #fieldWeight;
+		
+			/iterate;
+
+				#thisRecord->first =
+					((#globalWeight * #termCount * (#termInfluence+1)) / 
+					(#termInfluence * ((1 - #lengthInfluence) + (#lengthInfluence * #avgRecordLength)) + #termCount));
+
+		/iterate;
+
+		$fw_timer->(stop:'calcRanking');
+	
+	/if;
+
+/define_tag;
+
+/define_type;
+?>

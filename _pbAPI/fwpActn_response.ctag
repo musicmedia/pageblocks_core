@@ -1,0 +1,106 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_response.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_response }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpActn_response }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine builds a very simple default response 
+					message to the actions with next-step buttons for 
+					the user. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag: 'fwpActn_response', -priority='replace',
+	-required='reactn';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpActn_response');
+
+	var:'fw_srch' = 'restore';
+	local:
+		'fw_reactn'			= @local:'reactn',
+		'fw_responseCode' 	= (string);
+
+	#fw_responseCode += '<div align="center">\r';
+
+	if: ((var:#fw_reactn)->'type') == 'add';
+
+		#fw_responseCode += '<h2>Add Record Results</h2>\r';
+
+		if: ((var:#fw_reactn)->'confirmFields')->size > 0;
+
+			records: -inlinename=((var:#fw_reactn)->'inlineName');
+				#fw_responseCode += '<p>The record for &quot;' + (field:((var:#fw_reactn)->'confirmFields')->get:1) + '&quot; was successfully added.</p>\r';
+			/records;
+
+		else;
+			#fw_responseCode += '<p>The record was successfully added.</p>\r';
+		/if;
+
+		#fw_responseCode += '<form action="' + referrer_url + '" method="post">\r\r';
+		#fw_responseCode += '<input type="hidden" value="' + (var:'fw_s') + '" name="fw_s" />\r';
+		#fw_responseCode += '<input type="image" src="' + ($fw_sPath->'controls') + 'btn120_addRecord_grn.gif" name="Add" alt="add" /><br /><br />\r';
+		#fw_responseCode += '</form>\r\r';
+
+	else: ((var:#fw_reactn)->'type') == 'delete';
+
+		#fw_responseCode += '<h2>Delete Record Results</h2>\r';
+
+		if: ((var:#fw_reactn)->'confirmFields')->size > 0;
+
+			records: -inlinename=((var:#fw_reactn)->'inlineName');
+				#fw_responseCode += '<p>The record for &quot;' + (field:(((var:#fw_reactn)->'confirmFields')->get:1)) + '&quot; was successfully deleted.</p>\r';
+			/records;
+
+		else;
+			#fw_responseCode += '<p>The record was successfully deleted.</p>\r';
+		/if;
+
+	else: ((var:#fw_reactn)->'type') == 'update';
+
+		#fw_responseCode += '<h2>Update Record Results</h2>\r';
+
+		if: ((var:#fw_reactn)->'confirmFields')->size > 0;
+
+			records: -inlinename=((var:#fw_reactn)->'inlineName');
+				#fw_responseCode += '<p>The record for &quot;' + (field:(((var:#fw_reactn)->'confirmFields')->get:1)) + '&quot; was successfully updated.</p>\r';
+			/records;
+
+		else;
+			#fw_responseCode += '<p>The record was successfully updated.</p>\r';
+		/if;
+
+	/if;
+
+	#fw_responseCode += '<form action="' + ((var:#fw_reactn)->'continue') + '" method="post">\r\r';
+	#fw_responseCode += '<input type="hidden" value="' + (var:'fw_s') + '" name="fw_s" />\r';
+	#fw_responseCode += '<input type="hidden" value="restore" name="fw_srch" />\r';
+	#fw_responseCode += '<input type="image" src="' + ($fw_sPath->'controls') + 'btn120_continue_grn.gif" name="Continue" alt="Continue" />\r';
+	#fw_responseCode += '</form>\r\r';
+	#fw_responseCode += ('<br />' * 3);
+	#fw_responseCode += '\r</div>\r';
+
+	return: @#fw_responseCode;
+
+/define_tag;
+?>

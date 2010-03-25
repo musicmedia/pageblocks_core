@@ -1,0 +1,184 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpEDP_main.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_edpMain }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_edpMain }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			An abstract factory pattern to create the objects
+					needed for the current form }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_edpMain', -prototype;
+
+	local:'edp_commonPrepSelect' = string;
+
+//=============================================================================
+//
+define_tag:'onCreate';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpMain->onCreate');
+
+	self->init;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->init
+//
+//	intended to be overloaded by app-specific subclass if necessary
+//
+define_tag:'init';
+/define_tag;
+
+
+//=============================================================================
+//
+//	->loadFormClasses
+//
+//	
+//
+
+define_tag:'loadFormClasses',
+	-required='form',
+	-required='model',
+	-required='controller';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpMain->loadFormClasses');
+
+	local:
+		'controllerNotFound'	= false,
+		'modelNotFound'			= false,
+		'fw_modelClass' 		= (self->'formModels')->(find:#form),
+		'fw_controllerClass' 	= (self->'formControllers')->(find:#form),
+		'fw_modelName'			= @local:'model',
+		'fw_controllerName'		= @local:'controller';
+
+	inline:
+		-username = $fw_gFilesUser,
+		-password = $fw_gFilesPswd;
+
+//	load model class
+	
+		if: ((tags->find:#fw_modelClass) == null) || $fw_edpForceClassLoad;
+			if: (file_exists: (($fw_mPath->'edp_classes') + #fw_modelClass + fw_kCTypExt));
+				library: (($fw_mPath->'edp_classes') + #fw_modelClass + fw_kCTypExt);
+			else: (file_exists: (($fw_sPath->'edp_classes') + #fw_modelClass + fw_kCTypExt));
+				library: (($fw_sPath->'edp_classes') + #fw_modelClass + fw_kCTypExt);
+			else;
+				#modelNotFound = true;
+			/if;
+		/if;
+
+		if: #modelNotFound;
+			$fw_error->(insert:'5201'='fwpEDP_main');
+			$fw_debug ? $fw_apiError->(insert:'5460'=#fw_modelClass);
+			$fw_debug ? $fw_tagTracer->(add:'fwpEDP_main', -ERROR = 'file not found or access not allowed: ' + #fw_modelClass);
+			$fw_criticalLog ? log_critical:('pbError : fwpEDP_main could not find, or could not access, file ' + #fw_modelClass);
+			(var:#fw_modelName) = null;
+		else;
+			(var:#fw_modelName) = (\#fw_modelClass)->astype;
+		/if;
+
+//	load controller class
+	
+		if: ((tags->find:#fw_controllerClass) == null) || $fw_edpForceClassLoad;
+			if: (file_exists: (($fw_mPath->'edp_classes') + #fw_controllerClass + fw_kCTypExt));
+				library: (($fw_mPath->'edp_classes') + #fw_controllerClass + fw_kCTypExt);
+			else: (file_exists: (($fw_sPath->'edp_classes') + #fw_controllerClass + fw_kCTypExt));
+				library: (($fw_sPath->'edp_classes') + #fw_controllerClass + fw_kCTypExt);
+			else;
+				#controllerNotFound = true;
+			/if;
+		/if;
+
+		if: #controllerNotFound;
+			$fw_error->(insert:'5201'='fwpEDP_main');
+			$fw_debug ? $fw_apiError->(insert:'5461'=#fw_controllerClass);
+			$fw_debug ? $fw_tagTracer->(add:'fwpEDP_main', -ERROR = 'file not found or access not allowed: ' + #fw_controllerClass);
+			$fw_criticalLog ? log_critical:('pbError : fwpEDP_main could not find, or could not access, file ' + #fw_controllerClass);
+			(var:#fw_controllerName) = null;
+		else;
+			(var:#fw_controllerName) = (\#fw_controllerClass)->astype;
+		/if;
+
+	/inline;
+
+/define_tag;
+
+//============================================================================
+//
+//	->handleButton
+//
+//	method for EDP system
+//
+//	this method is called to process custom buttons
+//	(override this method to customize standard buttons)
+//
+//
+
+define_tag:'handleButton';
+/define_tag;
+
+//============================================================================
+//
+//	->storeSelection
+//
+//	method for EDP system
+//
+//	this method is called to store data about the selected record
+//	(override this method to customize it)
+//
+//
+
+//	::HACK:: this probably belongs in another place, but Main is turning
+//	into my catch bin for misc methods -- probably need to revisit the 
+//	organization of EDP classes
+
+define_tag:'storeSelection';
+/define_tag;
+
+//============================================================================
+//
+//	->clearSelection
+//
+//	method for EDP system
+//
+//	this method is called to store data about the selected record
+//	(override this method to customize it)
+//
+//
+
+//	::HACK:: this probably belongs in another place, but Main is turning
+//	into my catch bin for misc methods -- probably need to revisit the 
+//	organization of EDP classes
+
+define_tag:'clearSelection';
+/define_tag;
+
+/define_type;
+?>
+

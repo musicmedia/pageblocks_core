@@ -1,0 +1,58 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpEDP_init.ctag }
+	{rsrcType=		ctag }
+	{rsrcName=		fwpEDP_init }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpEDP_init }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes	the page level vars and resources
+					of the fwpEDP framework. }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-25 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fw_edpHomeFilterInputs }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+//
+//	fw_edpSubmittedForm		(string) default var for identifying which page was submitted
+//	fw_edpClickThruMode		(false) boolean trigger to bypass database interactions in EDP for developing clickthru demos
+//	fw_edpForceClassLoad	(false) forces reloading of EDP class files, useful during development
+//	fw_edpFormWasPosted		(boolean) state of whether the current form has already been submitted in the current session
+//	fw_edpFormNoSubmit		(boolean) state of whether the current form is allowed to be submitted
+//
+//............................................................................
+
+define_tag:'fwpEDP_init';
+
+	var:
+		'fw_edpFormWasPosted'		= boolean,
+		'fw_edpFormNoSubmit'		= boolean,
+		'fw_edpClickThruMode'		= false,
+		'fw_edpForceClassLoad'		= false,
+		'fw_edpHomeFilterInputs' 	= array,
+		'fw_edpIgnoreListCache'		= false;
+
+/define_tag;
+
+?>

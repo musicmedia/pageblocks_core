@@ -1,0 +1,135 @@
+[output_none]
+#
+# version:	5.1
+# released: 2006-08-01
+#
+# do not use literal { or } characters except for config file parsing
+# use entities to display them as data if needed
+
+
+#------------------------------------------------------------------------------
+# general table config
+#
+
+
+{tableConfig:
+
+# table tag
+
+listCellSpacePx===1
+#listCellPadPx===
+#listTableBorderPx===
+#listTableWidth===
+
+# css style selectors to use 
+
+listDivClass===stdlist
+listHdrClass===hdr
+listAltRowAClass===altrowA
+listAltRowBClass===altrowB
+listHdrSortClass===sorted
+listDataSortClass===sorted
+
+# location and size of asc|desc buttons
+
+listSortAscBtn===[$fw_sPath->'controls']ibtn_sortAsc.gif
+listSortDescBtn===[$fw_sPath->'controls']ibtn_sortDesc.gif
+
+# location of list navigation panel
+
+listTopNavPanel===[$fw_sPath->'panels']listNavPanel.dsp
+#listBtmNavPanel===[$fw_sPath->'panels']listNavPanel.dsp
+
+}
+
+
+#--------------------------------------------------------
+# data columns config
+#
+
+{column:
+	lblName===Edit With
+	lblStyle===cntr
+	cellType===field
+	cellWidth===142
+	cellSortDefault===
+	cellContent=== <form name="updateTwoForm" class="" action="/siteStrings/_admin/updateLangForm" method="post"><input type="hidden" name="fw_r" value="[field('rcrdNo')]" /><input type="hidden" name="fw_s" value="[$fw_s]" />[$appLanguages->drawAsPopup(-class='fwppopup width130')]</form>
+	cellStyle===cntr
+	}
+
+{column:
+	lblName===Page Path (click to edit)
+	lblStyle===cntr
+	cellType===field
+	cellWidth===203
+	cellSortDefault===stringPagePath```asc```alphabetically by Page Name```stringName```asc```subsorted by string name
+	cellContent===<a href="/siteStrings/_admin/updateForm?fw_s=[$fw_s]&fw_r=[field('rcrdNo')]">[$m_strPath]</a>
+	cellStyle===left
+	}
+
+{column:
+	lblName===String Name
+	lblStyle===cntr
+	cellType===field
+	cellWidth===192
+	cellSortDefault===stringName```asc```subsorted by string name
+	cellContent===[$m_strName]
+	cellStyle===left
+	}
+
+{column:
+	lblName===Media
+	lblStyle===cntr
+	cellType===field
+	cellWidth===40
+	cellSortDefault===
+	cellContent===[$m_strMedia]
+	cellStyle===cntr
+	}
+
+{column:
+	lblName===Variant
+	lblStyle===cntr
+	cellType===field
+	cellWidth===70
+	cellSortDefault===
+	cellContent===[$m_strVariant]
+	cellStyle===cntr
+	}
+
+{column:
+	lblName===Modified
+	lblStyle===cntr
+	cellType===field
+	cellWidth===92
+	cellSortDefault===rcrdModified```desc```Modified date (recent at top)
+	cellContent===[fwpDate_mmShort4:($m_rModDate)]<br /><span class="dim">[$m_rModBy->(substring(1,16))]</dim>
+	cellStyle===cntr
+	}
+	
+{column:
+	lblName===Apv
+	lblStyle===cntr
+	cellType===field
+	cellWidth===32
+	cellSortDefault===
+	cellContent===[$m_rStat]
+	cellStyle===cntr
+	}
+
+{column:
+	lblName===Del
+	lblStyle===cntr
+	cellType===form
+	cellWidth===32
+	cellSortDefault===
+	cellContent===
+	cellStyle===cntr
+	formAction===deleteForm
+	formHidden===fw_s
+	formButton===[$fw_sPath->'controls']ibtn_trash_red.gif
+	formBtnName===btnListDelete
+	formPrvlg===
+	}
+
+[/output_none]

@@ -1,0 +1,72 @@
+/* @group Page Structure */
+
+
+body {
+	background-color: #6c7e6c;
+	color: black;
+	}
+
+#pgblock1colmain {
+	float: left;
+	width: 860px;
+	margin: 0;
+	padding: 0;
+	text-align: left;
+	}
+
+#pgblock2colwnmain {
+	border-right: 1px solid #cccc99;
+	}
+
+#headerCapLeft {
+	float: left;
+	width: 15px;
+	height: 15px;
+	background: #eeeed8;
+	}
+
+#headerCapRight {
+	float: left;
+	width: 15px;
+	height: 15px;
+	background: #eeeed8;
+	}
+
+#footerCapLeft {
+	float: left;
+	width: 15px;
+	height: 15px;
+	background: #fff;
+	}
+
+#footerCapRight {
+	float: left;
+	width: 15px;
+	height: 15px;
+	background: #fff;
+	}
+
+
+
+/* @end */
+
+
+/* @group Text Elements */
+
+a {
+	color: blue;
+	}
+
+a:hover {
+	color: #f60;
+	}
+
+h2 {
+	color: #ff6600;
+	}
+
+h3 {
+	color: #ff6600;
+	}
+
+/* @end */

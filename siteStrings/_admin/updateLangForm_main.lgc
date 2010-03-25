@@ -1,0 +1,96 @@
+<?lassoscript
+ 
+	if($fw_user->'loginValid' == 'Y');
+	
+		var('tableDataObject'	= fwp_recordData('appstrings'));
+		var('fw_edvFormInputs'	= 'm_rStat, m_strPath, m_strName, m_strLang, m_strValue, m_strMedia, m_strVariant');
+		
+//-----------------------------------------------------------------------------
+
+		if(var('btnFormCancel.x'));
+		
+			redirect_url('list?fw_s=' + $fw_s);
+			
+		else(var('btnViewList.x'));
+		
+			redirect_url('list?fw_s=' + $fw_s);
+			
+		else(var('btnFormSave.x'));
+		
+			$tableDataObject->updateUsingLock(
+				-inputs		= 'm_strValue', 
+				-lockval	= $fw_edvLockID, 
+				-lockName	= 'stringsUpdateRcrd'
+			);
+			
+		/if;
+		
+		// get data from original string
+		$tableDataObject->(select(
+			-select		= 'rcrdNo, stringName, stringPagePath, stringClientMedia, stringClientVariant',
+			-keyval		= $fw_r,
+			-withMakeVars
+		));
+		
+		// use those data to check if we already have an alternative language string 
+		var('tableDataObject'	= fwp_recordData('appstrings'));
+		$tableDataObject->(select(
+			-select		= 'rcrdNo',
+			-where		= "stringName = '" + $m_strName + "' AND stringPagePath = '" + $m_strPath + "' AND stringLanguage = '" + $editLang + "'",
+			-quiet,
+			-withMakeVars
+		));
+		
+		// if not, add one now
+		if($tableDataObject->('foundcount') < 1); 
+			
+			var('m_rNo'			= fwpStr_randomID(16),
+				'm_rStat'		= 'Y',
+				'm_strName'		= $m_strName,
+				'm_strLang'		= $editLang,
+				'm_strPath'		= $m_strPath,
+				'm_strMedia'	= $m_strMedia,
+				'm_strVariant'	= $m_strVariant
+			);
+			
+			$tableDataObject->(add(
+				-keyfld	= 'rcrdNo',
+				-keyval	= $m_rNo,
+				-inputs	= $fw_edvFormInputs
+			));
+			
+		/if;
+		
+		// now we have a record id, $m_rNo, for the alternative language string, wether it came from
+		// an existing one or was created now, so get the content of that string
+		
+		if(!$fw_validator->('errorMsgs')); 
+	
+			$tableDataObject->(getRecordUsingLock(
+				-select		= 'stringValue', 
+				-keyval		= $m_rNo, 
+				-lockval	= var('fw_edvLockID'), 
+				-lockName	= 'stringsUpdateRcrd', 
+				-withMakeVars
+			));
+		
+			var('fw_edvLockID'	= $tableDataObject->('lock'));
+		
+		/if;
+
+		// store alternative string value
+		var('x_strValue' = $m_strValue);
+		// and get the original one
+		$tableDataObject->(select(
+			-select		= 'stringValue',
+			-keyval		= $fw_r,
+			-withMakeVars
+		));
+		// assign to i-var
+		var('i_strValue'	= $m_strValue);
+		// retrieve the alternative value again if copy-paste link was not clicked
+		!var('cp') ? $m_strValue	= $x_strValue;
+		
+	/if; // if($fw_user->'loginValid' == 'Y');
+	
+?>

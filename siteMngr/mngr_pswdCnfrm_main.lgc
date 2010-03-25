@@ -1,0 +1,45 @@
+﻿<?lassoscript 
+//
+//	searches for the users' record based on the supplied email address
+//
+//
+
+var:'fw_hintEmailed' = false;
+
+if: var:'e';
+
+	var:
+		'fw_emailFrmt'		= string,
+		'pswdRecord' 		= (fwp_recordData: $fw_gTables->(find:'userauth'));
+	
+	$pswdRecord->(select:
+		-select		= 'rcrdNo, userFirstNm, userLastNm, userEmail, userHint',
+		-keyfld		= 'userEmail',
+		-keyval		= (var:'e'),
+		-withMakeVars);
+
+	if: ($pswdRecord->'foundcount') == 1;
+	
+		records: -inlinename=($pswdRecord->'inlinename');
+
+			$fw_emailFrmt =
+				'Thank you for your participation in ' + ($fw_requestPage->'host') + '\r\r' + 
+				'When signing up, you provided the following as a hint for your password: \r\r' + 
+				'\"' + $m_uHint + '\"\r\r' + 
+				'To access your account, use your email address and your password at http://' + ($fw_requestPage->'host') + '/siteMngr/' + 
+				'\r\r\r-- Signature\r-- Company\r-- ' + $fw_helpAccountsEmail;
+	
+			email_send: 
+				-host		= $fw_SMTPServer,
+				-to			= $m_uEmail,
+				-from		= $fw_helpAccountsEmail,
+				-subject	= $fw_getPswdSubject,
+				-body		= $fw_emailFrmt;
+	
+			$fw_hintEmailed = true;
+	
+		/records;
+	/if;
+/if;
+
+?>

@@ -1,0 +1,128 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_loadPairs.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpCnfg_loadPairs }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpCnfg_loadPairs }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag loads a configuration file,
+					removes comment lines, and 
+					splits the lined into an array of pairs }
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems,
+	 				changed some internal vars for better readability }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-01-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed some styntax for efficiency,
+					added -despace option,
+					eliminated code used by old RAMbucket caching }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpCnfg_loadPairs', -priority='replace',
+	-required='file',
+	-optional='username',
+	-optional='password';
+
+//	-removeWhiteSpace (-despace deprecated) 
+//	-withoutCaching (-nocache deprecated)
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpCnfg_loadPairs', -file = #file);
+
+	local:
+		'fileName' 			= @#file,
+		'withoutCaching' 	= false,
+		'removeWhiteSpace' 	= false,
+		'configData' 		= string;
+
+//	pull from cache if available
+//	else pull from disk (and store to cache)
+
+	#configData = $fw_gConfigCache->(restore:#fileName);
+
+	if: #configData->size > 0;
+
+		// pulled from cache, so nothing else to do
+
+	else;
+
+//	load file data
+
+		(params->find:'-withoutCaching') || (params->find:'-nocache')
+			? #withoutCaching = true;
+
+		(params->find:'-removeWhiteSpace') || (params->find:'-despace')
+			? #removeWhiteSpace = true;
+
+		#configData = (fwpCnfg_loadFile:
+			-file		= #fileName,
+			-username 	= local:'username',
+			-password 	= local:'password');
+
+//	despace the delimiters
+
+		if: #removeWhiteSpace;
+			#configData = (string_replaceRegExp: 
+				#configData, 
+				-find = '\\s*===\\s*',
+				-replace = '===');
+			#configData = (string_replaceRegExp: 
+				#configData, 
+				-find = '\\s*=\\s*',
+				-replace = '=');
+		/if;
+
+//	convert to array so we can remove comments
+
+		#configData = (fwpCnfg_splitLines: #configData);
+		#configData = (fwpCnfg_deComment: #configData);
+
+//	cache or not?
+//	cached as an array of pairs
+
+		!#withoutCaching
+			? $fw_gConfigCache->(add:
+				-name  = #fileName,
+				-value = #configData);
+
+//	make pairs
+		#configData = (fwpCnfg_splitPairs: #configData);
+	/if;
+
+	return: #configData;
+
+/define_tag;
+?>

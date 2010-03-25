@@ -1,0 +1,96 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_templateHead.lgc }
+	{rsrcType=		include }
+	{rsrcName=		fwpPage_templateHead }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_templateHead }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.4 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This file is loaded when $fw_gUseDefinePageHead in 
+					_fwpAPI_init is set to true (default). This file is used to define 
+					a common page <head> template for all pages that
+					overrides the built-in <head> code. }
+
+	{maintvsrn=		2.0 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-09-01 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-20 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+?><!DOCTYPE html 
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+<?lassoscript 
+
+	$fw_templateActive = true;
+	
+	local('thisTag' = string);
+	
+	if($fw_headContent->('httpEquivTags')->size);
+		iterate($fw_headContent->('httpEquivTags'), #thisTag);
+			'\t<meta http-equiv="'; #thisTag->first;  '" content="'; #thisTag->second; '"> \r';
+		/iterate;
+	/if;
+	
+	if($fw_pageModes->('usePreventCache'));
+		'\t<meta http-equiv="pragma" content="no-cache" />\r';
+		'\t<meta http-equiv="expires" content="-1" />\r';
+	/if;
+	
+	if($fw_headContent->('metaTags')->size);
+		iterate($fw_headContent->('metaTags'), #thisTag);
+			'\t<meta name="'; #thisTag->first;  '" content="'; #thisTag->second; '" /> \r';
+		/iterate;
+	/if;
+	
+	'\t<title>'; $fw_pgTitle; '</title>\r';
+	
+	$fw_gUseDefineCSS && file_exists($fw_sPath->('apiLibs') + '_defineCSS.lgc')
+		? include($fw_sPath->('apiLibs') + '_defineCSS.lgc');
+	
+	if($fw_headContent->('cssFiles')->size);
+		iterate($fw_headContent->('cssFiles'), #thisFile);
+			'\t<link rel="stylesheet" type="text/css" href="'; #thisFile; '" /> \r';
+		/iterate;
+	/if;
+	
+	$fw_gUseDefineJavaScript && file_exists($fw_sPath->('apiLibs') + '_defineJavaScript.lgc')
+		? include($fw_sPath->('apiLibs') + '_defineJavaScript.lgc');
+	
+	if($fw_headContent->('scriptFiles')->size);
+		iterate($fw_headContent->('scriptFiles'), #thisFile);
+			'<script charset="utf-8" type="text/javascript" src="'; #thisFile; '"></script> \r';
+		/iterate;
+	/if;
+	
+	if($fw_pageModes->('useJSPerPage')); 
+		if(file_exists($fw_mPath->('js') + $fw_requestPage->('name') + '.js')); 
+			'\r\t<script charset="utf-8" type="text/javascript" src="' + $fw_mPath->('js') + $fw_requestPage->('name') + '.js"></script>';
+		/if;
+	/if; 
+
+?>
+</head>

@@ -1,0 +1,110 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_splitLines.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpCnfg_splitLines }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpCnfg_splitLines }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine converts line endings in a text
+					data chunk into \r, and optional splits the
+					data into an array }
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems,
+	 				changed some internal vars for better readability }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.4 }
+	{maintdate=		2006-11-29}
+	{maintauthor=	Jolle Carlestam, modified by GW }
+	{maintnotes=	added -notrim to allow option for 
+					empty rows in the start or end }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0.2 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	doh! fixed type detection logic which didn't allow
+					for empty input }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-01-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed some syntax for efficiency }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+	define_tag:'fwpCnfg_splitLines', -priority='replace',
+	-required='text';
+
+//	-withoutTrim (-notrim deprecated)
+//	-withoutSplit (-nosplit deprecated)
+
+ 	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpCnfg_splitLines');
+
+	local:
+		'configData'	= #text,
+		'withoutSplit'	= false,
+		'withoutTrim'	= false;
+
+	(params->find:'-withoutSplit') || (params->find:'-nosplit')
+		? #withoutSplit = true;
+
+	(params->find:'-withoutTrim') || (params->find:'-notrim')
+		? #withoutTrim = true;
+
+	if: #configData; 
+		if:	((#configData->type != 'string') && (#configData->type != 'bytes'));
+			$fw_error->(insert:'5201'='fwpCnfg_splitLines');
+			$fw_debug ? $fw_apiError->(insert:'5243'='fwpCnfg_splitLines');
+			$fw_debug ? $fw_tagTracer->(add:'fwpCnfg_splitLines', -ERROR = 'input was not a string or bytes type');
+			$fw_criticalLog ? log_critical:'pbError : input to fwpCnfg_splitLines was not a string or bytes type';
+		else;
+	
+			!#withoutTrim
+				? #configData->trim;
+
+			#configData = (string_replace: #configData, -find='\r\n', -replace='\r');
+			#configData = (string_replace: #configData, -find='\n', -replace='\r');
+	
+			!#withoutSplit
+				? #configData = (#configData->(split:'\r'));
+
+			return: #configData;
+		/if;
+	else;
+		($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpCnfg_splitLines', -status = 'input was empty');
+	/if;
+
+/define_tag;
+?>

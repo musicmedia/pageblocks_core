@@ -1,0 +1,50 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_ssnUnpack.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_ssnUnpack }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpStr_ssnUnpack }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			takes a packed american social security number string
+					and formats it to the usual hyphened display }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+//	packed format should be 1111223333
+//.............................................................................
+
+define_tag:'fwpStr_ssnUnpack', -priority='replace',
+	-required='ssn';
+
+	if: #ssn;
+	
+		return:
+			((#ssn)->(substring:1,3)) + '-' +
+			((#ssn)->(substring:4,2)) + '-' +
+			((#ssn)->(substring:6,9));
+
+	else:
+		return:'unknown';
+	/if;
+
+/define_tag;
+?>

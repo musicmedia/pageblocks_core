@@ -1,0 +1,93 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGui_emailMask.ctyp }
+	{rsrcType=		ctyp }
+	{rsrcName=		fwp_emailMask }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_emailMask }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates an inline JavaScript that masks the email address
+					from spam bots, but shows fine to the user. Also provides
+					member tag access to ->jsmask, ->acct, ->srvr.
+					Thanks to Trevor Jacques for the JS source code here
+					http://www.listsearch.com/lassotalk.lasso?id=122191 }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-02-13 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed member tag to ->draw to be consistent 
+					with other pb tags that write code }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type: 'fwp_emailMask';
+
+//	::TODO:: rewrite as a proper prototype and cache the Javascript code
+
+		iterate: params, local:'thisParam';
+			if: #thisParam->type == 'pair';
+				local:'fw_pName' = #thisParam->first;
+				#fw_pName->removeleading:'-';
+				local: #fw_pName = #thisParam->second;
+			else;
+				#thisParam->removeleading:'-';
+				local: #thisParam = true;
+			/if;
+		/iterate;
+	
+		local:'acct'=(#addr->split:'@')->get:1;
+		local:'srvr'=(#addr->split:'@')->get:2;
+		local:'fw_domain'= (#addr->split:'.')->last;
+		local:'fw_server'=((#addr->split:'@')->get:2) - ('.' + #fw_domain);
+		local:'fw_altlink' = (string_replace: #addr, -find='@', -replace=' @ ');
+		local:'fw_altlink' = (string_replace: #fw_altlink, -find='.', -replace=' . ');
+	
+		if: !(local_defined:'link');
+			local:'link' = #fw_altlink;
+		/if;
+	
+	define_tag: 'draw',
+		-optional = 'subj';
+
+		if: !(local_defined:'subj');
+			local:'subj' = string;
+		/if;
+	
+		local:'fw_linkCode' = (string);
+
+		#fw_linkCode += '<script type="text/javascript">';
+		#fw_linkCode += '<!--\r';
+		#fw_linkCode += 'var srvr = "' + (self->'fw_server') + '";\r';
+		#fw_linkCode += 'var acct = "' + (self->'acct') + '";\r';
+		#fw_linkCode += 'var dom =  "' + (self->'fw_domain') + '";\r';
+		#fw_linkCode += 'var subj =  "' + #subj + '";\r';
+		#fw_linkCode += 'var display = "' + (self->'link') + '";\r';
+		#fw_linkCode += 'document.write("<a href=" + "mail" + "to:" + acct + "@" + srvr + "." + dom + "?subject=" + subj + ">" + display + "</a>")\r';
+		#fw_linkCode += '//-->\r';
+		#fw_linkCode += '</script>\r<noscript>' + (self->'fw_altlink') + '</noscript>';
+
+		return: @#fw_linkCode;
+
+	/define_tag;
+/define_type;
+?>

@@ -1,0 +1,108 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpLog_custom.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpLog_custom }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpLog_custom }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates a log of whatever is input. }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added log_critical }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed db/tbl references to use new vars }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpLog_custom', 
+	-autooutput,
+	-priority='replace',
+	-required='file',
+	-required='string';
+
+	local:'fw_logFileNm'=($fw_sPath->'logs') + #file + 'log_' + (date->year);
+
+	//	backwards compatibility
+	//	doesn`t require the declaration of fw_gLogCustomTarget
+
+	if: !(global_defined:'fw_gLogCustomTarget');
+		$fw_gLogCustomTarget = 'file';
+	/if;
+
+	if: $fw_gLogCustomTarget == 'file';
+
+		inline:
+			-username=$fw_gFilesUser,
+			-password=$fw_gFilesPswd;
+	
+			select: $fw_gLogCustomRoll;
+				case:'M';
+					#fw_logFileNm += '_m' + (date->month);
+				case:'W';
+					#fw_logFileNm += '_w' + (date->week);
+				case:'D';
+					#fw_logFileNm += '_d' + (date->dayofyear);
+			/select;
+			#fw_logFileNm += '.txt';
+	
+			log: #fw_logFileNm;
+				server_date: -extended;
+				'\t';
+				server_time;
+				'\t';
+				client_IP;
+				'\t';
+				response_filepath;
+				'\t';
+				referrer_URL;
+				'\t';
+				local:'string', -encodenone;
+				'\n';
+			/log;
+
+			$fw_criticalLog && ((file_currentError: -errorcode)  != 0)
+				? log_critical:('pbError : fwpLog_custom -- ' + file_currentError);
+				
+		/inline;
+
+	else: $fw_gLogCustomTarget == 'database';
+	
+		inline:
+			-username=$fw_gQueryUser,
+			-password=$fw_gQueryPswd;
+		
+			//	update a standard database table for this
+			//	::NOTE:: this obviously isn't done yet
+
+		/inline;
+	
+	/if;
+/define_tag;
+?>

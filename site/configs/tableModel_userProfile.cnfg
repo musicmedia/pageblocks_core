@@ -1,0 +1,26 @@
+[output_none]
+#! dbTbl5
+
+# version:  2006-08-01
+
+{{serverType___		[$fw_gDbServerTypes->find:'auth'] }}
+{{databaseName___	[$fw_gDatabases->find:'auth'] }}
+{{tableName___		[$fw_gTables->find:'userprof'] }}
+{{keyfield___		rcrdNo }}
+{{lockField___		rcrdLockID }}
+{{tableModel___
+
+#inputName		fieldName			fieldtype		validation codes
+#------------	-----------------	---------		-----------------------------
+
+m_rNo			rcrdNo				string			
+m_rNewDate		rcrdCreated			string			
+m_rNewBy		rcrdCreatedBy		string			
+m_rModDate		rcrdModified		string			
+m_rModBy		rcrdModifiedBy		string			
+m_rStat			rcrdStatus			string			
+m_rLokid		rcrdLockID			string			
+m_rLoktm		rcrdLockTime		string			
+m_rLokown		rcrdLockOwnr		string			
+}}
+[/output_none]

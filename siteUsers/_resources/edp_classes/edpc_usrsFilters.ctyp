@@ -1,0 +1,102 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		edpc_usrsFltrs.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		 }
+	{rsrcHTTP=		 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.2 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			 }
+
+	{maintvsrn=		1.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'edpc_usrsFilters', 'fwp_edpController',
+	-namespace = '_global_';
+
+
+	local:'fltrsListConfig' = string;
+
+//=============================================================================
+//
+//	->onCreate
+//
+//
+//
+
+//	some required inputs are set by declaring the local vars after
+//	instantiating the data type with the main controller`s ->declareMVC tag
+
+define_tag:'onCreate';
+
+	(self->'fltrsListConfig')	= 'fwpUserFilters';
+
+	(self->'formSaveForm')		= 'filters';
+	(self->'formCancelForm')	= 'summary';
+	(self->'listViewForm')		= 'filters';
+	(self->'listEditForm')		= 'filters';
+	(self->'listDeleteForm')	= 'filters';
+
+	(self->'formIsRecursive')	= true;
+	(self->'useEDPActions')		= true;
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->handleButton
+//
+//	method for EDP system
+//
+//	this method is called to process custom buttons
+//	(use overload methods to customize standard buttons)
+//
+//
+
+define_tag:'handleButton';
+
+	if: (var:'btnSubListEdit.x');
+	
+//	emulate the the click of standard list button 
+//	so we can use the built in updatePrep code
+//	we need to add rcrdUnlock step to allow any edit or delete
+//	button from the list to override the current selection
+	
+		var:'btnListEdit.x' = 10;
+		(self->rcrdUnlock);
+
+	else: (var:'btnSubListDelete.x');
+	
+//	emulate the the click of standard list button 
+//	so we can use the built in deletePrep code
+//	we need to add rcrdUnlock step to allow any edit or delete
+//	button from the list to override the current selection
+
+		var:'btnListDelete.x' = 10;
+		(self->rcrdUnlock);
+	/if;
+
+/define_tag;
+
+/define_type;
+?>
+

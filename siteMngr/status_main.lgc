@@ -1,0 +1,30 @@
+﻿<?lassoscript 
+
+var:'lassoVrsn'=lasso_version;
+var:'fwproVrsn'=fwpAPI_version;
+var:'mysqlVrsn'=(string);
+var:'wbChecksum'=(string);
+
+inline:
+	-username=$fw_gQueryUser,
+	-password=$fw_gQueryPswd,
+	-database=($fw_gDatabases->find:'site'),
+	-sql='SELECT version() AS vrsn FROM ' + $fw_gTables->(find:'userauth');
+
+	var:'mysqlVrsn'=(field:'vrsn');
+/inline;
+
+if: $lassoVrsn;
+	$wbChecksum += 'Language: OK, ';
+/if;
+
+if: $fwproVrsn;
+	$wbChecksum += 'Framework: OK, ';
+/if;
+
+if: $mysqlVrsn;
+	$wbChecksum += 'Data: OK';
+/if;
+
+
+?>

@@ -1,0 +1,340 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpSrch_nemoyQuery.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_nemoyQuery }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_nemoyQuery }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			issues the database query and stores a rankable results set }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-6-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_nemoyQuery', -prototype;
+
+//	-----------------------------------------------------
+//	QUERY CONFIGURATION
+//	-----------------------------------------------------
+
+//	db 				the name of the database (string)
+//	tbl				the name of the data table (string)
+//	selectFields	the fields to return from the query for display (comma separated list)
+//	contentFields	the fields to search for content (comma separated list)
+//	contentWeights	contentFields and relevance values (map of (fieldName = integer) elements)
+//					weights are just relative integers, not % or anything special
+
+//	fields listing in contentFields must be included in selectFields
+
+	local:
+		'rankEnginePlugins'		= string,
+		'rankEngine'			= string,
+
+		'dataSourceAdaptors'	= map,
+		'queryAdaptor'			= string,
+
+		'searchConfigs'		= string,
+		
+		'qryUser'			= string,
+		'qryPswd'			= string,
+		'db'				= string,
+		'tbl'				= string,
+		'keyfield'			= string,
+		'selectFields' 		= string,
+		'requiredPhrase'	= string,
+		'contentFields' 	= string,
+		'contentWeights' 	= map,
+		'lemmaWeight' 		= integer,
+		'displayColumns' 	= map,
+		'highlightColumns' 	= array;
+
+//	-----------------------------------------------------
+
+	local:
+		'searchTerms'		= map,
+		'searchWords'		= array,
+		'queryString'		= string,
+		'foundCount'		= integer,
+		'allCount'			= integer,
+		'inlineName'		= string,
+		'recordsArray'		= array,
+		'records'			= array;
+
+
+//==============================================================================
+//	->onCreate
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'onCreate',
+	-required = 'searchConfigs',
+	-required = 'rankEnginePlugins';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyQuery->onCreate');
+
+	local:
+		'thisPair' 				= pair,
+		'searchConfigsMap' 		= map,
+		'rankEnginePluginsMap'	= map;
+
+	iterate: #searchConfigs, #thisPair;
+		#searchConfigsMap->(insert:(#thisPair->first) = (#thisPair->second));
+	/iterate;
+
+	iterate: #rankEnginePlugins, #thisPair;
+		#rankEnginePluginsMap->(insert:(#thisPair->first) = (#thisPair->second));
+	/iterate;
+
+	self->'searchConfigs'	 	= #searchConfigsMap;
+	self->'rankEnginePlugins' 	= #rankEnginePluginsMap;
+
+/define_tag;
+
+
+//==============================================================================
+//	->init
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'init',
+	-required = 'srchConfig',
+	-required = 'rankEngine';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyQuery->init');
+
+	self->(initSearchConfig:#srchConfig);
+	self->(initRankEngine:#rankEngine);
+
+	(self->'dataSourceAdaptors') = (map:
+		'SQLiteConnector'	= 'fwpSrch_nemoyAdaptorSqlite',
+		'MySQLDS'			= 'fwpSrch_nemoyAdaptorMySQL');
+
+/define_tag;
+
+
+//==============================================================================
+//	->initSearchConfig
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'initSearchConfig',
+	-required = 'srchConfigName';
+	
+	local:
+		'configPath' 	= $nemoyConfigsPath + ((self->'searchConfigs')->find:#srchConfigName) + '.ctyp',
+		'configClass' 	= ((self->'searchConfigs')->find:#srchConfigName);
+
+	if: (file_exists: #configPath);
+
+		library: #configPath; 
+		local:'searchConfig' = (\#configClass)->astype;
+		
+		(self->'qryUser') 			= #searchConfig->'qryUser';
+		(self->'qryPswd') 			= #searchConfig->'qryPswd';
+		(self->'db') 				= #searchConfig->'db';
+		(self->'tbl') 				= #searchConfig->'tbl';
+		(self->'keyfield') 			= #searchConfig->'keyfield';
+		(self->'selectFields') 		= #searchConfig->'selectFields';
+		(self->'requiredPhrase') 	= #searchConfig->'requiredPhrase';
+		(self->'contentFields') 	= #searchConfig->'contentFields';
+		(self->'contentWeights') 	= #searchConfig->'contentWeights';
+		(self->'lemmaWeight') 		= #searchConfig->'lemmaWeight';
+		(self->'displayColumns') 	= #searchConfig->'displayColumns';
+		(self->'highlightColumns') 	= #searchConfig->'highlightColumns';
+	
+	/if;
+
+/define_tag;
+
+
+//==============================================================================
+//	->initRankEngine
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'initRankEngine',
+	-required = 'engineName';
+	
+	local:'engineClass'	= ((self->'rankEnginePlugins')->find:#engineName);
+	(self->'rankEngine') = (\#engineClass)->astype;
+
+/define_tag;
+
+
+//==============================================================================
+//	->initQueryAdaptor
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'initQueryAdaptor',
+	-required = 'adaptorName';
+
+	local:'adaptorClass' = ((self->'dataSourceAdaptors')->find:#adaptorName);
+	(self->'queryAdaptor') = (\#adaptorClass)->astype;
+
+/define_tag;
+
+
+//==============================================================================
+//	->searchFor
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'searchFor',
+	-required = 'searchTerms';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyQuery->searchFor', -searchTerms=#searchTerms);
+
+	(self->'searchTerms')	= #searchTerms;
+
+	self->(initQueryAdaptor:lasso_datasourceModuleName:(self->'db'));
+
+// --------------------------
+
+//	create connection pool for those that will take advantage of it
+
+	inline:
+		-username		= (self->'qryUser'),
+		-password		= (self->'qryPswd'),
+		-database		= (self->'db'),
+		-table			= (self->'tbl');
+		
+//	content query
+
+		(self->'queryString') = (self->'queryAdaptor')->(buildQuery:
+			-db				= self->'db',
+			-tbl			= self->'tbl',
+			-keyField		= self->'keyField',
+			-requiredPhrase	= self->'requiredPhrase',
+			-selectFields	= self->'selectFields',
+			-contentFields	= self->'contentFields',
+			-searchTerms	= self->'searchTerms');
+
+		$fw_timer->(start:'qrySearch');
+
+		(self->'inlineName') = fwpStr_randomID:8;
+		inline: -search,
+			-log			= 'none',
+			-inlineName		= (self->'inlineName'),
+			-maxRecords		= 'all',
+			-keyfield		= (self->'keyField'),
+			-sql 			= (self->'queryString');
+
+			(self->'foundCount') 	= found_count;
+			(self->'recordsArray') 	= records_array;
+		/inline;
+
+		$fw_timer->(stop:'qrySearch');
+
+		self->makeRowMaps;
+
+//	all rows in data table needed for relevance calcs
+
+		$fw_timer->(start:'qryAllCount');
+
+		inline: -search,
+			-log			= 'none',
+			-maxRecords		= 'all',
+			-keyfield		= (self->'keyField'),
+			-sql 			= (self->'queryAdaptor')->(buildAllCountQuery:
+								-db				= self->'db',
+								-tbl			= self->'tbl',
+								-keyField		= self->'keyField',
+								-requiredPhrase = self->'requiredPhrase');
+
+			(self->'allCount') = found_count;
+		/inline;
+
+		$fw_timer->(stop:'qryAllCount');
+	/inline;
+
+//	-----------------------
+
+	(self->'rankEngine')->(calcRelevanceOf: 
+							-records  		= (self->'records'),
+							-allCount    	= (self->'allCount'),
+							-searchTerms 	= (self->'searchTerms'),
+							-contentFields  = (self->'contentFields'),
+							-contentWeights	= (self->'contentWeights'),
+							-lemmaWeight	= (self->'lemmaWeight'));
+
+	(self->'records')->(sort: false);
+
+/define_tag;
+
+
+//==============================================================================
+//	->makeRowMaps
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'makeRowMaps';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_nemoyQuery->makeRowMaps');
+
+	local:
+		'_selectFields' = fwpCnfg_splitComma:(self->'selectFields'),
+		'_thisRcrd'		= array,
+		'_thisField'	= string,
+		'_tempMap'		= map,
+		'_indx'			= 0,
+		'_indxR'		= 0,
+		'_indxF'		= 0;
+
+	$fw_timer->(start:'convertData');
+
+	iterate: (self->'recordsArray'), #_thisRcrd;
+		#_indxR += 1;
+		#_tempMap = map;
+		#_indxF = 0;
+		iterate: #_thisRcrd, #_thisField;
+			#_indxF += 1;
+			#_tempMap->(insert:(#_selectFields->get:#_indxF) = #_thisField);
+		/iterate;
+		(self->'records')->(insert: 0 = #_tempMap);
+	/iterate;
+
+	$fw_timer->(stop:'convertData');
+	
+
+/define_tag;
+
+
+//==============================================================================
+//	->size
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'size';
+	return: (self->'records')->size;
+/define_tag;
+
+/define_type;
+?>
+

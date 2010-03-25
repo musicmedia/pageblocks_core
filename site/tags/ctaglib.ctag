@@ -1,0 +1,311 @@
+﻿<?lassoscript
+
+// tags using $nl_vStandardTime cannot be placed in Lasso startup folder!!
+
+// tag for displaying various lengths of localized dates
+// the time offset corrected time var, $nl_vStandardTime, must be set in _initMasters.lgc for this tag to work
+define_tag: 'date_localized', -required='l', -optional='inputdate', -optional='length';
+
+	#l == 'eng' ? #l = 'eng'; 
+
+	local: 'dayinweek' = (integer);
+	local: 'monthinyear' = (integer);
+	local: 'dayno' = (integer);
+	local: 'day' = (string);
+	local: 'month' = (string);
+	local: 'year' = (integer);
+	
+	if: !(local: 'inputdate');
+		
+		local: 'dayinweek' = date($nl_vStandardTime)->(dayofweek);
+		local: 'monthinyear' = date($nl_vStandardTime)->(month);
+		local: 'dayno' = date($nl_vStandardTime)->(day);
+		local: 'year' = date($nl_vStandardTime)->(year);
+			
+	else;
+	
+		local: 'dayinweek' = (date: #inputdate)->(dayofweek);
+		local: 'monthinyear' = (date: #inputdate)->(month);
+		local: 'dayno' = (date: #inputdate)->(day);
+		local: 'year' = (date: #inputdate)->(year);
+		
+	/if;
+
+	select: #dayinweek;
+	
+		case: 1;
+			if: #l == 'eng'; #day = 'Sunday'; else: #l == 'dan'; #day = 'Søndag'; else: #l == 'pt'; #day = 'Domingo'; else: #l == 'de'; #day = 'Sontag'; else: #l == 'it'; #day = 'Domenica'; else; #day = 'Sunday'; /if;
+		case: 2;
+			if: #l == 'eng'; #day = 'Monday'; else: #l == 'dan'; #day = 'Mandag'; else: #l == 'pt'; #day = 'Segunda'; else: #l == 'de'; #day = 'Montag'; else: #l == 'it'; #day = 'Lunedì'; else; #day = 'Monday'; /if;
+		case: 3;
+			if: #l == 'eng'; #day = 'Tuesday'; else: #l == 'dan'; #day = 'Tirsdag'; else: #l == 'pt'; #day = 'Terça'; else: #l == 'de'; #day = 'Dienstag'; else: #l == 'it'; #day = 'Martedì'; else; #day = 'Tuesday'; /if;
+		case: 4;
+			if: #l == 'eng'; #day = 'Wednesday'; else: #l == 'dan'; #day = 'Onsdag'; else: #l == 'pt'; #day = 'Quarta'; else: #l == 'de'; #day = 'Mittwoch'; else: #l == 'it'; #day = 'Mercoledì'; else; #day = 'Wednesday'; /if;
+		case: 5;
+			if: #l == 'eng'; #day = 'Thursday'; else: #l == 'dan'; #day = 'Torsdag'; else: #l == 'pt'; #day = 'Quinta'; else: #l == 'de'; #day = 'Donnerstag'; else: #l == 'it'; #day = 'Giovedì'; else; #day = 'Thursday'; /if;
+		case: 6;
+			if: #l == 'eng'; #day = 'Friday'; else: #l == 'dan'; #day = 'Fredag'; else: #l == 'pt'; #day = 'Sexta'; else: #l == 'de'; #day = 'Freitag'; else: #l == 'it'; #day = 'Venerdì'; else; #day = 'Friday'; /if;
+		case: 7;
+			if: #l == 'eng'; #day = 'Saturday'; else: #l == 'dan'; #day = 'Lørdag'; else: #l == 'pt'; #day = 'Sabado'; else: #l == 'de'; #day = 'Samstag'; else: #l == 'it'; #day = 'Sabato'; else; #day = 'Saturday'; /if;
+			
+	/select;
+	
+	select: #monthinyear;
+	
+		case: 1;
+			if: #l == 'eng'; #month = 'January'; else: #l == 'dan'; #month = 'januar'; else: #l == 'pt'; #month = 'janeiro'; else: #l == 'de'; #month = 'Januar'; else: #l == 'it'; #month = 'gennaio'; else; #month = 'January'; /if;
+		case: 2;
+			if: #l == 'eng'; #month = 'February'; else: #l == 'dan'; #month = 'februar'; else: #l == 'pt'; #month = 'fevreiro'; else: #l == 'de'; #month = 'Februar'; else: #l == 'it'; #month = 'febbraio'; else; #month = 'February'; /if;
+		case: 3;
+			if: #l == 'eng'; #month = 'March'; else: #l == 'dan'; #month = 'marts'; else: #l == 'pt'; #month = 'março'; else: #l == 'de'; #month = 'März'; else: #l == 'it'; #month = 'marzo'; else; #month = 'March'; /if;
+		case: 4;
+			if: #l == 'eng'; #month = 'April'; else: #l == 'dan'; #month = 'april'; else: #l == 'pt'; #month = 'abril'; else: #l == 'de'; #month = 'April'; else: #l == 'it'; #month = 'aprile'; else; #month = 'April'; /if;
+		case: 5;
+			if: #l == 'eng'; #month = 'May'; else: #l == 'dan'; #month = 'maj'; else: #l == 'pt'; #month = 'maio'; else: #l == 'de'; #month = 'Mai'; else: #l == 'it'; #month = 'maggio'; else; #month = 'May'; /if;
+		case: 6;
+			if: #l == 'eng'; #month = 'June'; else: #l == 'dan'; #month = 'juni'; else: #l == 'pt'; #month = 'junho'; else: #l == 'de'; #month = 'Juni'; else: #l == 'it'; #month = 'giugno'; else; #month = 'June'; /if;
+		case: 7;
+			if: #l == 'eng'; #month = 'July'; else: #l == 'dan'; #month = 'juli'; else: #l == 'pt'; #month = 'julho'; else: #l == 'de'; #month = 'Juli'; else: #l == 'it'; #month = 'giuglio'; else; #month = 'July'; /if;
+		case: 8;
+			if: #l == 'eng'; #month = 'August'; else: #l == 'dan'; #month = 'august'; else: #l == 'pt'; #month = 'agosto'; else: #l == 'de'; #month = 'August'; else: #l == 'it'; #month = 'agosto'; else; #month = 'August'; /if;
+		case: 9;
+			if: #l == 'eng'; #month = 'September'; else: #l == 'dan'; #month = 'september'; else: #l == 'pt'; #month = 'setembro'; else: #l == 'de'; #month = 'September'; else: #l == 'it'; #month = 'setembro'; else; #month = 'September'; /if;
+		case: 10;
+			if: #l == 'eng'; #month = 'October'; else: #l == 'dan'; #month = 'oktober'; else: #l == 'pt'; #month = 'outubro'; else: #l == 'de'; #month = 'Oktober'; else: #l == 'it'; #month = 'ottobre'; else; #month = 'October'; /if;
+		case: 11;
+			if: #l == 'eng'; #month = 'November'; else: #l == 'dan'; #month = 'november'; else: #l == 'pt'; #month = 'novembro'; else: #l == 'de'; #month = 'November'; else: #l == 'it'; #month = 'novembre'; else; #month = 'November'; /if;
+		case: 12;
+			if: #l == 'eng'; #month = 'December'; else: #l == 'dan'; #month = 'december'; else: #l == 'pt'; #month = 'dezembro'; else: #l == 'de'; #month = 'Dezember'; else: #l == 'it'; #month = 'decembre'; else; #month = 'December'; /if;
+	/select;
+	
+	if: (local: 'length') == 'long';
+	
+		if: #l == 'eng';
+		
+			return: #day + ', ' + #month + ' ' + #dayno + ', ' + #year;
+			
+		else: #l == 'dan';
+		
+			return: #day + ' ' + #dayno + '. ' + #month + ' ' + #year;
+			
+		else: #l == 'pt';
+		
+			return: #day + ', ' + #dayno + ' de ' + #month + ' de ' + #year;
+		
+		else: #l == 'de';
+		
+			return: #day + ' ' + #dayno + '. ' + #month + ' ' + #year;
+		
+		else: #l == 'it';
+		
+			return: #day + ' ' + #dayno + '. ' + #month + ' ' + #year;
+
+		else;
+		
+			return: #day + ', ' + #month + ' ' + #dayno + ', ' + #year;
+			
+		/if;
+
+	else: (local: 'length') == 'medium';
+	
+		if: #l == 'eng';
+		
+			return: #dayno + ' ' + #month + ' ' + #year;
+			
+		else: #l == 'dan';
+	
+			return: #dayno + '. ' + #month + ' ' + #year;
+			
+		else: #l == 'pt';
+		
+			return: #dayno + ' de ' + #month + ' de ' + #year;
+			
+		else: #l == 'de';
+		
+			return: #dayno + '. ' + #month + ' ' + #year;
+		
+		else: #l == 'it';
+		
+			return: #dayno + '. ' + #month + ' ' + #year;
+		
+		else;
+		
+			return: #month + ' ' + #dayno + ', ' + #year;
+		/if;
+		
+	else: (local: 'length') == 'daymonth';
+	
+		if: #l == 'eng';
+		
+			return: #dayno + ', ' + #month;
+			
+		else: #l == 'dan';
+	
+			return: #dayno + '. ' + #month;
+		
+		else: #l == 'pt';
+		
+			return: #dayno + ' de ' + #month;
+			
+		else: #l == 'de';
+		
+			return: #dayno + '. ' + #month;
+			
+		else;
+		
+			return: #dayno + ', ' + #month;
+
+		/if;
+	
+	else: (local: 'length') == 'monthyear';
+	
+		if: #l == 'eng';
+		
+			return: #month + ', ' + #year;
+			
+		else: #l == 'dan';
+	
+			return: #month + ' ' + #year;
+		
+		else: #l == 'pt';
+		
+			return: #month + ' de ' + #year;
+			
+		else: #l == 'de';
+		
+			return: #month + ' ' + #year;
+			
+		else;
+		
+			return: #month + ', ' + #year;
+
+		/if;
+	
+	else;
+	
+		return: #dayno + '.' + #monthinyear + '.' + #year;
+		
+	/if;
+	
+/define_tag;
+
+
+// truncate tag
+define_tag: 'truncate', -required='str', -required='size';
+
+	if: #str == '';
+		return: ' ';
+	else: #str->length < #size;
+		return: #str;
+	else; #str = #str->(substring:0,(#size - 3));
+		return: #str + '...';
+	/if;
+
+/define_tag;
+
+
+// greeting tag
+define_tag: 'greeting', -required='l';
+
+var: 'hour' = date($nl_vStandardTime)->(hour);
+
+	if: $hour > 5 && $hour < 10;
+
+		select: #l;
+		
+			case: 'eng';
+				return: 'Good morning';
+			case: 'dan';
+				return: 'Godmorgen';
+			case: 'pt';
+				return: 'Bom dia';
+			case: 'de';
+				return: 'Guten Morgen';
+			case: 'it';
+				return: 'Buon giorno';
+			case;
+				return: 'Goodmorning';
+		
+		/select;
+		
+	else: $hour >= 10 && $hour < 14;
+	
+		select: #l;
+		
+			case: 'en';
+				return: 'Good day';
+			case: 'dan';
+				return: 'Goddag';
+			case: 'pt';
+				return: 'Bom dia';
+			case: 'de';
+				return: 'Guten Tag';
+			case: 'it';
+				return: 'Buon giorno';
+			case;
+				return: 'Hello';
+		
+		/select;
+		
+	else: $hour >= 14 && $hour < 18;
+	
+		select: #l;
+		
+			case: 'eng';
+				return: 'Good afternoon';
+			case: 'dan';
+				return: 'Godeftermiddag';
+			case: 'pt';
+				return: 'Boa tarde';
+			case: 'de';
+				return: 'Guten Nachmittag';
+			case: 'it';
+				return: 'Buon giorno';
+			case;
+				return: 'Hello';
+		
+		/select;
+		
+	else: $hour >= 18 && $hour < 23;
+	
+		select: #l;
+		
+			case: 'eng';
+				return: 'Good evening';
+			case: 'dan';
+				return: 'Godaften';
+			case: 'pt';
+				return: 'Boa noite';
+			case: 'de';
+				return: 'Guten Abend';
+			case: 'it';
+				return: 'Buona sera';
+			case;
+				return: 'Good evening';
+		
+		/select;
+	
+	else: $hour >= 23 || $hour < 6;
+	
+		select: #l;
+		
+			case: 'eng';
+				return: 'Shouldn\'t you be in bed by now...? However, great to see you back';
+			case: 'dan';
+				return: 'Burde du ikke være på vej i seng nu...? Godaften';
+			case: 'pt';
+				return: 'Você não deveria estar na cama agora...? Mas tudo bom, seja bem vindo';
+			case: 'de';
+				return: 'Solltest du eigenlich nicht schon im Bett liegen...? Auf jeden Fall: sei willkommen';
+			case: 'it';
+				return: 'Non dovresti stare dormendo a quest\'ora...? Ad ogni caso: sia benvenuto';
+			case;
+				return: 'Shouldn\'t you be in bed by now...? However, great to see you back';
+		
+		/select;
+			
+	/if;
+
+/define_tag;
+
+?>

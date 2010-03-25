@@ -1,0 +1,1453 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpEDP_controller.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_edpController }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_edpController }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			A multi-faceted event-driven data editing system 
+					primarily for admin of single tables, but readily 
+					capable of more complex data tasks. }
+
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-05 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added edp_relatedByFKField and edp_selectedRcrdID
+					handling in ->btnFromSave to help automate
+					related-table record adding and updating. 
+					Added test for a lock from ->updatePrep and
+					switch to Add mode if none found. Helps handle
+					tabs that manage related tables. }
+
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.2.1 }
+	{maintdate=		2007-07-02}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added fix to prepVars conversion to allow for scenario 
+	 				where prepVars had been converted to field names or not
+	 				converted to field names }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.0.0 b11 }
+	{maintdate=		2006-03-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added btnFormContinue as standard button }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.0 b10 }
+	{maintdate=		2006-03-06 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed bug in prepHandler that would cause form data 
+					to be cleared by updatePrep call if only custom
+					validation errors existed }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_edpController', -prototype;
+
+//	instantiation inputs
+
+	local:
+		'prepForm'			= string,
+		'prepModel'			= string,
+		'submitForm'		= string,
+		'submitModel'		= string,
+		'mainController'	= string,
+		'homeListName'		= string,
+		'submitKeyVal'		= string,
+		'prepRcrdKeyFld'	= string,
+		'prepRcrdID'		= string;
+
+//	these are populated by various tags as needed
+//	and may need passed to the model
+
+	local:
+		'useEDPActions'			= boolean,
+		'listViewForm'			= string,
+		'listEditForm'			= string,
+		'listDeleteForm'		= string,
+		'formSaveForm'			= string,
+		'formCancelForm'		= string,
+		'formIsRecursive'		= boolean,
+		'formCreatesNewRecord' 	= boolean;
+		
+		
+//=============================================================================
+//
+//	->submitHandler
+//
+//	Description:
+//
+//		executes handling of button events. performs generic operations,
+//		and loads event libraries where custom code is required
+//
+//	Usage:
+//
+//		in the page logic file, after creating the editor object, 
+//		this is usually the first tag to invoke, although some custom code
+//		may need to be executed first
+//
+//
+
+define_tag:'submitHandler',
+	-required = 'submitForm',
+	-required = 'submitModel',
+	-required = 'mainController';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->submitHandler');
+
+	(self->'prepForm')		= #submitForm;
+	(self->'submitForm')	= #submitForm;
+	(self->'submitModel')	= #submitModel;
+	(self->'mainController')= #mainController;
+
+//	this value must submitted by the form
+//	insert (add) actions requires the record primary key ID
+//	update & delete actions require the FWPro record lock ID
+
+	(self->'submitKeyVal')	= var:'edp_keyval';
+
+	$fw_logPageInfo = (self->'submitForm') + '-submit';
+
+//	---------------------------------------------------------------------------
+//	EVENTS (button clicks)
+//	---------------------------------------------------------------------------
+//
+//	nav controller
+//
+//
+
+//	look through the form params to see which Nav button was clicked, if any
+//	remove .x and .y because we may not know which one is found first
+
+//	this could be faster by requiring a config file of the exact button list
+//	but this version makes for less work by the developer
+
+	local:
+		'fw_pParams'		= client_postParams,
+		'fw_thisParam'		= string,
+		'fw_pName'			= string,
+		'fw_pValue'			= string;
+
+	iterate: #fw_pParams, #fw_thisParam;
+		#fw_pName = #fw_thisParam->first;
+		#fw_pValue = #fw_thisParam->second;
+		if: (#fw_pName->beginswith:'btnNav') && (#fw_pValue > 0);
+
+			$fw_debug ? $fw_tagTracer->(add:'fwp_edpController : btnNav_caught', -fw_pName=#fw_pName);
+
+			(self->'prepForm') = #fw_pName;
+			(self->'prepForm')->(removeleading:'btnNav');
+			(self->'prepForm')->(removetrailing:'.x');
+			(self->'prepForm')->(removetrailing:'.y');
+
+//	if we bounce from tab to tab, then we need to
+//	release the prior lock (which is essentially cancelled), 
+//	and prepare a new one for the new form
+//	probably need to add thread control for guaranteed lock control
+//	in busy systems, but then I doubt Lasso could stand up
+//	to a real busy system anyway
+
+			(self->rcrdUnlock);
+
+//	for Linux case sensitivity we need the currentForm to be all lowercase
+//	to use as part of the filename building
+//	however for the above btnNav... file we need the uppercase version
+//	so we delay converting the name grabbed off the tab button to lowercase until here
+
+			(self->'prepForm')->lowercase;
+			
+//	restore the original selected record ID so that it can be passed
+//	to the prepHandler when called
+//	edp_selectedRcrdID is used to store and restore rcrdID in user session
+//	it is added to the session by this controller in various places
+//	and automatically restored each page by fwp_user sessionRestore
+			
+			var:'fw_r' = var:'edp_selectedRcrdID';
+
+		/if;
+	/iterate;
+
+//	---------------------------------------------------------------------------
+//
+//	preprocess custom buttons
+//
+//
+
+//	first check the shared MainController object to test for custom buttons
+//	if a mainObject has been declared
+
+	if: (self->'mainController');
+		(var:(self->'mainController'))->handleButton;
+	/if;
+
+//	check this object for custom buttons
+//	to intercept a standard button, include a response in handleButton (this will
+//	not override the standard behavior, which will also execute)
+//	to customize a standard button, write an overload method in the subclassed ctype
+//	for the specific button
+
+	(self->handleButton);
+
+//	---------------------------------------------------------------------------
+//
+//	main controller standard buttons
+//
+//
+
+	if: (var:'btnMainViewHome.x');
+	
+		(self->btnMainViewHome);
+
+	else: (var:'btnMainViewList.x');
+
+		(self->btnMainViewList);
+
+	else: (var:'btnMainShowAll.x');
+
+		(self->btnMainShowAll);
+
+	else: (var:'btnMainNewRcrd.x');
+
+		(self->btnMainNewRcrd);
+
+	else: (var:'btnMainSearch.x');
+	
+		(self->btnMainSearch);
+
+	else: (var:'btnMainPreferences.x');
+
+		(self->btnMainPreferences);
+
+//	---------------------------------------------------------------------------
+//
+//	standard list records buttons
+//
+//
+	else: (var:'btnListView.x');
+
+		(self->btnListView);
+
+	else: (var:'btnListEdit.x');
+
+		(self->btnListEdit);
+		
+	else: (var:'btnListDelete.x');
+
+		(self->btnListDelete);
+
+//	---------------------------------------------------------------------------
+//
+//	cancel, search, prefs, and misc buttons
+//
+//
+	else: (var:'btnSrchCancel.x');
+
+		(self->btnSrchCancel);
+
+	else: (var:'btnSrchSearch.x');
+
+		(self->btnSrchSearch);
+
+	else: (var:'btnPrefsSave.x');
+
+		(self->btnPrefsSave);
+
+	else: (var:'btnPrefsCancel.x');
+
+		(self->btnPrefsCancel);
+
+//	---------------------------------------------------------------------------
+//
+//	form controller buttons
+//
+//
+	else: (var:'btnFormCancel.x');
+
+		!$fw_edpClickThruMode ? (self->btnFormCancel);
+
+	else: (var:'btnFormDelete.x');
+
+		!$fw_edpClickThruMode ? (self->btnFormDelete);
+
+	else: (var:'btnFormSave.x');
+
+		!$fw_edpClickThruMode ? (self->btnFormSave);
+
+	else: (var:'btnFormContinue.x');
+
+		!$fw_edpClickThruMode ? (self->btnFormContinue);
+
+//
+//	unknown action, so retreat to home
+//
+	else;
+
+		if: !(self->'prepForm');
+			(self->'prepForm')='home';
+		/if;
+
+	/if;
+
+/define_tag;
+
+
+//*****************************************************************************
+//
+//	MAIN CONTROLLER METHODS
+//
+//*****************************************************************************
+
+
+//=============================================================================
+//
+//	->btnMainViewHome
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnMainViewHome';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnMainViewHome');
+
+	(self->'prepForm') = 'home';
+
+//	this action abandons any open lock, so release them
+
+	(self->rcrdUnlock);
+	
+	var:'edp_selectedRcrdID' = string;
+	var:'fw_r' = string;
+	(var:$fw_userVarName)->(addVars:'edp_selectedRcrdID');
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnMainViewList
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnMainViewList';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnMainViewList');
+
+	(self->'prepForm') = 'home';
+
+//	this action abandons any open lock, so release them
+
+	(self->rcrdUnlock);
+
+	var:'edp_selectedRcrdID' = string;
+	var:'fw_r' = string;
+	(var:$fw_userVarName)->(addVars:'edp_selectedRcrdID');
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnMainShowAll
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnMainShowAll';
+
+	(self->'prepForm') = 'home';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnMainShowAll');
+
+	var:'edp_selectedRcrdID' = string;
+	var:'fw_r' = string;
+	(var:$fw_userVarName)->(addVars:'edp_selectedRcrdID');
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnMainNewRcrd
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnMainNewRcrd';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnMainNewRcrd');
+
+	(self->'prepForm') = 'begin';
+	var:'fw_edpNewRcrdFlag' = 'Y';
+	(self->rcrdUnlock);
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnMainSearch
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnMainSearch';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnMainSearch');
+
+	(self->'prepForm') = 'search';
+	(self->rcrdUnlock);
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnMainPreferences
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnMainPreferences';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnMainPreferences');
+
+	(self->'prepForm') = 'prefs';
+
+/define_tag;
+
+
+
+//*****************************************************************************
+//
+//	LIST BUTTON METHODS
+//
+//*****************************************************************************
+
+
+
+//=============================================================================
+//
+//	->btnListView
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnListView';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnListView');
+
+	(self->fw_getBtnListRcrdID);
+
+	(self->'prepForm') = (self->'listViewForm');
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnListEdit
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnListEdit';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnListEdit');
+
+	(self->fw_getBtnListRcrdID);
+
+	(self->'prepForm') = (self->'listEditForm');
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnListDelete
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnListDelete';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnListDelete');
+
+	(self->fw_getBtnListRcrdID);
+
+	(self->'prepForm') = (self->'listDeleteForm');
+
+/define_tag;
+
+
+
+//*****************************************************************************
+//
+//	SEARCH & PREFS METHODS
+//
+//*****************************************************************************
+
+
+
+//=============================================================================
+//
+//	->btnSrchCancel
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnSrchCancel';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnSrchCancel');
+
+	(self->'prepForm') = 'home';
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnSrchSearch
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnSrchSearch';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnSrchSearch');
+
+	(self->'prepForm')	= 'home';
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnPrefsSave
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnPrefsSave';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnPrefsSave');
+
+	(self->'prepForm') = 'prefs';
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnPrefsCancel
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnPrefsCancel';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnPrefsCancel');
+
+	(self->'prepForm') = 'home';
+
+/define_tag;
+
+
+
+//*****************************************************************************
+//
+//	FORM CONTROLLER METHODS
+//
+//*****************************************************************************
+
+//=============================================================================
+//
+//	->btnFormContinue
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnFormContinue';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnFormContinue');
+
+//	restore the original selected record ID so that it can be passed
+//	to the prepHandler when called
+
+	var:'fw_r' = var:'edp_selectedRcrdID';
+
+	(self->'prepForm') = (self->'formSaveForm');
+
+	(self->rcrdUnlock);
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnFormCancel
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnFormCancel';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnFormCancel');
+
+//	cancel from any panel goes to summary if used
+//	cancel from summary or new record goes to home
+
+	if: ((var:'fw_edpNewRcrdFlag') == 'Y') || ((self->'submitForm') == 'summary');
+		(self->'prepForm') = 'home';
+		//	clear all submitted form vars to prevent search contamination
+		(self->clearFormVars);
+	else;
+		(self->'prepForm') = (self->'formCancelForm');
+	/if;
+
+//	restore the original selected record ID so that it can be passed
+//	to the prepHandler when called
+
+	var:'fw_r' = var:'edp_selectedRcrdID';
+
+	var:'vferror' 		= string;
+	var:'vfErrorForced'	= string;
+
+	(self->rcrdUnlock);
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnFormDelete
+//
+//	Description:
+//
+//		performs standard response to the button event
+//		automatically forces response page to be the Home page
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnFormDelete';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnFormDelete');
+
+	(self->'prepForm') 			= 'home';
+
+	(var:(self->'submitModel'))->(actnDelete: -keyval = (self->'submitKeyVal'));
+	(var:(self->'submitModel'))->(postProcess);
+
+	var:'edp_selectedRcrdID' 	= string;
+	var:'fw_r' 					= string;
+	(var:$fw_userVarName)->(addVars:'edp_selectedRcrdID');
+
+//	clear all submitted form vars to prevent search contamination
+
+	(self->clearFormVars);
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnFormSave
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnFormSave';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnFormSave');
+
+	$fw_formIsNotValid = $fw_validator->(validate:
+		-usingPOSTForm,
+		-inputs		= (var:(self->'submitModel'))->'edp_inputFields',
+		-valcodes	= (var:(self->'submitModel'))->'edp_tblValCodes');
+
+//	provide the flip side variable so either variable 
+//	can be used to write logic from negative or affirmative
+//	in the model ->validate code
+
+	$fw_formIsValid = !$fw_formIsNotValid;
+
+//	now execute model-specific custom validations
+//	create the foreign key value for related-table inserts
+//	and save the state of the current edp_selectedRcrdID
+//	because the actn processes for the related record will
+//	corrupt the original edp_selectedRcrdID value
+
+	if: ((var:'fw_edpNewRcrdFlag') == 'Y') && ((var:(self->'submitModel'))->'edp_relatedByFKField');
+		(var:((var:(self->'submitModel'))->'edp_relatedByFKField')) = var:'edp_selectedRcrdID';
+		var:'edp_selectedRcrdIDx' = var:'edp_selectedRcrdID';
+		$fw_user->(addVars:'edp_selectedRcrdIDx');
+	/if;
+
+	(var:(self->'submitModel'))->validate;
+
+//	update affirmative var just in case fw_formIsNotValid was changed
+
+	$fw_formIsValid = !$fw_formIsNotValid;
+
+	if: $fw_formIsNotValid;
+
+		$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnFormSave : form NOT valid');
+
+//	---------------------------
+//
+//	form has validation error
+//
+
+//	reset next panel back to the prev panel
+//	if new flag was active then simulate the Add btn click again
+//	because subsequent steps will need to test for that click
+
+		(self->'prepForm') = (self->'submitForm');
+
+		if: (var:'fw_edpNewRcrdFlag') == 'Y';
+			var:'btnMainNewRcrd.x' = 10;
+		/if;
+
+//	then reload vars which were initially requested during an updatePrep
+//	and reconsitute those which were not submitted by the form
+
+		$fw_debug >= fw_kVerbose ? $fw_tagTracer->(add:'fwp_edpController->btnFormSave', -edp_formPrepVars = var_defined:'edp_formPrepVars');
+
+		if: var_defined:'edp_formPrepVars';
+
+			$fw_debug >= fw_kVerbose ? $fw_tagTracer->(add:'fwp_edpController->btnFormSave', -edp_formPrepVars = $edp_formPrepVars);
+
+			local:
+				'fw_thisVar'   	= string,
+				'fw_fieldName'	= string,
+				'fw_varVal'		= string,
+				'fw_thisInput' 	= pair;
+
+// ::Note::
+//	fwp_recordData allows query fields to be defined using 
+//	the abstracted field names from the tableModel files
+//	The problem is that it's sometimes altering the _content_
+//	of the session update where we're trying add those names
+//	as session data. So we reverse that process by having 
+//	to look up the input name based on the field name
+//	in the tableModel. You'd think encoding prepVars
+//	would be smarter, but this method is actually faster.
+//	Haven't sorted out exactly why/how, but this only
+//	happens sometimes. Obviously there's a path where
+//	the conversion happens, and a path where it doesn't.
+//	So we have to test whether the prepVars data is actually
+//	field names or input names.
+
+			if: $edp_formPrepVars->size;
+
+				local:
+					'prepVarKeyName' 		= ($edp_formPrepVars->get:1)->first,
+					'prepVarKeysAreFields' 	= false;
+
+				(($fw_gDbTableModels->(find:(var:(self->'submitModel'))->'edp_rootTable'))->find:'inputNameMap')->(find:#prepVarKeyName)
+					? #prepVarKeysAreFields = true;
+				
+				if: #prepVarKeysAreFields;
+					iterate: $edp_formPrepVars, #fw_thisInput;
+						#fw_fieldName = #fw_thisInput->first;
+						#fw_fieldName->trim;
+						#fw_thisVar = (($fw_gDbTableModels->(find:(var:(self->'submitModel'))->'edp_rootTable'))->find:'inputNameMap')->(find:#fw_fieldName);
+						!(var_defined:#fw_thisVar)
+							? (var:#fw_thisVar) = (#fw_thisInput->second);
+					/iterate;
+				else;
+					iterate: $edp_formPrepVars, #fw_thisInput;
+						#fw_thisVar = (#fw_thisInput->first);
+						!(var_defined:#fw_thisVar)
+							? (var:#fw_thisVar) = (#fw_thisInput->second);
+					/iterate;
+				/if;
+			/if;
+		/if;
+	else;
+
+//	---------------------------
+//
+//	form passed validation
+//
+
+		$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnFormSave : form IS valid');
+
+		if: (var:'fw_edpNewRcrdFlag') == 'Y';
+
+//	---------------------------
+//	add a new record
+
+			(var:(self->'submitModel'))->(actnAdd: -keyval=(self->'submitKeyVal'));
+
+//	store the new rcrdNo as edp_selectedRcrdID so it appears to the rest
+//	of the tabs as the originally selected record
+//	do not do that if this form is a recursive form, as doing so
+//	would falsely update the main selected record to be the sub-record
+//	of the recursive form which messes things up
+
+			(var:(self->'submitModel'))->postAdd;
+
+			if: !(self->'formIsRecursive');
+				var:'edp_selectedRcrdID' = (self->'submitKeyVal');
+				(var:$fw_userVarName)->(addVars:'edp_selectedRcrdID');
+				$edpMainController->(storeSelection);
+			/if;
+
+			var:'fw_edpNewRcrdFlag' = null;
+
+		else;
+
+//	---------------------------
+//	update existing record
+
+			(var:(self->'submitModel'))->(actnUpdate: -lock=(self->'submitKeyVal'));
+			(var:(self->'submitModel'))->postUpdate;
+
+		/if;
+
+		(var:(self->'submitModel'))->postProcess;
+		
+		var:'edp_formPrepVars' = null;
+		(var:$fw_userVarName)->(addVars:'edp_formPrepVars');
+		
+		if: var:'edp_selectedRcrdIDx';
+			var:'edp_selectedRcrdID' = $edp_selectedRcrdIDx;
+			var:'edp_keyval' = $edp_selectedRcrdIDx;
+			$fw_user->(addVars:'edp_selectedRcrdID');
+			$fw_user->(removeVars:'edp_selectedRcrdIDx');		
+		/if;
+
+// 	response page might need to be:
+//	summary, home, or custom panel
+//	-formSaveForm = summary|home|{custom}
+
+		(self->'prepForm') = (self->'formSaveForm');
+
+	/if;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->rcrdUnlock
+//
+//	Description:
+//
+//		performs generic record unlock procedure
+//		based on the database connector
+//
+//	Usage:
+//
+//		automated response for many button events
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'rcrdUnlock';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->rcrdUnlock');
+
+	fwpActn_unlock;
+
+/define_tag;
+
+
+//	***************************************************************************
+//	***************************************************************************
+//
+//	PREP METHODS
+//
+//	***************************************************************************
+//	***************************************************************************
+
+//=============================================================================
+//
+//	->prepHandler
+//
+//	Description:
+//
+//		executes handling of button events. performs generic operations,
+//		and loads event libraries where custom code is required
+//
+//	Usage:
+//
+//		in the page logic file, after creating the editor object, 
+//		this is usually the first tag to invoke, although some custom code
+//		may need to be executed first
+//
+//
+
+define_tag:'prepHandler',
+	-required = 'prepForm',
+	-required = 'prepModel';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->prepHandler');
+
+	(self->'prepForm')		= #prepForm;
+	(self->'prepModel')		= #prepModel;
+
+//	fw_r is the default value generated by rcrdList object
+//	or artificially restored by btnFormCancel or tab nav buttons
+
+//  ::Hack::
+//	usually edp_keyval will be a lock ID submitted by a form 
+//	in case the form has to be recursive
+//	or has to be resubmitted due to a validation error
+//	but edp_keyval will be a rcrdNo ID submitted by new record form
+//	(after many variations of detecting when to use keyval as a rcrdNo or as
+//	a lockID, I finally resorted to testing the length to catch certain scenarios)
+//	locks are < 15 in length, records IDs are > 15 in length
+
+	if: ((var:'fw_edpNewRcrdFlag') == 'Y') || ((var:'edp_keyval')->size > 15);
+		(self->'prepRcrdKeyFld')	= var:'edp_keyfld';
+		(self->'prepRcrdID') 		= var:'edp_keyval';
+	else;
+		(self->'prepRcrdKeyFld') 	= var:'edp_keyfld';
+		(self->'prepRcrdID') 		= var:'fw_r';
+	/if;
+
+	(self->'submitKeyVal')	= var:'edp_keyval';
+
+//	trap and save the originally select record ID from the home list
+
+	if: (var:'btnSubListView.x') || (var:'btnSubListEdit.x') || (var:'btnSubListDelete.x');
+		//	stop sublist from changing selectedRcrdID
+	else: (var:'btnListView.x') || (var:'btnListEdit.x') || (var:'btnListDelete.x');
+		var:'edp_selectedRcrdID' = var:'fw_r';
+		(var:$fw_userVarName)->(addVars:'edp_selectedRcrdID');
+	/if;
+
+	$fw_logPageInfo = (self->'prepForm') + '-prep';
+
+//	---------------------------------------------------------------------------
+//	prepModel ACTIONS
+//	---------------------------------------------------------------------------
+
+	if: (var:'btnMainShowAll.x');
+
+		(self->btnMainShowAllPrep);	
+
+	else: (var:'btnSrchSearch.x');
+
+		(self->btnSrchSearchPrep);
+
+	/if;
+
+//	if panel does not declare useEDPActions as true, then
+//	these are handy for single table default actions, but not necessary.
+//	use an overload method in the subclassed ctype if preferred
+
+	if: (self->'useEDPActions');
+
+		if: (var:'btnMainNewRcrd.x') || (self->'formCreatesNewRecord') || 
+			((self->'formIsRecursive') && !(var:'btnListEdit.x') && !(var:'btnListDelete.x'));
+
+			(self->addPrep);
+
+		else: (var:'btnListDelete.x');
+
+			(self->deletePrep);
+			var:'edp_prepLockID' = (var:(self->'prepModel'))->'rcrdLockID';
+
+		else;
+
+//	if none of the special cases above apply,
+//	then we just need to do a no frills updatePrep
+//	if there`s no validation errors
+//	and if this not the first display of a recursive form
+	
+			if: !$fw_formIsNotValid;
+
+				(self->updatePrep);
+				var:'edp_prepLockID' = (var:(self->'prepModel'))->'rcrdLockID';
+				(self->postUpdatePrep);
+
+			else;
+
+//	when there is a validation error
+//	we need to reuse the previously generated lock submitted by the form
+
+				var:'edp_prepLockID' = var:'edp_keyVal';
+			/if;
+		/if;
+	/if;
+
+//	no matter what, we want to trap the lock ID created by the delete or update prep step
+//	there will be no ID from the add prep step
+
+	(var:$fw_userVarName)->(addVars:'edp_prepLockID');
+
+//	---------------------------------------------------------------------------
+//	DISPLAY PREP
+//	
+//
+//
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController: calling displayPrep');
+	
+	(var:(self->'prepModel'))->displayPrep;
+	
+/define_tag;
+
+
+//	***************************************************************************
+//
+//	PREP BUTTON RESPONSE METHODS
+//
+//	***************************************************************************
+
+//=============================================================================
+//
+//	->btnMainShowAllPrep
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnMainShowAllPrep';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnMainShowAllPrep');
+
+//	clear existing search criteria in the listInfo object
+	
+	(self->clearListInfo);
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->btnSrchSearchPrep
+//
+//	Description:
+//
+//		performs standard response to the button event
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'btnSrchSearchPrep';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->btnSrchSearchPrep');
+
+//	clear existing search criteria in the listInfo object
+
+	(self->clearListInfo);
+
+/define_tag;
+
+
+//	***************************************************************************
+//
+//	PREP DATASOURCE METHODS
+//
+//	***************************************************************************
+
+//=============================================================================
+//
+//	->addPrep
+//
+//	Description:
+//
+//		performs standard response to the record action
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'addPrep';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->addPrep');
+
+	var:'fw_edpNewRcrdFlag' = 'Y';
+
+//	this next step populates model->submitRcrdID with a new record ID
+//	which is used to populate the view input edp_keyval
+//	which is then trapped by the submitHandler of the following page
+
+	(var:(self->'prepModel'))->actnAddPrep;
+
+	if: ((var:'vferror')->size == 0) && (!var:'vfErrorForced');
+
+		local:
+			'thisInput'		= string,
+			'inputsArray'	= (fwpCnfg_splitComma: (var:(self->'prepModel'))->'edp_inputFields');
+
+//	we want empty vars for the form in order to use $ notation
+//	so cycle through the inputs list and create vars
+	
+		iterate: #inputsArray, #thisInput;
+			!(var:#thisInput) ? ((var:#thisInput) = string);
+		/iterate;
+	/if;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->deletePrep
+//
+//	Description:
+//
+//		performs standard response to the record action
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'deletePrep';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->deletePrep');
+
+	(var:(self->'prepModel'))->(actnDeletePrep: -keyval = (self->'prepRcrdID'));
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->updatePrep
+//
+//	Description:
+//
+//		performs standard response to the record action
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'updatePrep';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->updatePrep');
+
+	(var:(self->'prepModel'))->(actnUpdatePrep: 
+		-keyval	= (self->'prepRcrdID'),
+		-lock 	= (self->'submitKeyVal'));
+
+	if: !(((var:(self->'prepModel'))->'edp_recordData')->'lock');
+		self->addPrep;
+	/if;
+
+	$fw_debug ? var:'fw_edpPrepModelRecord' = ((var:(self->'prepModel'))->'edp_recordData');
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->postUpdatePrep
+//
+//	Description:
+//
+//		performs standard response to the record action
+//
+//	Usage:
+//
+//		automated response for the button event
+//		for more complex responses, the subclassed object needs 
+//		to overload this method
+//
+//
+
+define_tag:'postUpdatePrep';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->postUpdatePrep');
+
+	(var:(self->'prepModel'))->(postUpdatePrep);
+
+/define_tag;
+
+
+
+//=============================================================================
+//
+//	->clearListInfo
+//
+//	Description:
+//
+//		clear existing search criteria in the listInfo object
+//
+//	Usage:
+//
+//		used primarily internally to this ctype
+//		can be used by app code if needed
+//
+//
+
+define_tag:'clearListInfo';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->clearListInfo');
+
+	if: (self->'homeListName');
+		var:((self->'homeListName') + 'Info') = string;
+		(var:$fw_userVarName)->(addVars: ((self->'homeListName') + 'Info'));
+	/if;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->clearFormVars
+//
+//	Description:
+//
+//		clears all tbl schema vars which may get submitted by a form
+//
+//	Usage:
+//
+//		used primarily internally to this ctype
+//		can be used by app code if needed
+//
+//
+
+define_tag:'clearFormVars';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->clearFormVars');
+
+	local:
+		'fw_indx' 			= 0,
+		'fw_varName'		= string;
+
+	iterate: ((var:(self->'submitModel'))->'edp_tblInputNames'), #fw_varName;
+		(var_defined:#fw_varName) ? ((var:#fw_varName) = string);
+	/iterate;
+
+/define_tag;
+
+
+//=============================================================================
+//
+//	->fw_getBtnListRcrdID
+//
+//	Description:
+//
+//		in case an input named edp_keyval is not submitted
+//		trap fw_r which is the default value provided by lists
+//
+//	Usage:
+//
+//		used internally to this ctype
+//
+//
+
+define_tag:'fw_getBtnListRcrdID';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpController->fw_getBtnListRcrdID');
+
+	if:	!(self->'submitKeyVal');
+		(self->'submitKeyVal')	= var:'fw_r';
+	/if;
+
+/define_tag;
+
+/define_type;
+?>

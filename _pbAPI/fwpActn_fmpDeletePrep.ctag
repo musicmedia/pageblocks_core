@@ -1,0 +1,261 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_fmpDeletePrep.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_fmpDeletePrep }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpActn_fmpDeletePrep }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine retrieves a record from a database so it can
+					be displayed in preparation for being deleted. It 
+					automates the process of locking the record in conjunction
+					with data retreival. }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpActn_fmpDeletePrep', -priority='replace',
+	-optional='inlineName',
+	-optional='db',
+	-optional='tbl',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='select',
+	-optional='makevars',
+	-optional='reactn';
+
+$fw_debugTimers ? $fw_timer->(start:'fmpTagDelprep');
+
+local:
+	'fw_actnInlineNm'	= @(local:'inlineName'),
+	'fw_actnDb'			= @(local:'db'),
+	'fw_actnTbl'		= @(local:'tbl'),
+	'fw_actnKeyFld'		= @(local:'keyfld'),
+	'fw_actnKeyVal'		=  (local:'keyval'),
+	'fw_actnSlct'		=  (local:'select'),
+	'fw_actnMakeVars'	= @(local:'makevars'),
+	'fw_actnReactn'		= @(local:'reactn');
+
+//	local variables generated within this include file 
+
+//	fw_reactnInfo	= a custom type of various info to return as the action response
+//	fw_usrName		= a name string to stamp the record with
+//	fw_sqlActn 		= contains the constructed SQL statement string 
+//	fw_lockDelta	= time difference between now and when record was last locked
+//	fw_actnLock 	= the lockID of the record
+//	fw_lokInfo		= db, tbl, and fw_actnLock to go in a cookie for unlocking
+//	fw_cookieNm		= name of the cookie that stores fw_lokInfo
+
+local:
+	'fw_tableConfig'	= (fwp_tableConfig: #fw_actnDb),
+	'fw_reactInfo'		= (fwp_collection),
+	'fw_usrName'		= (string),
+	'fw_lockDelta'		= (string),
+	'fw_lokInfo'		= (string),
+	'fw_fmpActionPairs'	= (array),
+	'fw_fmpRcrdID'		= (string),
+	'fw_thisItem'		= (string),
+	'fw_indx'			= 0,
+	'fw_cookieNm'		= ($fw_gAppPrefix + '_lokInfo'),
+	'fw_actnLock'		= (fwpStr_randomID:9);
+
+if: ((var:$fw_userVarName)->'loginValid') == 'Y';
+	#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
+else;
+	#fw_usrName = 'Anonymous';
+/if;
+
+//	............................................................................
+
+//	make sure there`s a rcrdNo, or data gets messed up 
+//	return only the lock fields so we can also assess the record`s lock status
+
+if: #fw_actnKeyVal;
+
+//	now, whether the lok was successful or not we want to return the requested data
+//	so we grab the fields to be displayed as well as the ones needed for lock control
+//	the aplication is responsible for testing fw_actnLock
+
+	if: #fw_actnSlct != '*';
+		#fw_actnSlct = 'rcrdNo, rcrdLock, rcrdLockID, rcrdLockTime, rcrdLockOwnr, ' + #fw_actnSlct;
+	else;
+		#fw_actnSlct = (#fw_tableConfig->'fieldNames');
+	/if;
+
+	#fw_fmpActionPairs->(insert:  (pair: #fw_actnKeyFld = ('==' + #fw_actnKeyVal)));
+
+	if: $fw_gUseSubdomains;
+		#fw_fmpActionPairs->(insert:  (pair:'rcrdSubHost' = ('==' + $fw_requestPage->'subhost')));
+	/if;
+
+	$fw_debug
+		? var:'api_fwpActn_fmpUpdatePrep_getLockPairs' = #fw_fmpActionPairs;
+
+	$fw_debugTimers ? $fw_timer->(start:'fmpQryDelprepGet');
+	
+	inline: 
+		(#fw_fmpActionPairs),
+		-search,
+		-inlinename=#fw_actnInlineNm,
+		-username=$fw_gQueryUser,
+		-password=$fw_gQueryPswd,
+		-database=#fw_actnDb,
+		-layout=#fw_actnTbl;
+		
+		$fw_debugTimers ? $fw_timer->(stop:'fmpQryDelprepGet');
+
+//	test for any Lasso errors, datasource problems, etc. 
+
+		if: (found_count) != 0;
+
+//	get FMP internal recordID
+
+			#fw_fmpRcrdID = keyfield_value;
+
+
+//	convert field data to vars
+
+			if: #fw_actnMakeVars;
+				#fw_actnSlct = (fwpCnfg_splitComma: #fw_actnSlct);
+				iterate: #fw_actnSlct, #fw_thisItem;
+					#fw_indx = ((#fw_tableConfig->'fieldNames')->findindex:#fw_thisItem)->last;
+					if: #fw_indx;
+						var:((#fw_tableConfig->'inputNames')->get:#fw_indx) = field:((#fw_tableConfig->'fieldNames')->get:#fw_indx);
+					/if;
+				/iterate;
+			/if;
+
+
+//	is the record locked?
+
+			#fw_lockDelta=(Date_Difference: 
+				(date), 
+				(field:'rcrdLockTime'), 
+				-minute);
+
+			if:
+				((field:'rcrdLock') != 'Y') ||
+				(((field:'rcrdLock') == 'Y') && (#fw_lockDelta > $fw_rcrdLockDelay));
+
+//	all is good, let`s lock this record for our use
+//	set a cookie with the lock info -- db:tbl:fw_actnLock
+//	this can be picked up by fwp_actnUnlock to release the lock if the 
+//	visitor doesn`t follow our prefer page exit methods
+//	if cookies aren`t active, then the lock will self expire
+
+				#fw_lokInfo	= #fw_actnDb + ':' + #fw_actnTbl + ':fmp:' + #fw_fmpRcrdID;
+				#fw_lokInfo = (encrypt_blowfish: #fw_lokInfo, -seed=$fw_gQueryPswd);
+				cookie_set:(local:'fw_cookieNm')=#fw_lokInfo, -path='/';
+
+				//	clear pairs
+				#fw_fmpActionPairs = (array);
+
+				#fw_fmpActionPairs->(insert:  (pair:'rcrdLock'='Y'));
+				#fw_fmpActionPairs->(insert:  (pair:'rcrdLockTime'=date));
+				#fw_fmpActionPairs->(insert:  (pair:'rcrdLockOwnr'=#fw_usrName));
+				#fw_fmpActionPairs->(insert:  (pair:'rcrdLockID'=#fw_actnLock));
+				#fw_fmpActionPairs->(insert:  (pair:'-keyvalue'=#fw_fmpRcrdID));
+
+				$fw_debug
+					? var:'api_fwpActn_fmpUpdatePrep_setLockPairs' = #fw_fmpActionPairs;
+
+				$fw_debugTimers ? $fw_timer->(start:'fmpQryDelprepLock');
+				
+				inline: 
+					(#fw_fmpActionPairs),
+					-update,
+					-username=$fw_gQueryUser,
+					-password=$fw_gQueryPswd,
+					-database=#fw_actnDb,
+					-layout='fwproRcrdFields';
+					
+					$fw_debugTimers ? $fw_timer->(stop:'fmpQryDelprepLock');
+
+					if: (error_currenterror: -errorcode) == 0;
+
+//	at this point we have a succesful lock and non-empty fw_lock
+//	we do nothing else
+
+//	here are all the error trapping switches 
+
+					else;
+						#fw_actnLock = '';
+						if: ((error_currenterror: -errorcode) == -1728);
+							$fw_error->(insert:'5021' = '(a) Record number ' + #fw_actnKeyVal + ' not found in table ' + #fw_actnTbl);
+						else;
+							$fw_error->(insert: '5032' = ('Record could not be locked due to Lasso error: ' + 
+								(error_currentError) + ' (' + (error_currentError: -errorCode) + ')'));
+						/if;
+					/if;
+				/inline;
+
+//	the record is already locked, so we clear the lockID
+//	in order to respond with an empty reply as the custom tag output
+
+			else;
+				#fw_actnLock = '';
+				$fw_error->(insert: '5111' = (#fw_usrName + '___' + (date_add: (field:'rcrdLockTime'), -minute=($fw_rcrdLockDelay))));
+			/if;
+
+		else;
+			#fw_actnLock = '';
+			if: (error_currenterror: -errorcode) == -1728;
+				$fw_error->(insert:'5021' = '(b) Record number ' + #fw_actnKeyVal + ' not found in table ' + #fw_actnTbl);
+			else;
+				$fw_error->(insert: '5022' = ('Record could not be found due to Lasso error: ' +
+					(error_currentError) + ' (' + (error_currentError: -errorCode) + ')'));
+			/if;
+		/if;
+	/inline;
+else;
+	#fw_actnLock = '';
+	$fw_error->(insert: '5022' = 'Record number empty');
+/if;
+
+
+//	if fw_actnLock is not empty, the lok was good, the app can present an update form
+//	if fw_actnLock is empty the app must not allow updating, but can at least still
+//	display the requested data
+
+if: local_defined:'fw_actnReactn';
+
+	#fw_reactInfo=(fwp_collection:
+		-type='deletePrep',
+		-lock=#fw_actnLock,
+		-error=$fw_error,
+		-inlineName=#fw_actnInlineNm);
+
+	return: #fw_reactInfo;
+
+else;
+	return: #fw_actnLock;
+/if;
+
+$fw_debugTimers ? $fw_timer->(stop:'fmpTagDelprep');
+
+/define_tag;
+?>

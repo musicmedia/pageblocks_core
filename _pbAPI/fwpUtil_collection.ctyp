@@ -1,0 +1,53 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwp_collection.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_collection }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_collection }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine converts any variable set to the type 
+					(fwp_collection) to a generic custom type. Any -parameter 
+					submitted as part of the definition will be 
+					initialized as an instance variable of the type. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+// 	this ctype cannot be a prototype
+//	because the entire precept is that it creates 
+//	arbitrary local variables as instance vars
+//	which cannot be precompiled as a prototype
+
+define_type:'fwp_collection';
+	iterate: params, local:'thisParam';
+		if: #thisParam->type == 'pair';
+			local:'fw_pName' = #thisParam->first;
+			#fw_pName->removeleading:'-';
+			local: #fw_pName = #thisParam->second;
+		else;
+			#thisParam->removeleading:'-';
+			local: #thisParam = true;
+		/if;
+	/iterate;
+/define_type;
+?>
+

@@ -1,0 +1,55 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_getLeft.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_getLeft }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_getLeft }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag returns the right 'len' chars of string 'str'. 
+					If -smart is specified then it returns a max of 'len chars 
+					with an intelligent cutoff at whole words. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpStr_getLeft', -priority='replace',
+	-required='str',
+	-required='get';
+
+	local:
+		'fw_get' = #get,
+		'fw_str' = #str;
+
+	if: #fw_get > #fw_str->size;
+		#fw_get = #fw_str->size;
+	/if;
+
+	if: (params->(find:'-smart')->size) > 0;
+		return:(string_removetrailing:
+			#fw_str->(substring:1,#fw_get),
+			-pattern = ' ' + (#fw_str->(substring:1,#fw_get))->(split:' ')->last);
+	else;
+		return:#fw_str->(substring:1,#fw_get);
+	/if;
+
+/define_tag;
+?>

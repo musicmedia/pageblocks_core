@@ -1,0 +1,1405 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpEDP_view.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_edpView }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_edpView }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			A multi-faceted event-driven data editing system 
+					primarily for admin of single tables, but readily 
+					capable of more complex data tasks. }
+
+	{maintvsrn=		1.4.0 }
+	{maintrelease=	5.1.6 }
+	{maintdate=		2007-05-17}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added drawHomeFilterInputs }
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-03-22}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added drawHiddenExtras }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.0.3 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added removal of leading BOM after file_read }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 b9 }
+	{maintdate=		2006-03-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added titles to draw buttons
+					added option to draw buttons as CSS rollovers }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+//
+//	Requires the definition of these vars in _siteConfig
+//
+//		$c_{g|m}Path->'fweditor' -- root of editor file tree 
+//		$c_{g|m}Path->'fweditorNav' -- location of nav images (always in /_navImgs)
+//		$c_{g|m}Path->'fweditorEvents' -- location of logic scripts (defaults to root)
+//		$c_{g|m}Path->'fweditorForms' -- location of forms (defaults to root)
+//		$c_{g|m}Path->'fweditorCntlbars' -- location of controller templates (defaults to root)
+//		$c_{g|m}Path->'fweditorPanes' -- location of display panes (defaults to root)
+//		$fw_sPath->'controls' -- uses std FWPro location for button graphics
+//
+//............................................................................
+//
+//	Includes these tags
+//
+//		->loadfile
+//		->drawbutton
+//		->drawinput
+//		->drawPane
+//		->drawForm
+//		->drawCntlbar
+//		->drawMainCntlbar
+//		->drawNavCntlbar
+//		->drawFormCntlbar
+//
+//.............................................................................
+
+define_type:'fwp_edpView';
+
+	local:
+		'fw_editorNm'	= @local:'name',
+		'fw_cstmRsrcs'	= (string);
+		
+	local:
+		'prepForm'		= (params->(get:1))->second,
+		'prepModel'		= (params->(get:2))->second;
+
+//	currentForm was passed as input
+
+//	if there is a folder named the same as this editor instance
+//	then that is the first default source for resources
+//	we`ll put folder names here just in case they`re useful to tags other than ->loadfile
+
+	inline:
+		-username=$fw_gFilesUser,
+		-password=$fw_gFilesPswd;
+
+		if: file_exists: (($fw_mPath->'module') + #fw_editorNm);
+			#fw_cstmRsrcs = ($fw_mPath->'module') + #fw_editorNm;
+			local:
+				'fw_mCntlbars'	= #fw_cstmRsrcs + 'edp_cntlbars/',
+				'fw_mEvents'	= #fw_cstmRsrcs + 'edp_events/',
+				'fw_mForms'		= #fw_cstmRsrcs + 'edp_forms/',
+				'fw_mNavImgs'	= #fw_cstmRsrcs + 'edp_navImgs/',
+				'fw_mPanes'		= #fw_cstmRsrcs + 'edp_panes/';
+		/if;
+	/inline;
+
+	local:
+		'fw_uCntlbars'	= @($fw_mPath->'edp_cntlbars'),
+		'fw_uEvents'	= @($fw_mPath->'edp_events'),
+		'fw_uForms'		= @($fw_mPath->'edp_forms'),
+		'fw_uNavImgs'	= @($fw_mPath->'edp_navImgs'),
+		'fw_uPanes'		= @($fw_mPath->'edp_panes');
+
+	local:
+		'fw_gCntlbars'	= @($fw_sPath->'edp_cntlbars'),
+		'fw_gEvents'	= @($fw_sPath->'edp_events'),
+		'fw_gForms'		= @($fw_sPath->'edp_forms'),
+		'fw_gNavImgs'	= @($fw_sPath->'edp_navImgs'),
+		'fw_gPanes'		= @($fw_sPath->'edp_panes');
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->loadfile
+//
+//	Description:
+//
+//		locates a file within the global or module /fweditor folders
+//		checks the _universal folder and the editor specific folder
+//
+//	Usage:
+//
+//		self->(loadfile: -file='', -fldr='{cntlrbars|events|forms|panes|}');
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'loadfile',
+	-required='file',
+	-required='fldr';
+
+	$fw_debug >= fw_kChatty ? $fw_tagTracer->(add:'fwp_edpView->loadfile', -file = #file, -fldr = #fldr);
+
+	local:
+		'fw_fileNm'	= @local:'file',
+		'fw_fldrNm'	= @local:'fldr',
+		'fw_done'	= false;
+
+//	this could be split up into each tag specifically, 
+//	but it seems like the system will be easier to maintain if
+//	it is all here in one place
+
+	select: #fw_fldrNm;
+
+		case: 'cntlbars';
+
+			if: (self->'fw_cstmRsrcs');
+				local:'fw_mPath' = (self->'fw_mCntlbars') + 'cntlbar_' + #fw_fileNm + fw_kDisplayExt;
+			/if;
+			local:'fw_uPath' = (self->'fw_uCntlbars') + 'cntlbar_' + #fw_fileNm + fw_kDisplayExt;
+			local:'fw_sPath' = (self->'fw_gCntlbars') + 'cntlbar_' + #fw_fileNm + fw_kDisplayExt;
+
+		case: 'events';
+
+			if: (self->'fw_cstmRsrcs');
+				local:'fw_mPath' = (self->'fw_mEvents') + 'event_' + #fw_fileNm + fw_kLogicExt;
+			/if;
+			local:'fw_uPath' = (self->'fw_uEvents') + 'event_' + #fw_fileNm + fw_kLogicExt;
+			local:'fw_sPath' = (self->'fw_gEvents') + 'event_' + #fw_fileNm + fw_kLogicExt;
+
+		case: 'forms';
+
+			if: (self->'fw_cstmRsrcs');
+				local:'fw_mPath' = (self->'fw_mForms') + 'form_' + #fw_fileNm + fw_kDisplayExt;
+			/if;
+			local:'fw_uPath' = (self->'fw_uForms') + 'form_' + #fw_fileNm + fw_kDisplayExt;
+			local:'fw_sPath' = (self->'fw_gForms') + 'form_' + #fw_fileNm + fw_kDisplayExt;
+
+		case: 'panes';
+
+			if: (self->'fw_cstmRsrcs');
+				local:'fw_mPath' = (self->'fw_mPanes') + 'pane_' + #fw_fileNm + fw_kDisplayExt;
+			/if;
+			local:'fw_uPath' = (self->'fw_uPanes') + 'pane_' + #fw_fileNm + fw_kDisplayExt;
+			local:'fw_sPath' = (self->'fw_gPanes') + 'pane_' + #fw_fileNm + fw_kDisplayExt;
+
+	/select;
+
+//	first check the module instance folder
+//	second check the module universal folder
+//	third check the global universal folder
+
+	inline:
+		-username=$fw_gFilesUser,
+		-username=$fw_gFilesPswd;
+
+		if: (self->'fw_cstmRsrcs') && (file_exists: #fw_mPath);
+			return: #fw_mPath;
+		else: (file_exists: #fw_uPath);
+			return: #fw_uPath;
+		else: (file_exists: #fw_sPath);
+			return: #fw_sPath;
+		else;
+			return: false;
+		/if;
+	/inline;
+
+/define_tag;
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawbutton
+//
+//	Description:
+//
+//		draws a form image input, requires a name=location lasso pair
+//
+//	Usage:
+//
+//		viewObject->drawbutton: #fw_thisBtn;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawbutton',
+	-required='fw_thisBtn',
+	-optional='alt',
+	-optional='class',
+	-optional='title';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawbutton');
+
+	local:
+		'fw_btnAlt'		= @local:'alt',
+		'fw_btnTitle'	= @local:'title',
+		'fw_btnClass'	= @local:'class',
+		'fw_btnHref'	= string,
+		'fw_btnSrc'		= string,
+		'fw_asRollover'	= false,
+		'fw_btnCode'	= string;
+
+	if: #fw_thisBtn->type == 'pair';
+
+		if: (#fw_thisBtn->second) >> 'rolloverhref';
+			#fw_asRollover = true;
+			#fw_btnHref = ((#fw_thisBtn->second)->split:':::')->get:2;
+		else;
+			#fw_btnSrc = (process:(#fw_thisBtn->second));
+		/if;
+	
+		if: !#fw_asRollover;
+
+			#fw_btnCode += '<input type="image"';
+			#fw_btnCode += ' class="' + #fw_btnClass + '"';
+			#fw_btnCode += ' src="' + #fw_btnSrc + '"';
+			#fw_btnCode += ' alt="' + #fw_btnAlt + '"';
+			#fw_btnCode += ' name="' + (#fw_thisBtn->first) + '"';		
+			#fw_btnCode += ' title="' + #fw_btnTitle + '"';		
+			#fw_btnCode += ' />';
+
+		else;
+	
+			if: fwpHTTP_isMSIE;
+				#fw_btnCode += '<a href="#">';
+				#fw_btnCode += '<button type="submit"';
+				#fw_btnCode += ' class="' + #fw_btnClass + '"';
+				#fw_btnCode += ' name="' + (#fw_thisBtn->first) + '.x"';
+				#fw_btnCode += ' value="11"';
+				#fw_btnCode += ' title="' + #fw_btnTitle + '"';
+				#fw_btnCode += '></button>\r';
+				#fw_btnCode += '</a>\r';
+			else;
+				#fw_btnCode += '<button type="submit"';
+				#fw_btnCode += ' class="' + #fw_btnClass + '"';
+				#fw_btnCode += ' name="' + (#fw_thisBtn->first) + '.x"';
+				#fw_btnCode += ' value="11"';
+				#fw_btnCode += ' title="' + #fw_btnTitle + '"';
+				#fw_btnCode += '></button>\r';
+			/if;
+		/if;
+	/if;
+
+	return: @(local:'fw_btnCode');
+
+/define_tag;
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawinput
+//
+//	Description:
+//
+//		draws a form hidden input, requires a name=value lasso pair
+//
+//	Usage:
+//
+//		viewObject->drawinput: #fw_thisInput;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawinput',
+	-required='fw_thisInput';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawinput');
+
+	local:'fw_inputCode' = (string);
+
+	if: #fw_thisInput->type == 'pair';
+		#fw_inputCode += '<input type="hidden"';
+		#fw_inputCode += ' name="' + (#fw_thisInput->first) + '"';
+		#fw_inputCode += ' value="' + (#fw_thisInput->second) + '"';
+		#fw_inputCode += ' />';
+	/if;
+
+	return: @(local:'fw_inputCode');
+
+/define_tag;
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawPane
+//
+//	Description:
+//
+//		searches the editor {g|m}Path->`panes` folders for the identified file
+//		module files will displace global files if both are found
+//
+//	Usage:
+//
+//		Assumes the file is named pane_{name}.dsp
+//		viewObject->drawPane:`{name}`;
+//		viewObject->drawPane:`title`;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawPane',
+	-required='file';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawPane');
+
+	local:'fw_path' = self->(loadfile: -file=#file, -fldr='panes');
+
+	if: #fw_path;
+		#fw_path = process:(include_raw: #fw_Path, -encodenone);
+		return: local:'fw_path';
+	/if;
+
+/define_tag;
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawForm
+//
+//	Description:
+//
+//		searches the editor {g|m}Path->`forms` folders for the identified file
+//		module files will displace global files if both are found
+//
+//	Usage:
+//
+//		Assumes the file is named form_{name}.dsp
+//		viewObject->drawForm:`{name}`;
+//		viewObject->drawForm:`title`;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawForm',
+	-required='file';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawForm');
+
+	local:'fw_path' = self->(loadfile: -file=#file, -fldr='forms');
+
+	if: #fw_path;
+		#fw_path = process:(include_raw: #fw_Path, -encodenone);
+		return: local:'fw_path';
+	/if;
+
+/define_tag;
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawCntlbar
+//
+//	Description:
+//
+//		searches the editor {g|m}Path->`cntlbars` folders for the identified file
+//		module files will displace global files if both are found
+//
+//	Usage:
+//
+//		Assumes the file is named form_{name}.dsp
+//		viewObject->drawCntlbar:`{name}`;
+//		viewObject->drawCntlbar:`title`;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawCntlbar',
+	-required='file';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawCntlbar');
+
+	local:'fw_path' = self->(loadfile: -file=#file, -fldr='cntlbars');
+
+	if: #fw_path;
+		#fw_path = process:(include_raw: #fw_Path, -encodenone);
+		return: local:'fw_path';
+	/if;
+
+/define_tag;
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawFilterCntlbar
+//
+//	Description:
+//
+//		display the file cntlbar_filter.dsp
+//
+//	Usage:
+//
+//		viewObject->drawFilterCntlbar;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawFilterCntlbar';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawFilterCntlbar');
+
+	local:'fw_path' = self->(loadfile: -file='filter', -fldr='cntlbars');
+
+	if: #fw_path;
+		#fw_path = process:(include_raw: #fw_Path, -encodenone);
+		return: local:'fw_path';
+	/if;
+
+/define_tag;
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawMainCntlbar
+//
+//	Description:
+//
+//		loads the file cntlbar_main.dsp and processes the config definition
+//		to draw the button block. Automatically alters buttons displayed
+//		based on the nature of the form
+//			Return To List - shown when not on list page
+//			Show All - shown when on list page, and a Search btn is included
+//			New Record - always available
+//			Search - if in config list, always available
+//			Preferences - if in config list, always available
+//
+//	Usage:
+//
+//		viewObject->drawMainCntlbar;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawMainCntlbar';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawMainCntlbar');
+
+	local:
+		'fw_path' 		= self->(loadfile: -file='main', -fldr='cntlbars'),
+		'fw_cntlrCode' 	= (string),
+		'fw_cellCode' 	= (string),
+		'fw_btnCode'	= (string),
+		'fw_inputCode'	= (string),
+
+		'fw_indx'	 	= (integer),
+		'fw_btnsCnfg' 	= (string),
+		'fw_thisBtn'	= (string),
+		'fw_formNm'	 	= (string),
+		'fw_btnNames'	= (array),
+		'fw_btnLocs'	= (array),
+		'fw_btnActions'	= (array),
+		'fw_btnInputs'	= (array),
+		'fw_inputsCnfg' = (array),
+		'fw_thisInput'	= (string);
+
+
+//	abort if no file data
+
+	if: !#fw_path;
+		return: 'no mainCntlr file found';
+	/if;
+
+//	load file, normalize EOL, strip comments, and convert back to string
+
+	#fw_cntlrCode = (include_raw: #fw_path, -encodenone);
+	#fw_cntlrCode->(removeleading:bom_utf8);
+	#fw_cntlrCode = fwpCnfg_splitLines: #fw_cntlrCode;
+	#fw_cntlrCode = fwpCnfg_decomment: #fw_cntlrCode;
+	#fw_cntlrCode = #fw_cntlrCode->(join:'\r');
+
+//	extract button config info
+
+	#fw_btnsCnfg = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_buttonList===([^\\}]+)\\}')->last;
+
+//	abort if no config data
+
+	if: !#fw_btnsCnfg;
+		return: 'no btnsCnfg data';
+	/if;
+
+//	remove button config info from code
+
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_buttonList===([^\\}]+)\\}', -replace='');
+
+
+//	---------------------------------------------------------------------------
+//
+//	assemble table cell code
+//
+//
+
+	#fw_btnsCnfg->trim;
+	#fw_btnsCnfg = fwpCnfg_splitLines: #fw_btnsCnfg;
+
+//	each line in the config file looks like
+//	btnName```btnImageLocation```formAction```hiddenInputs name=value,
+//	make an array for each field
+
+	iterate: #fw_btnsCnfg, #fw_thisBtn;
+		#fw_thisBtn = #fw_thisBtn->(split:'```');
+		#fw_btnNames->(insert:(#fw_thisBtn->get:1));
+		#fw_btnLocs->(insert:(#fw_thisBtn->get:2));
+		#fw_btnActions->(insert:(#fw_thisBtn->get:3));
+		#fw_btnInputs->(insert:(#fw_thisBtn->get:4));
+	/iterate;
+
+//	always include an empty cell on the left to fill up the control bar row
+
+	#fw_cellCode += '<td></td>\r';
+
+
+//	if we are not showing the list panel, then show the ReturnToList button
+//	if we are on the list panel, and there is a Search button, then show the ShowAll button
+
+	if: (self->'prepForm') != 'home';
+
+// button names are standardized, so this is safe uness the spec changes
+		#fw_indx = (#fw_btnNames->(findindex:'btnMainViewList'))->last;
+
+		#fw_cellCode += '<form id="goHome" name="goHome" action="' + process:(#fw_btnActions->(get:#fw_indx)) + '" method="post">\r';
+		#fw_cellCode += '<td class="btncell">\r';
+
+		#fw_inputsCnfg = fwpCnfg_splitComma: (#fw_btnInputs->(get:#fw_indx));
+		iterate: #fw_inputsCnfg, #fw_thisInput;
+			#fw_cellCode += self->(drawinput: 
+				(pair: ((#fw_thisInput->(split:'==='))->get:1) = process:((#fw_thisInput->(split:'==='))->get:2)));
+		/iterate;
+
+		#fw_cellCode += self->(drawbutton: (pair: (#fw_btnNames->(get:#fw_indx)) = (#fw_btnLocs->(get:#fw_indx))),
+			-alt=(string_removeleading: (#fw_btnNames->(get:#fw_indx)), -pattern='btnMain'));
+
+		#fw_cellCode += '\r</td>\r';
+		#fw_cellCode += '</form>\r';
+
+	else: ((self->'prepForm') == 'home');
+
+// button names are standardized, so this is safe uness the spec changes
+		#fw_indx = (#fw_btnNames->(findindex:'btnMainShowAll'))->last;
+
+		#fw_cellCode += '<form id="goHome" name="goHome" action="' + process:(#fw_btnActions->(get:#fw_indx)) + '" method="post">\r';
+		#fw_cellCode += '<td class="btncell">\r';
+
+		#fw_inputsCnfg = fwpCnfg_splitComma: (#fw_btnInputs->(get:#fw_indx));
+		iterate: #fw_inputsCnfg, #fw_thisInput;
+			#fw_cellCode += self->(drawinput: 
+				(pair: ((#fw_thisInput->(split:'==='))->get:1) = process:((#fw_thisInput->(split:'==='))->get:2)));
+		/iterate;
+
+		#fw_cellCode += self->(drawbutton: 
+			(pair: (#fw_btnNames->(get:#fw_indx)) = (#fw_btnLocs->(get:#fw_indx))),
+			-alt=(string_removeleading: (#fw_btnNames->(get:#fw_indx)), -pattern='btnMain'));
+
+		#fw_cellCode += '\r</td>\r';
+		#fw_cellCode += '</form>\r';
+
+	/if;
+
+//	remove the above two buttons from the config arrays so it is easier to iterate through the rest
+
+	#fw_indx = (#fw_btnNames->(findindex:'btnMainViewList'))->last;
+	if: #fw_indx > 0;
+		#fw_btnNames->(remove:#fw_indx);
+		#fw_btnLocs->(remove:#fw_indx);
+		#fw_btnActions->(remove:#fw_indx);
+		#fw_btnInputs->(remove:#fw_indx);
+	/if;
+
+	#fw_indx = (#fw_btnNames->(findindex:'btnMainShowAll'))->last;
+	if: #fw_indx > 0;
+		#fw_btnNames->(remove:#fw_indx);
+		#fw_btnLocs->(remove:#fw_indx);
+		#fw_btnActions->(remove:#fw_indx);
+		#fw_btnInputs->(remove:#fw_indx);
+	/if;
+
+//	iterate through the other buttons in the config list
+
+	#fw_indx = 0;
+	iterate: #fw_btnNames, #fw_thisBtn;
+		#fw_indx += 1;
+
+		#fw_formNm = (string_removeleading: (#fw_btnNames->(get:#fw_indx)), -pattern='btnMain');
+
+		#fw_cellCode += '<form id="go';
+		#fw_cellCode += #fw_formNm;
+		#fw_cellCode += '" name="go';
+		#fw_cellCode += #fw_formNm;
+		#fw_cellCode += '" action="';
+		#fw_cellCode += process:(#fw_btnActions->(get:#fw_indx));
+		#fw_cellCode += '" method="post">\r';
+
+		#fw_cellCode += '<td class="btncell">\r';
+
+		#fw_inputsCnfg = fwpCnfg_splitComma: (#fw_btnInputs->(get:#fw_indx));
+		iterate: #fw_inputsCnfg, #fw_thisInput;
+			#fw_cellCode += self->(drawinput: 
+				(pair: ((#fw_thisInput->(split:'==='))->(get:1)) = process:((#fw_thisInput->(split:'==='))->get:2)));
+		/iterate;
+
+		#fw_cellCode += self->(drawbutton: 
+			(pair: (#fw_btnNames->(get:#fw_indx)) = (#fw_btnLocs->(get:#fw_indx))),
+			-alt=#fw_formNm);
+
+		#fw_cellCode += '\r</td>\r';
+		#fw_cellCode += '</form>\r';
+
+	/iterate;
+
+//	substitute cell code
+
+		#fw_cntlrCode->(replace:'{edp_mainCntlbar_buttons}', #fw_cellCode);
+
+//
+//	task completed, return results
+//
+
+	#fw_cntlrCode = process:(local:'fw_cntlrCode', -encodenone);
+
+	return: @(local:'fw_cntlrCode');
+
+/define_tag;
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawNavCntlbar
+//
+//	Description:
+//
+//		loads the file cntlbar_nav.dsp and processes the config definition
+//		to draw the navigation block. Automatically alters nav display
+//		for New record forms to disable/dim all links
+//
+//	Usage:
+//
+//		viewObject->drawNavCntlbar;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawNavCntlbar';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawNavCntlbar');
+
+	local:
+		'fw_path' 		= self->(loadfile: -file='nav', -fldr='cntlbars'),
+		'fw_cntlrCode' 	= (string),
+		'fw_navCode' 	= (string),
+
+		'fw_firstImgOn'	= (false),
+		'fw_indx'	 	= (integer),
+		'fw_imgsCnfg' 	= (string),
+		'fw_imgsType' 	= (string),
+		'fw_imgsHeight'	= (string),
+		'fw_thisImg'	= (string),
+		'fw_imgNames'	= (array),
+		'fw_imgLocs'	= (array),
+		'fw_imgWidths'	= (array),
+		'fw_inputsCnfg' = (array),
+		'fw_thisInput'	= (string);
+
+
+//	abort if no file data
+
+	if: !#fw_path;
+		return: '';
+	/if;
+
+//	load file, normalize EOL, strip comments, and convert back to string
+
+	#fw_cntlrCode = (include_raw: #fw_path, -encodenone);
+	#fw_cntlrCode->(removeleading:bom_utf8);
+	#fw_cntlrCode = fwpCnfg_splitLines: #fw_cntlrCode;
+	#fw_cntlrCode = fwpCnfg_decomment: #fw_cntlrCode;
+	#fw_cntlrCode = #fw_cntlrCode->(join:'\r');
+
+
+//	extract image config info
+
+	#fw_imgsCnfg = (string_findregexp: #fw_cntlrCode, -find='{nav_imageList===([^\\}]+)\\}')->last;
+	#fw_imgsType = (string_findregexp: #fw_cntlrCode, -find='{nav_imageType===([^\\}]+)\\}')->last;
+	#fw_imgsHeight = (string_findregexp: #fw_cntlrCode, -find='{nav_imageHeight===([^\\}]+)\\}')->last;
+	#fw_inputsCnfg = (string_findregexp: #fw_cntlrCode, -find='{nav_inputList===([^\\}]+)\\}')->last;
+
+//	abort if no config data
+
+	if: !#fw_imgsCnfg;
+		return: 'no config data';
+	/if;
+
+//	remove button config info from code
+
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{nav_imageList===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{nav_imageType===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{nav_imageHeight===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{nav_inputList===([^\\}]+)\\}', -replace='');
+
+
+//	---------------------------------------------------------------------------
+//
+//	assemble image code
+//
+//
+
+	#fw_imgsCnfg->trim;
+	#fw_imgsCnfg = fwpCnfg_splitLines: #fw_imgsCnfg;
+
+//	each line in the config file looks like
+//	imgName```imgImageLocation```imageWidth
+//	make an array for each field
+
+	iterate: #fw_imgsCnfg, #fw_thisimg;
+		#fw_thisImg = #fw_thisImg->(split:'```');
+		#fw_imgNames->(insert:(#fw_thisImg->get:1));
+		#fw_imgLocs->(insert:(#fw_thisImg->get:2));
+		#fw_imgWidths->(insert:(#fw_thisImg->get:3));
+	/iterate;
+
+//
+//	New Record - dimmed nav graphics
+//
+
+//	if the Add Record button clicked then force static img display to dimmed 
+//	except the first button image, until a new record is saved
+
+	if: (var:'btnMainNewRcrd.x');
+	
+	// need to create a (self->'useDimNavBar');
+	
+//		#fw_navCode += '\r';
+
+		#fw_firstImgOn=false;
+		#fw_indx = 0;
+		iterate: #fw_imgNames, #fw_thisImg;
+			#fw_indx += 1;
+
+			#fw_navCode += '<img src="';
+			#fw_navCode += process:(#fw_imgLocs->(get:#fw_indx));
+
+			if: (#fw_thisImg != 'imgFill') && (#fw_firstImgOn);
+				#fw_navCode += '_dim';
+			else: (#fw_thisImg != 'imgFill') && !(#fw_firstImgOn);
+				#fw_navCode += '_on';
+				#fw_firstImgOn = true;
+			/if;
+
+			#fw_navCode += #fw_imgsType;
+			#fw_navCode += '" alt="" height="';
+			#fw_navCode += #fw_imgsHeight;
+			#fw_navCode += '" width="';
+			#fw_navCode += #fw_imgWidths->(get:#fw_indx);
+			#fw_navCode += '" />';
+		/iterate;
+
+		//	::HACK:: need proper path access like rest EDP
+		//	entire purpose of this hack is to get the stupid br above
+		//	and the indicator row together before /form
+		//	so IE won't put extra blank space between them
+		
+		if: file_exists:(($fw_mPath->'edp_cntlbars') + 'cntlbar_navIndicators.dsp');
+			include: (($fw_mPath->'edp_cntlbars') + 'cntlbar_navIndicators.dsp');
+		/if;
+
+		#fw_navCode += '\r';
+
+	else;
+
+//
+//	update Record - normal nav graphics
+//
+
+//	start with form code and hidden inputs
+
+		#fw_navCode += '\r<form id="editornav" name="editornav" action="' + ($fw_requestPage->'self') + '" method="post">\r';
+
+//	hidden inputs are optional, so skip if none found, but no need to abort
+
+	#fw_inputsCnfg->trim;
+
+	if: #fw_inputsCnfg;
+		#fw_inputsCnfg = fwpCnfg_splitComma: #fw_inputsCnfg;
+		iterate: #fw_inputsCnfg, #fw_thisInput;
+			#fw_navCode += self->(drawinput: 
+				(pair: ((#fw_thisInput->(split:'==='))->get:1) = process:((#fw_thisInput->(split:'==='))->get:2)));
+		/iterate;
+	/if;
+
+//	now input images
+
+		#fw_indx = 0;
+		iterate: #fw_imgNames, #fw_thisImg;
+			#fw_indx += 1;
+			if: (#fw_thisImg != 'imgFill');
+				#fw_navCode += '<input type="image" name="';
+				#fw_navCode += #fw_thisImg;
+				#fw_navCode += '" src="';
+				#fw_navCode += process:(#fw_imgLocs->(get:#fw_indx));
+				if: (self->'prepForm') == (string_removeleading: #fw_thisImg, -pattern='btnNav');
+					#fw_navCode += '_on';
+				else;
+					#fw_navCode += '_off';
+				/if;
+				#fw_navCode += #fw_imgsType + '" ';
+				#fw_navCode += 'alt="" />';
+			else;
+				#fw_navCode += '<img src="';
+				#fw_navCode += process:(#fw_imgLocs->(get:#fw_indx));
+				#fw_navCode += #fw_imgsType;
+				#fw_navCode += '" alt="" height="';
+				#fw_navCode += #fw_imgsHeight;
+				#fw_navCode += '" width="';
+				#fw_navCode += #fw_imgWidths->(get:#fw_indx);
+				#fw_navCode += '" />';
+			/if;
+		/iterate;
+
+		// the break is required for Win IE
+
+		#fw_navCode += '<br />\r';
+		
+		//	::HACK:: need proper path access like rest EDP
+		//	entire purpose of this hack is to get the stupid br above
+		//	and the indicator row together before /form
+		//	so IE won't put extra blank space between them
+		
+		if: file_exists:(($fw_mPath->'edp_cntlbars') + 'cntlbar_navIndicators.dsp');
+			include: (($fw_mPath->'edp_cntlbars') + 'cntlbar_navIndicators.dsp');
+		/if;
+		
+		#fw_navCode += '</form>\r';
+
+	/if;
+
+//	need to include the status panel here
+//	that`s a custom file for sure, so just include it
+
+//
+//
+//
+//
+//
+//
+
+//	substitute nav code
+
+	#fw_cntlrCode->(replace:'{edp_navCntlbar_buttons}', #fw_navCode);
+
+
+//
+//	task completed, return results
+//
+
+	#fw_cntlrCode = process:(local:'fw_cntlrCode', -encodenone);
+
+	return: @(local:'fw_cntlrCode');
+
+/define_tag;
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawFormCntlbar
+//
+//	Description:
+//
+//		loads the file cntlbar_form.dsp and processes the config definition
+//		to draw the button block. Automatically alters buttons displayed
+//		based on the nature of the form (Save, Cancel, Delete)
+//
+//	Usage:
+//
+//		viewObject->drawFormCntlbar;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawFormCntlbar',
+	-optional='nosave',
+	-optional='nocancel';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawFormCntlbar');
+
+	local:
+		'fw_path' 			= self->(loadfile: -file='form', -fldr='cntlbars'),
+		'fw_cntlrCode' 		= (string),
+		'fw_btnCode'		= (string),
+		'fw_inputCode'		= (string),
+		'fw_btnsCnfg' 		= (string),
+		'fw_btnsClasses'	= (string),
+		'fw_btnsTitles'		= (string),
+		'fw_inputsCnfg'		= (string),
+		'fw_thisBtn'		= (string),
+		'fw_thisClass'		= (string),
+		'fw_thisTitle'		= (string),
+		'fw_thisInput'		= (string),
+		'fw_useDefaults'	= (string);
+
+	if: (var:'btnListDelete.x');
+		local:'nosave' = true;
+	/if;
+
+//	abort if no file data
+
+	if: !#fw_path;
+		return: '';
+	/if;
+
+//	load file, normalize EOL, strip comments, and convert back to string
+
+	#fw_cntlrCode = (include_raw: #fw_path, -encodenone);
+	#fw_cntlrCode->(removeleading:bom_utf8);
+	#fw_cntlrCode = fwpCnfg_splitLines: #fw_cntlrCode;
+	#fw_cntlrCode = fwpCnfg_decomment: #fw_cntlrCode;
+	#fw_cntlrCode = #fw_cntlrCode->(join:'\r');
+	
+	#fw_useDefaults = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_useDefaultInputs===([^\\}]+)\\}')->last;
+
+//	---------------------------------------------------------------------------
+//
+//	assemble button code
+//
+//
+
+//	extract button config data
+
+	#fw_btnsCnfg = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_buttonList===([^\\}]+)\\}')->last;
+
+//	abort if no button config data
+
+	if: !#fw_path;
+		return: 'no config data';
+	/if;
+
+	#fw_btnsCnfg->trim;
+	#fw_btnsCnfg = fwpCnfg_splitPairs: #fw_btnsCnfg;
+
+
+//	extract button classes
+
+	#fw_btnsClasses = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_buttonClasses===([^\\}]+)\\}')->last;
+	#fw_btnsClasses->trim;
+	#fw_btnsClasses = fwpCnfg_splitPairs: #fw_btnsClasses;
+
+//	extract button titles
+
+	#fw_btnsTitles = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_buttonTitles===([^\\}]+)\\}')->last;
+	#fw_btnsTitles->trim;
+	#fw_btnsTitles = fwpCnfg_splitPairs: #fw_btnsTitles;
+
+//	always include save button except if this is the delete page
+
+	if: (local:'nosave') != true;
+		#fw_thisBtn = (#fw_btnsCnfg->(find:'btnFormSave'))->last;
+		#fw_thisTitle = ((#fw_btnsTitles->(find:'btnFormSave'))->last)->second;
+		#fw_thisClass = ((#fw_btnsClasses->(find:'btnFormSave'))->last)->second;
+		#fw_btnCode += self->(drawbutton: 
+			#fw_thisBtn,
+			-alt=(string_removeleading: (#fw_thisBtn->first)), 
+			-title=#fw_thisTitle,
+			-class=#fw_thisClass);
+	/if;
+
+//	always include a cancel button
+
+	if: (local:'nocancel') != true;
+		#fw_thisBtn = (#fw_btnsCnfg->(find:'btnFormCancel'))->last;
+		#fw_thisTitle = ((#fw_btnsTitles->(find:'btnFormCancel'))->last)->second;
+		#fw_thisClass = ((#fw_btnsClasses->(find:'btnFormCancel'))->last)->second;
+		#fw_btnCode += self->(drawbutton: 
+			#fw_thisBtn, 
+			-alt=(string_removeleading: (#fw_thisBtn->first)), 
+			-title=#fw_thisTitle,
+			-class=#fw_thisClass);
+	/if;
+
+//	include delete button only when needed
+
+	if: (var:'btnListDelete.x');
+		#fw_thisBtn = (#fw_btnsCnfg->(find:'btnFormDelete'))->last;
+		#fw_thisTitle = ((#fw_btnsTitles->(find:'btnFormDelete'))->last)->second;
+		#fw_thisClass = ((#fw_btnsClasses->(find:'btnFormDelete'))->last)->second;
+		#fw_btnCode += self->(drawbutton: 
+			#fw_thisBtn, 
+			-alt=(string_removeleading: (#fw_thisBtn->first)), 
+			-title=#fw_thisTitle,
+			-class=#fw_thisClass);
+	/if;
+
+//	substitute button code
+
+	#fw_cntlrCode->(replace:'{edp_formCntlbar_buttons}', #fw_btnCode);
+
+//	---------------------------------------------------------------------------
+//
+//	assemble NewRcrd hidden input code
+//
+//
+
+	if: #fw_useDefaults && ((var:'btnMainNewRcrd.x') || ((var:'fw_edpNewRcrdFlag') == 'Y'));
+		#fw_inputCode += self->(drawinput: (pair:'fw_edpNewRcrdFlag' = 'Y'));
+		#fw_inputCode += self->(drawinput: (pair:'edp_keyval' = (var:(self->'prepModel'))->'submitRcrdID'));
+
+//	extract hidden input config data
+
+//		#fw_inputsCnfg = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_newRcrdInputs===([^\\}]+)\\}')->last;
+
+		if: #fw_inputsCnfg;
+			#fw_inputsCnfg->trim;
+			#fw_inputsCnfg = fwpCnfg_splitComma: #fw_inputsCnfg;
+	
+			iterate: #fw_inputsCnfg, #fw_thisInput;
+				#fw_inputCode += self->(drawinput: 
+					(pair: ((#fw_thisInput->(split:'==='))->get:1) = process:((#fw_thisInput->(split:'==='))->get:2)));
+			/iterate;
+		/if;
+
+//	---------------------------------------------------------------------------
+//
+//	assemble DeleteRcrd hidden input code
+//
+//
+	else: #fw_useDefaults && (var:'btnListDelete.x');
+		#fw_inputCode += self->(drawinput: (pair:'edp_keyval' = (var:'edp_prepLockID')));
+
+//	extract hidden input config data
+	
+		#fw_inputsCnfg = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_deleteRcrdInputs===([^\\}]+)\\}')->last;
+	
+		if: #fw_inputsCnfg;
+			#fw_inputsCnfg->trim;
+			#fw_inputsCnfg = fwpCnfg_splitComma: #fw_inputsCnfg;
+	
+			iterate: #fw_inputsCnfg, #fw_thisInput;
+				#fw_inputCode += self->(drawinput: 
+					(pair: ((#fw_thisInput->(split:'==='))->get:1) = process:((#fw_thisInput->(split:'==='))->get:2)));
+			/iterate;
+		/if;
+
+//	---------------------------------------------------------------------------
+//
+//	assemble UpdateRcrd hidden input code
+//
+//
+	else: #fw_useDefaults;
+
+		#fw_inputCode += self->(drawinput: (pair:'edp_keyval' = (var:'edp_prepLockID')));
+
+//	extract hidden input config data
+
+		#fw_inputsCnfg = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_updateRcrdInputs===([^\\}]+)\\}')->last;
+
+		if: #fw_inputsCnfg;
+			#fw_inputsCnfg->trim;
+			#fw_inputsCnfg = fwpCnfg_splitComma: #fw_inputsCnfg;
+
+			iterate: #fw_inputsCnfg, #fw_thisInput;
+				#fw_inputCode += self->(drawinput: 
+					(pair: ((#fw_thisInput->(split:'==='))->get:1) = process:((#fw_thisInput->(split:'==='))->get:2)));
+			/iterate;
+		/if;
+	/if;
+
+
+//	clean up & remove the config blocks from the file text
+
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_buttonList===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_buttonClasses===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_buttonTitles===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_newRcrdInputs===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_updateRcrdInputs===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_deleteRcrdInputs===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_useDefaultInputs===([^\\}]+)\\}', -replace='');
+
+//	---------------------------------------------------------------------------
+//
+//	substitute input code
+//	even if there are no inputs, we have to replace the place holder
+
+	#fw_cntlrCode->(replace:'{edp_formCntlbar_inputs}', #fw_inputCode);
+
+
+//	---------------------------------------------------------------------------
+//
+//	task completed, return results
+//
+
+	#fw_cntlrCode = process:@(local:'fw_cntlrCode');
+
+	return: @(local:'fw_cntlrCode');
+
+/define_tag;
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//	fwp_fweditor->drawSearchCntlbar
+//
+//	Description:
+//
+//		loads the file cntlbar_search.dsp and processes the config definition
+//		to draw the button block.
+//
+//	Usage:
+//
+//		viewObject->drawSearchCntlbar;
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2007-07-21) -- initial release
+//
+//////////////////////////////////////////////////////////////////////////////
+
+define_tag:'drawSearchCntlbar';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_edpView->drawSearchCntlbar');
+
+	local:
+		'fw_path' 			= self->(loadfile: -file='search', -fldr='cntlbars'),
+		'fw_cntlrCode' 		= (string),
+		'fw_btnCode'		= (string),
+		'fw_inputCode'		= (string),
+		'fw_btnsCnfg' 		= (string),
+		'fw_btnsClasses'	= (string),
+		'fw_btnsTitles'		= (string),
+		'fw_inputsCnfg'		= (string),
+		'fw_thisBtn'		= (string),
+		'fw_thisClass'		= (string),
+		'fw_thisTitle'		= (string),
+		'fw_thisInput'		= (string),
+		'fw_useDefaults'	= (string);
+
+//	abort if no file data
+
+	if: !#fw_path;
+		return: '';
+	/if;
+
+//	load file, normalize EOL, strip comments, and convert back to string
+
+	#fw_cntlrCode = (include_raw: #fw_path, -encodenone);
+	#fw_cntlrCode->(removeleading:bom_utf8);
+	#fw_cntlrCode = fwpCnfg_splitLines: #fw_cntlrCode;
+	#fw_cntlrCode = fwpCnfg_decomment: #fw_cntlrCode;
+	#fw_cntlrCode = #fw_cntlrCode->(join:'\r');
+	
+	#fw_useDefaults = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_useDefaultInputs===([^\\}]+)\\}')->last;
+
+//	---------------------------------------------------------------------------
+//
+//	assemble button code
+//
+//
+
+//	extract button config data
+
+	#fw_btnsCnfg = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_buttonList===([^\\}]+)\\}')->last;
+
+//	abort if no button config data
+
+	if: !#fw_path;
+		return: 'no config data';
+	/if;
+
+	#fw_btnsCnfg->trim;
+	#fw_btnsCnfg = fwpCnfg_splitPairs: #fw_btnsCnfg;
+
+
+//	extract button classes
+
+	#fw_btnsClasses = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_buttonClasses===([^\\}]+)\\}')->last;
+	#fw_btnsClasses->trim;
+	#fw_btnsClasses = fwpCnfg_splitPairs: #fw_btnsClasses;
+
+//	extract button titles
+
+	#fw_btnsTitles = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_buttonTitles===([^\\}]+)\\}')->last;
+	#fw_btnsTitles->trim;
+	#fw_btnsTitles = fwpCnfg_splitPairs: #fw_btnsTitles;
+
+//	always include search button 
+
+	#fw_thisBtn = (#fw_btnsCnfg->(find:'btnSrchSearch'))->last;
+	#fw_thisTitle = ((#fw_btnsTitles->(find:'btnSrchSearch'))->last)->second;
+	#fw_thisClass = ((#fw_btnsClasses->(find:'btnSrchSearch'))->last)->second;
+	#fw_btnCode += self->(drawbutton: 
+		#fw_thisBtn,
+		-alt=(string_removeleading: (#fw_thisBtn->first)), 
+		-title=#fw_thisTitle,
+		-class=#fw_thisClass);
+
+//	always include a cancel button
+
+	#fw_thisBtn = (#fw_btnsCnfg->(find:'btnSrchCancel'))->last;
+	#fw_thisTitle = ((#fw_btnsTitles->(find:'btnSrchCancel'))->last)->second;
+	#fw_thisClass = ((#fw_btnsClasses->(find:'btnSrchCancel'))->last)->second;
+	#fw_btnCode += self->(drawbutton: 
+		#fw_thisBtn, 
+		-alt=(string_removeleading: (#fw_thisBtn->first)), 
+		-title=#fw_thisTitle,
+		-class=#fw_thisClass);
+
+//	substitute button code
+
+	#fw_cntlrCode->(replace:'{edp_formCntlbar_buttons}', #fw_btnCode);
+
+//	---------------------------------------------------------------------------
+//
+//	assemble hidden input code
+//
+//
+	if: #fw_useDefaults;
+
+		#fw_inputCode += self->(drawinput: (pair:'fw_srch' = 'new'));
+
+//	extract hidden input config data
+
+		#fw_inputsCnfg = (string_findregexp: #fw_cntlrCode, -find='{cntlbar_searchInputs===([^\\}]+)\\}')->last;
+
+		if: #fw_inputsCnfg;
+			#fw_inputsCnfg->trim;
+			#fw_inputsCnfg = fwpCnfg_splitComma: #fw_inputsCnfg;
+
+			iterate: #fw_inputsCnfg, #fw_thisInput;
+				#fw_inputCode += self->(drawinput: 
+					(pair: ((#fw_thisInput->(split:'==='))->get:1) = process:((#fw_thisInput->(split:'==='))->get:2)));
+			/iterate;
+		/if;
+	/if;
+
+
+//	clean up & remove the config blocks from the file text
+
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_buttonList===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_buttonClasses===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_buttonTitles===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_searchInputs===([^\\}]+)\\}', -replace='');
+	#fw_cntlrCode = (string_replaceregexp: #fw_cntlrCode, -find='{cntlbar_useDefaultInputs===([^\\}]+)\\}', -replace='');
+
+//	---------------------------------------------------------------------------
+//
+//	substitute input code
+//	even if there are no inputs, we have to replace the place holder
+
+	#fw_cntlrCode->(replace:'{edp_formCntlbar_inputs}', #fw_inputCode);
+
+
+//	---------------------------------------------------------------------------
+//
+//	task completed, return results
+//
+
+	#fw_cntlrCode = process:@(local:'fw_cntlrCode');
+
+	return: @(local:'fw_cntlrCode');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawHiddenExtras
+//
+//	draws hidden inputs from an array of name-values
+//
+//
+
+define_tag:'drawHiddenExtras',
+	-required = 'inputs', -type = array;
+
+	local:
+		'thisInput' = string,
+		'srcCode'	= string;
+
+	iterate: #inputs, #thisInput;
+		#srcCode += '<input type="hidden" name="';
+		#srcCode += #thisInput->first;
+		#srcCode += '" value="';
+		#srcCode += #thisInput->second;
+		#srcCode += '" /> \r';
+	/iterate;
+
+	return: #srcCode;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->drawHomeFilterInputs
+//
+//	draws hidden inputs to propogate filter searches with list nav buttons
+//	needs a list of page variable names
+//
+
+define_tag:'drawHomeFilterInputs',
+	-required = 'inputs', -type = array;
+
+	local:
+		'thisInput' = string,
+		'srcCode'	= string;
+
+	iterate: #inputs, #thisInput;
+		#srcCode += '<input type="hidden" name="';
+		#srcCode += #thisInput;
+		#srcCode += '" value="';
+		#srcCode += (var:#thisInput);
+		#srcCode += '" /> \r';
+	/iterate;
+
+	return: #srcCode;
+
+/define_tag;
+
+/define_type;
+?>

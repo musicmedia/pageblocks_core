@@ -1,0 +1,288 @@
+﻿<?lassoscript
+
+//	file name must be same as the type name + extension
+//	example: 002_dbm_example.ctyp
+//	where 002 = the schema migration version number
+//	and the rest is any name you want to identify what it does
+
+	define_type('002_setupPB', 'fwp_dbmCommands');
+	
+	//------------------------------------------------------------------------------
+	
+		define_tag('update');
+		
+		//	define tblName once for multiple operations,
+		//	or with -table in each operation
+		
+			self->(execute(
+				"DROP TABLE IF EXISTS `appStrings`;
+				CREATE TABLE `appStrings` (
+		  		`rcrdNo` varchar(28) NOT NULL default '',
+		  		`rcrdCreated` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdCreatedBy` varchar(49) NOT NULL default '',
+		  		`rcrdModified` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdModifiedBy` varchar(49) NOT NULL default '',
+		  		`rcrdStatus` char(1) NOT NULL default 'N',
+		  		`rcrdLockID` varchar(28) NOT NULL default '',
+		  		`rcrdLockTime` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdLockOwnr` varchar(49) NOT NULL default '',
+		  		`stringName` varchar(36) NOT NULL,
+		  		`stringPagePath` varchar(255) NOT NULL,
+				`stringLanguage` varchar(5) NOT NULL default '',
+		  		`stringClientMedia` varchar(12) NOT NULL,
+		  		`stringClientVariant` varchar(24) NOT NULL,
+		  		`stringValue` text NOT NULL,
+		  		PRIMARY KEY  (`rcrdNo`),
+		  		KEY `pagePath` (`stringPagePath`),
+		  		KEY `stringName` (`stringName`)
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8;"
+				)
+			);
+			
+			self->(execute(
+				"DROP TABLE IF EXISTS `valueLists`;
+				CREATE TABLE `valueLists` (
+				`rcrdNo` bigint(11) NOT NULL auto_increment,
+				`rcrdCreated` datetime NOT NULL default '0000-00-00 00:00:00',
+				`rcrdCreatedBy` varchar(49) NOT NULL default '',
+				`rcrdModified` datetime NOT NULL default '0000-00-00 00:00:00',
+				`rcrdModifiedBy` varchar(49) NOT NULL default '',
+				`rcrdStatus` char(1) NOT NULL default 'N',
+				`rcrdLock` char(1) NOT NULL default '',
+				`rcrdLockID` varchar(12) NOT NULL default '',
+				`rcrdLockTime` datetime NOT NULL default '0000-00-00 00:00:00',
+				`rcrdLockOwnr` varchar(49) NOT NULL default '',
+				`listScope` varchar(16) NOT NULL default '',
+				`listLanguage` varchar(5) NOT NULL default '',
+				`listName` varchar(48) NOT NULL default '',
+				`listLabel` varchar(128) NOT NULL default '',
+				`listValue` varchar(128) NOT NULL default '',
+				`listOrder` int(4) NOT NULL default '0',
+				PRIMARY KEY  (`rcrdNo`),
+				KEY `rcrdNo` (`rcrdNo`)
+				) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='Name-Value sets for GUI value lists';"
+				)
+			);
+		
+			self->(execute(
+				"DROP TABLE IF EXISTS `logauth`;
+				CREATE TABLE `logauth` (
+		  		`id` int(11) NOT NULL auto_increment,
+		  		`logDate` varchar(10) NOT NULL default '',
+		  		`logTime` varchar(11) NOT NULL default '',
+		  		`logClientIP` varchar(15) NOT NULL default '',
+		  		`logStatus` varchar(7) NOT NULL default '',
+		  		`logAccount` varchar(64) NOT NULL default '',
+		  		`logUser` varchar(49) NOT NULL default '',
+		  		`logUserID` varchar(28) NOT NULL default '',
+		  		`logSessionID` varchar(32) NOT NULL default '',
+		  		`logPageURL` varchar(255) NOT NULL default '',
+		  		`logPageInfo` varchar(48) NOT NULL default 'n/a',
+		  		`logFWPInfo` varchar(48) NOT NULL default 'n/a',
+		  		PRIMARY KEY  (`id`)
+				) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;"
+				)
+			);
+		
+			self->(execute(
+				"DROP TABLE IF EXISTS `logdata`;
+				CREATE TABLE `logdata` (
+		  		`id` int(11) NOT NULL auto_increment,
+		  		`logDate` varchar(10) NOT NULL default '',
+		  		`logTime` varchar(11) NOT NULL default '',
+		  		`logClientIP` varchar(15) NOT NULL default '',
+		  		`logAction` varchar(12) NOT NULL default '',
+		  		`logUser` varchar(49) NOT NULL default '',
+		  		`logUserID` varchar(28) NOT NULL default '',
+		  		`logTable` varchar(32) NOT NULL default '',
+		  		`logRcrdNo` varchar(28) NOT NULL default 'n/a',
+		  		`logPageURL` varchar(255) NOT NULL default '',
+		  		`logPageInfo` varchar(48) NOT NULL default 'n/a',
+		  		`logFWPInfo` varchar(48) NOT NULL default 'n/a',
+		  		`logQryTime` int(11) NOT NULL default '0',
+		  		PRIMARY KEY  (`id`)
+				) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;"
+				)
+			);
+		
+			self->(execute(
+				"DROP TABLE IF EXISTS `logerr`;
+				CREATE TABLE `logerr` (
+		  		`id` int(11) NOT NULL auto_increment,
+		  		`logErrID` varchar(8) NOT NULL default '',
+		  		`logErrCode` varchar(5) NOT NULL default '',
+		  		`logDate` varchar(10) NOT NULL default '',
+		  		`logTime` varchar(11) NOT NULL default '',
+		  		`logClientIP` varchar(15) NOT NULL default '',
+		  		`logPageURL` varchar(255) NOT NULL default '',
+		  		`logPageRef` varchar(255) NOT NULL default '',
+		  		`logErrMsg` text NOT NULL,
+		  		`logPageInfo` varchar(48) NOT NULL default 'n/a',
+		  		`logFWPInfo` varchar(48) NOT NULL default 'n/a',
+		  		PRIMARY KEY  (`id`)
+				) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;"
+				)
+			);
+			
+			self->(execute(
+				"DROP TABLE IF EXISTS `userAuth`;
+				CREATE TABLE `userAuth` (
+		  		`rcrdNo` varchar(28) character set utf8 collate utf8_bin NOT NULL default '',
+		  		`rcrdCreated` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdCreatedBy` varchar(49) NOT NULL default '',
+		  		`rcrdModified` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdModifiedBy` varchar(49) NOT NULL default '',
+		  		`rcrdStatus` char(1) NOT NULL default 'N',
+		  		`rcrdLockID` varchar(28) NOT NULL default '',
+		  		`rcrdLockTime` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdLockOwnr` varchar(49) NOT NULL default '',
+		  		`sessionNo` varchar(28) NOT NULL default '',
+		  		`sessionTime` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`sessionVars` text NOT NULL,
+		  		`sessionKeepers` text NOT NULL,
+		  		`sessionProfile` text NOT NULL,
+		  		`userNameFirst` varchar(24) NOT NULL default '',
+		  		`userNameLast` varchar(24) NOT NULL default '',
+		  		`userOrg` varchar(64) NOT NULL default '',
+		  		`userPhone` varchar(16) NOT NULL default '',
+		  		`userEmail` varchar(48) NOT NULL default '',
+		  		`userPswd` varchar(36) NOT NULL default '',
+		  		`userHint` varchar(64) NOT NULL default '',
+		  		`userLogins` mediumint(5) unsigned NOT NULL default '0',
+		  		`userLastLogin` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`userAttempts` tinyint(1) unsigned NOT NULL default '0',
+		  		`userLockTime` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`userPswdNew` char(1) NOT NULL default '',
+		  		`userPswdCreated` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`userPswdHistory` text NOT NULL,
+		  		`userHosts` varchar(64) NOT NULL default '',
+		  		PRIMARY KEY  (`rcrdNo`),
+		  		UNIQUE KEY `rcrdNo` (`rcrdNo`),
+		  		UNIQUE KEY `userEmail` (`userEmail`),
+		  		KEY `userEmail_2` (`userEmail`)
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8;"
+				)
+			);
+		
+			self->(execute(
+				"INSERT into userAuth SET
+				rcrdNo='pbdemoInitUser',
+				rcrdCreated='" + date_format(date, -format="%Q %T") + "',
+				rcrdCreatedBy='dbMigrator',
+				rcrdModified='" + date_format(date, -format="%Q %T") + "',
+				rcrdModifiedBy='dbMigrator',
+				rcrdStatus='Y',
+				userNameFirst='Pb',
+				userNameLast='Demo',
+				userEmail='pb@test.com',
+				userPswd='4169440ec4cbdaa3f030d17c6a62a196',
+				userHint='actual password = pbVrsn550',
+				userPswdNew='N',
+				userPswdCreated='" + date_format(date, -format="%Q %T") + "';"
+				)
+			);
+		
+			self->(execute(
+				"DROP TABLE IF EXISTS `userFilters`;
+				CREATE TABLE `userFilters` (
+		  		`rcrdNo` varchar(28) character set utf8 collate utf8_bin NOT NULL default '',
+		  		`rcrdCreated` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdCreatedBy` varchar(49) NOT NULL default '',
+		  		`rcrdModified` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdModifiedBy` varchar(49) NOT NULL default '',
+		  		`rcrdStatus` char(1) NOT NULL default 'N',
+		  		`rcrdLockID` varchar(28) NOT NULL default '',
+		  		`rcrdLockTime` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdLockOwnr` varchar(49) NOT NULL default '',
+		  		`userFltrID` varchar(28) NOT NULL default '',
+		  		`userFltrName` varchar(16) NOT NULL default '',
+		  		`userFltrTable` varchar(32) NOT NULL default '',
+		  		`userFltrField` varchar(32) NOT NULL default '',
+		  		`userFltrMatch` varchar(32) NOT NULL default '',
+		  		`userFltrOp` varchar(3) NOT NULL default '',
+		  		PRIMARY KEY  (`rcrdNo`),
+		  		KEY `rcrdNo` (`rcrdNo`)
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8;"
+				)
+			);
+		
+			self->(execute(
+				"DROP TABLE IF EXISTS `userPrivileges`;
+				CREATE TABLE `userPrivileges` (
+		  		`rcrdNo` varchar(28) character set utf8 collate utf8_bin NOT NULL default '',
+		  		`rcrdCreated` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdCreatedBy` varchar(49) NOT NULL default '',
+		  		`rcrdModified` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdModifiedBy` varchar(49) NOT NULL default '',
+		  		`rcrdStatus` char(1) NOT NULL default 'Y',
+		  		`rcrdLockID` varchar(28) NOT NULL default '',
+		  		`rcrdLockTime` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdLockOwnr` varchar(49) NOT NULL default '',
+		  		`userPrivID` varchar(28) NOT NULL default '',
+		  		`userPrivSet` varchar(8) NOT NULL default '',
+		  		`userPrivName` varchar(8) NOT NULL default '',
+		  		`userPrivValue` char(1) NOT NULL default 'N',
+		  		PRIMARY KEY  (`rcrdNo`),
+		  		KEY `rcrdNo` (`rcrdNo`)
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8;"
+				)
+			);
+		
+			self->(execute(
+				"INSERT into `userPrivileges` VALUES
+				('BtfX1qoJUATRQTAKeo3W','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','str','update','Y'),
+				('8ca18PG1kSYbYNw8oLuE','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','str','delete','Y'),
+				('wjkHVLVDRgeiB9JManXw','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','str','approve','Y'),
+				('qxodUPAKVS8Bx6mRWLy9','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','str','add','Y'),
+				('NYUG8bvieZGs3o8eQiRb','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','str','view','Y'),
+				('jC1ytfi7LDBG9meUH7DX','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','usrs','delete','Y'),
+				('a6wtiM1XB7XB9HhCFjXh','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','usrs','Reset','Y'),
+				('4sxuJvsgb1tBLWPD2iTW','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','usrs','approve','Y'),
+				('BCcePVBLruym8uZ1bXXi','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','usrs','update','Y'),
+				('iSV6oL4X2hA9bUnFngA2','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','usrs','add','Y'),
+				('JdD9T5ZqYvEwXyFXNbhR','" + date_format(date, -format="%Q %T") + "','PB Demo','" + date_format(date, -format="%Q %T") + "','PB Demo','Y','','0000-00-00 00:00:00','','pbdemoInitUser','usrs','view','Y');"
+				)
+			);
+				
+			self->(execute(
+				"DROP TABLE IF EXISTS `userProfile`;
+				CREATE TABLE `userProfile` (
+		  		`rcrdNo` varchar(28) character set utf8 collate utf8_bin NOT NULL default '',
+		  		`rcrdCreated` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdCreatedBy` varchar(49) NOT NULL default '',
+		  		`rcrdModified` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdModifiedBy` varchar(49) NOT NULL default '',
+		  		`rcrdStatus` char(1) NOT NULL default 'N',
+		  		`rcrdLockID` varchar(28) NOT NULL default '',
+		  		`rcrdLockTime` datetime NOT NULL default '0000-00-00 00:00:00',
+		  		`rcrdLockOwnr` varchar(49) NOT NULL default '',
+		  		`userProfID` varchar(28) NOT NULL default '',
+		  		`userABC` varchar(8) NOT NULL default '',
+		  		`userXYZ` varchar(8) NOT NULL default '',
+		  		PRIMARY KEY  (`rcrdNo`),
+		  		KEY `rcrdNo` (`rcrdNo`)
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8;"
+				)
+			);
+		
+		/define_tag;
+		
+	//------------------------------------------------------------------------------
+		
+		define_tag('rollback');
+		
+			self->(removeTable(-name='appStrings'));
+			self->(removeTable(-name='valueLists'));
+			self->(removeTable(-name='logAuth'));
+			self->(removeTable(-name='logData'));
+			self->(removeTable(-name='logErr'));
+			self->(removeTable(-name='userAuth'));
+			self->(removeTable(-name='userFilters'));
+			self->(removeTable(-name='userPrivileges'));
+			self->(removeTable(-name='userProfile'));
+		
+		/define_tag;
+	
+	/define_type;
+	
+?>

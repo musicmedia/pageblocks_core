@@ -1,0 +1,33 @@
+/*
+	#################################################
+	#												#
+	#	** microsoft ie special rules **			#
+	#	www.coco.dk admin system					#
+	#	this code is intellectual proporty of		#
+	#	musicmedia.dk, please proceed with caution!	#
+	#												#
+	#################################################
+*/
+
+/*	## layout adjustments ##  */
+
+/*	following overrules som min-height rules
+	not recognized by ms ie
+*/
+
+#left {
+	height: 550px; 
+}
+
+#main {
+	height: 461px;
+}
+
+#feedback div.divider {
+	margin-bottom: 0;
+}
+
+input.deleteSmall, input.deleteSmallDisab {
+	padding-top: 0;
+	height: 17px;
+}

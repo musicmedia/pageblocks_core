@@ -1,0 +1,2251 @@
+﻿<?lassoscript
+
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpAuth_user.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_user }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_user }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			A model object for an authenticated user containing
+					authorization properties and methods for user 
+					authentication and session management. }
+
+	{maintvsrn=		1.2.1 }
+	{maintdate=		2007-12-30 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	added 'userLanguage' inserted into self->('fw_usrProfile') in tag 'authenticate' to have users language in user profile
+					Authenticated user's language can now be retrieved with $fw_user->(getProfile('userLanguage')) }
+
+	{maintvsrn=		1.2 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated testPswd to proper validator error handling,
+	 				overhauled error management }
+
+	{maintvsrn=		1.1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added hack to _unknownTag to fix Lasso
+					order of operations problem }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype,
+					added tagTrace }
+
+	{maintvsrn=		1.0.3 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed ->removeVar to ->removeVars for 
+					consistency with ->addVars }
+
+	{maintvsrn=		1.0.2 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -config to empty user steps to gain access to
+					pswd validation routines w/o an auth'd user needing 
+					to exist }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-02-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added -limit=* to priv and fltr queries
+					added -withoutLog options to record updates }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//----------------------------------------------------------------------------
+
+define_type:'fwp_user';
+
+// user inputs
+
+	local:
+		'fw_db'			= string,
+		'fw_authTbl'	= string,
+		'fw_profTbl'	= string,
+		'fw_privTbl'	= string,
+		'fw_fltrTbl'	= string,
+		'fw_config'		= string,
+		'fw_acctfld'	= string,
+		'fw_pswdfld'	= string;
+
+//	additional private and public vars
+
+	local:
+		'_fw_authQuery'			= null,
+
+		'fw_usrProfile'			= map,
+		'fw_usrPrivileges'		= map,
+		'fw_usrFilters'			= map,
+		'fw_usrVars'			= map,
+		'fw_usrKeepers'			= map,
+		'fw_pswdOptions'		= array,
+
+		'loginAccount'			= string,
+		'loginPswd'				= string,
+		'loginValid'			= string,
+		'loginGetNewPswd'		= false,
+		'loginDaysPswdExpires' 	= integer,
+		'sessionID'				= string,
+
+		'testpwError'			= false;
+
+//: -
+//============================================================================
+//
+//	->onCreate
+//
+//	Description:
+//
+//	instantiates the object`s default data set
+//
+//	Usage:
+//
+//	automatic; the developer should not call this tag
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'onCreate';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->onCreate');
+
+	$fw_debugTimers ? $fw_timer->(start:'userXtraCreate');
+
+	local:
+		'fw_optionPair' = pair;
+
+//	acquire inputs
+
+	iterate: params, local:'thisParam';
+		if: #thisParam->type == 'pair';
+			local: (#thisParam->first) = (#thisParam->second);
+		else;
+			local: (#thisParam) = true;
+		/if;
+	/iterate;
+
+	self->'fw_authTbl'		= local:'-authTbl';
+	self->'fw_profTbl'		= local:'-profTbl';
+	self->'fw_privTbl'		= local:'-privTbl';
+	self->'fw_fltrTbl'		= local:'-fltrTbl';
+	self->'fw_config'		= local:'-config';
+
+	self->'loginAccount'	= local:'-acct';
+	self->'loginPswd'		= local:'-pswd';
+	self->'sessionID'		= local:'-fws';
+
+	self->'fw_acctfld'		= local:'-acctfld';
+	self->'fw_pswdfld'		= local:'-pswdfld';
+
+//	defaults for inputs not specified
+
+	if: !(self->'fw_profTbl');
+		(self->'fw_profTbl') = (self->'fw_authTbl');
+	/if;
+
+	if: !(self->'fw_acctfld');
+		(self->'fw_acctfld') = 'userEmail';
+	/if;
+
+	if: !(self->'fw_pswdfld');
+		(self->'fw_pswdfld') = 'userPswd';
+	/if;
+
+//	fend off SQL injection in login params
+
+	(self->'loginAccount') = encode_sql:(self->'loginAccount');
+	(self->'loginPswd') = encode_sql:(self->'loginPswd');
+	(self->'sessionID') = encode_sql:(self->'sessionID');
+
+//	load password management configuration
+//	we can`t parse into locals here
+//	because lasso does not allow as of LP7 substitution for self->
+//	so we push the parsing off to the session tags that use the data
+//	rather than implement some cockied work around
+//	it`s redundant, but thems the breaks
+
+	if: self->'fw_config';
+		self->'fw_pswdOptions' = (fwpCnfg_loadLines: 
+			('authPswd_' + (self->'fw_config') + fw_kCnfgExt));
+
+		iterate: (self->'fw_pswdOptions'), #fw_optionPair;
+			(self->'fw_usrProfile')->(insert: ((#fw_optionPair->split:'=')->get:1) = integer:((#fw_optionPair->split:'=')->get:2));
+		/iterate;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userXtraCreate');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->fw_initAuthQuery
+//
+//	Description:
+//
+//	instantiates the object`s default table adaptors
+//
+//	Usage:
+//
+//	automatic; the developer should not call this tag
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'fw_initAuthQuery';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->initAuthQuery');
+
+	$fw_debugTimers ? $fw_timer->(start:'userXtraInitQry');
+
+	if: ((self->'_fw_authQuery')->type != 'fwp_recordData');
+	
+		(self->'_fw_authQuery') = (fwp_recordData: (self->'fw_authTbl'));
+		(self->'fw_db') = (self->'_fw_authQuery')->'db';
+
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userXtraInitQry');
+
+/define_tag;
+
+//: -
+//============================================================================
+//
+//	->authenticate
+//
+//	Description:
+//
+//	Creates an authenticated session for access to /admn section and others
+//	The routine searches for the nm & pw and verifies that the user is approved
+//	it also validates that the user belongs to the current subhost user set
+//	for a site with a single subhost, this is always a match, but for sites
+//	with multiple subhost realms, it requires that each nm & pw be specific to the subhost
+//	I have used this to require secured access to specific intranet realms
+//
+//	The routine then just sets a unique sessionID and time stamp value in the user`s record
+//
+//	Usage:
+//
+//	generally this routine would be called automatically by the response page to the login form
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'authenticate';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->authenticate');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagAuth');
+
+	local:
+		'fw_userAttempts'	= integer,
+		'usrStarts' 		= integer,
+		'fw_optionPair'		= string,
+		'fw_authSubQuery'	= (fwp_recordData: (self->'fw_authTbl'));
+
+	self->fw_initAuthQuery;
+
+//	::Note::
+//	update -- this can be updated because Lasso 8 finally wllows what we need
+//	parse the password options into locals
+//	this is done redundantly for each tag because
+//	lasso doesn`t allow substitution for self->
+//	and work arounds are awkward
+
+	iterate: (self->'fw_pswdOptions'), #fw_optionPair;
+		local:((#fw_optionPair->split:'=')->get:1) = integer:((#fw_optionPair->split:'=')->get:2);
+		(self->'fw_usrProfile')->(insert: ((#fw_optionPair->split:'=')->get:1) = ((#fw_optionPair->split:'=')->get:2));
+	/iterate;
+
+	if: (self->'loginAccount') && (self->'loginPswd');
+
+//	we test for account name only at first
+//	so we can log a failed password attempt
+//	on a known account
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryAuthGet');
+
+		(self->'_fw_authQuery')->(select: 
+			-quiet,
+			-where = ('rcrdStatus="Y" AND ' + (self->'fw_acctfld') + '="' + (self->'loginAccount') + '"'));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryAuthGet');
+
+		$fw_debug ? var:'api_fwpAuth_user_setSession_sqlActn' = (self->'_fw_authQuery')->'queryString';
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_debug ? $fw_apiError->(insert: '5440' = ('User Selection failed: ' (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+
+		records: -inlinename = (self->'_fw_authQuery')->'inlinename';
+		
+//	we insist on a single found count only as more than one would be ambiguous
+
+			if: 
+				((self->'_fw_authQuery')->'foundCount') == 1 &&
+				(field:(self->'fw_acctfld')) == (self->'loginAccount') &&
+				(field:(self->'fw_pswdfld')) != (self->'loginPswd');
+
+//	password --does not-- match 
+//	so if fw_kUsrAttemptsMax is enabled (value > 0), then
+//	we have into inc the attempts counter,
+//	and if the counter reaches the max value, 
+//	we have to set a lockout time stamp
+//	on the record to track lockout expiration
+
+				if: #fw_kUsrAttemptsMax > 0;
+
+					#fw_userAttempts = math_add(field('userAttempts'),1);
+
+					#fw_userAttempts >= #fw_kUsrAttemptsMax
+						? local:'fw_userLockTime' = date
+						| local:'fw_userLockTime' = string;
+
+					$fw_debugTimers ? $fw_timer->(start:'userQryAuthTries');
+					
+					#fw_authSubQuery->(update:
+						-withoutLog,
+						-setpairs = (array:
+							(pair: 'userAttempts' = #fw_userAttempts),
+							(pair: 'userLockTime' = #fw_userLockTime)),
+						-keyfld = 'rcrdNo', 
+						-keyval = (field:'rcrdNo'));
+					
+					$fw_debugTimers ? $fw_timer->(stop:'userQryAuthTries');
+
+					$fw_debug ? var:'api_fwpAuth_user_AttemptsUpdt_sqlActn' = (#fw_authSubQuery->'queryString');
+
+					if: (#fw_authSubQuery->'error');
+						$fw_error->(insert:'5501'='fwp_user');
+						$fw_apiError->(insert: '5441' = ('User Attempts Update failed: ' + ((#fw_authSubQuery->'errors')->join:', ')));
+					/if;
+				/if;
+
+// 	password not recognized
+//	or account is locked if maxAttempts is reached
+
+				if: #fw_userAttempts >= #fw_kUsrAttemptsMax;
+					(self->'loginValid')='5016```' + #fw_kUsrLockMinTime;
+				else;
+					(self->'loginValid')='5010a';
+				/if;
+
+			else: 
+				((self->'_fw_authQuery')->'foundCount') == 1 &&
+				(field:(self->'fw_acctfld')) == (self->'loginAccount') &&
+				(field:(self->'fw_pswdfld')) == (self->'loginPswd');
+
+//	capture the user record ID and user language
+
+				(self->'fw_usrProfile')->(insert:('userRcrdID') = (field:'rcrdNo'));
+// ::note:: nl added and then removed user lang from fw_usrProfile because the old value 
+// stays in the profile after updating the user language
+				self->('fw_usrProfile')->(insert(pair('userLanguage' = field('userLanguage'))));
+				self->('fw_usrProfile')->(insert(pair('userEmail' = field('userEmail'))));
+
+//	password --does-- match, but we have to check for several states
+//	if the extra security options are active
+//	is there an active lockout in place?
+//	is the password stale?
+//	is the password admin supplied and therefore needs replaced?
+
+//	test if active lockout in place
+
+				if: (#fw_kUsrLockMinTime > 0) && ((field:'userLockTime') != '');
+					local:'fw_timeElapsed'=(date_difference: 
+						(date), 
+						(field:'userLockTime'), 
+						-minute);
+					if: #fw_timeElapsed < #fw_kUsrLockMinTime;
+						(self->'loginValid')='5016```' + #fw_kUsrLockMinTime;
+					/if;
+				/if;
+
+//	test if password is stale
+
+				local:'fw_daysElapsed'=(date_difference: (date), (field:'userPswdCreated'), -day);
+				if: (#fw_kUsrPswdDays > 0) && (#fw_daysElapsed >= #fw_kUsrPswdDays);
+					(self->'loginValid')='5015';
+				/if;
+
+//	test if user workstation is authorized for access
+
+				if: #fw_kUsrHostMatch > 0;
+					if: !((field:'userHosts') >> ($fw_client->'ip'));
+						(self->'loginValid')='5017';
+					/if;
+				/if;
+
+//	if none of the features above are active, or they all passed,
+//	then loginValid should still be empty
+//	and if it is
+//	a) 	issue new session ID
+//	b) 	increment login counter
+//	c) 	fill in user profile properties in case there is any redirection
+//		to be done at login based on the user profile
+
+				if: (self->'loginValid') == '';
+
+					(self->'loginValid') = 'Y';
+					(self->'sessionID')=(fwpStr_randomID:28);
+					#usrStarts = (integer:(field:'userLogins')) + 1;
+
+//	populate the internal profile map
+
+					self->loadProfile;
+					(self->'fw_usrProfile')->(insert:'loginValid' = 'Y');
+					(self->'fw_usrProfile')->(insert:'userStarts' = #usrStarts);
+					(self->'fw_usrProfile')->(insert:'loginDaysPswdExpires' = (#fw_kUsrPswdDays - #fw_daysElapsed));
+
+//	update the user record and session
+
+					$fw_debugTimers ? $fw_timer->(start:'userQryAuthSet');
+
+					#fw_authSubQuery->(update:
+						-withoutLog,
+						-setpairs = (array:
+							(pair: 'sessionNo' 		= (self->'sessionID')),
+							(pair: 'sessionTime' 	= (date_format: (date), -DateFormat='%Y-%m-%d %T')),
+							(pair: 'sessionVars' 	= ''), 
+							(pair: 'userLogins'		= (#usrStarts)),
+							(pair: 'userLastLogin'	=(date_format: (date), -DateFormat='%Y-%m-%d %T')),
+							(pair: 'userAttempts'	= '0')),
+						-keyfld = 'rcrdNo', 
+						-keyval = (self->(getProfile:'userRcrdID')));
+
+					$fw_debugTimers ? $fw_timer->(stop:'userQryAuthSet');
+
+					if: (#fw_authSubQuery->'error');
+						$fw_error->(insert:'5501'='fwp_user');
+						$fw_apiError->(insert: '5442' = ('Session Initialize failed: ' + ((#fw_authSubQuery->'errors')->join:', ')));
+					/if;
+				/if;
+			else;
+
+// no record was found or more than 1 record was found
+
+				(self->'loginValid')='5010e';
+			/if;
+		/records;
+	else;
+
+// no name or password supplied
+
+		(self->'loginValid')='5010b';
+	/if;
+
+
+
+//	if the login is valid, we need to test for the password options
+//	to see if a new password is required
+
+//	if one time use password is active, need to update password
+//	if login credentials have expired start to warn user inside of XX days
+//	if (maxPswdValidDays - currentPswdDaysElapsed) < promptPeriod then prompt for new password
+
+	if: ((self->'loginValid') == 'Y') && (#fw_kUsrPswdDays > 0)	&& 
+		(
+			(self->(getProfile:'userPswdNew') == 'Y') 
+			||
+			((#fw_kUsrPswdDays - (integer:((var:$fw_userVarName)->(getProfile:'userPswdDays')))) < #fw_kUsrPswdPromptDays)
+		);
+
+		(self->'loginGetNewPswd') = true;
+		(self->'loginDaysPswdExpires') = #fw_kUsrPswdDays - #fw_daysElapsed;
+
+	/if;
+
+//	nothing is returned by ->setsession
+//	the programmer is to test for a non-empty ->`fw_s` or ->`loginValid` == `Y`
+//	if ->`fw_s` is non-empty or ->`loginValid` == `Y` then login was approved
+//	if ->`fw_s` is empty or ->`loginValid` != `Y` then test ->`loginValid` for an error code
+
+//	log the login attempt (whether successful or not)
+
+	if: $fw_gLogAuth;
+		fwpLog_auth: 
+			-status='login',
+			-usrsession=(self->'sessionID'),
+			-usrAcct=(self->'loginAccount'),
+			-usrRcrd=(self->(getProfile:'userRcrdID')),
+			-usrName=(self->(getProfile:'userName')),
+			-pageInfo=$fw_logPageInfo,
+			-fwpInfo=$fw_logFWPInfo;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagAuth');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->storeUser
+//
+//	Description:
+//
+//	Stores a user profile from a previously serialized state
+//
+//
+//	Usage:
+//
+//	generally this routine would be called automatically by siteConfig / modConfig
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0	(2006-01-16) -- initial release
+//
+//............................................................................
+
+
+define_tag:'storeUser',
+	-required = 'fw_usrObjVar';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->storeUser');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagStoreUser');
+
+	local:
+		'fw_userState' 	= string;
+
+	self->fw_initAuthQuery;
+
+	if: (self->'sessionID');
+
+		#fw_userState = (#fw_usrObjVar->serialize);
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryStoreUser');
+
+		(self->'_fw_authQuery')->(update:
+			-withoutLog,
+			-setpairs = (array:	(pair: 'sessionProfile' = #fw_userState)),
+			-keyfld = 'rcrdNo', 
+			-keyval = (self->(getProfile:'userRcrdID')));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryStoreUser');
+
+		$fw_debug ? var:'api_fwpAuth_user_storeUser_sqlActn' = ((self->'_fw_authQuery')->'queryString');
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert:'5201'=('Storing User failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagStoreUser');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->restoreUser
+//
+//	Description:
+//
+//	Restores a user profile from a previously serialized state
+//
+//
+//	Usage:
+//
+//	generally this routine would be called automatically by siteConfig / modConfig
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0	(2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'restoreUser',
+	-required = 'fw_usrObjVar';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->restoreUser');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagRestoreUser');
+
+	local:
+		'fw_optionPair'		= string,
+		'fw_sessnDelta'		= string,
+		'fw_authSubQuery'	= null;
+
+	if: (self->'sessionID');
+
+		self->fw_initAuthQuery;
+
+//	get the general profile fields and
+//	the profile fields for the specific module being worked on
+//	perform the search based on the sessionID
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryRestoreUserGet');
+
+		(self->'_fw_authQuery')->(select:
+			-select = 'rcrdNo, sessionNo, sessionTime, sessionVars, sessionKeepers, sessionProfile',
+			-keyfld = 'sessionNo',
+			-keyval = (self->'sessionID'));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryRestoreUserGet');
+
+		$fw_debug ? var:'api_fwpAuth_user_restoreState_sqlActn' = (self->'_fw_authQuery')->'queryString';
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: '5446' = ('User Retore failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+
+		if: ((self->'_fw_authQuery')->'foundCount') == 1;
+
+			records: -inlinename=((self->'_fw_authQuery')->'inlinename');
+
+//	check session expiration
+
+				#fw_sessnDelta=(date_difference: 
+					(date), 
+					(field:'sessionTime'), 
+					-minute);
+	
+				if: #fw_sessnDelta < (integer:$fw_sessionTimeout);
+
+//	create the new user from serialized data
+
+					(var:#fw_usrObjVar)->(unserialize:(field:'sessionProfile'));
+
+//	update the session time stamp
+
+					#fw_authSubQuery = (fwp_recordData:(self->'fw_authTbl'));
+					
+					$fw_debugTimers ? $fw_timer->(start:'userQryRestoreUserSet');
+
+					#fw_authSubQuery->(update:
+						-withoutLog,
+						-setpairs = (array:
+							(pair: 'sessionNo' = (self->'sessionID')),
+							(pair: 'sessionTime' = (date_format: (date), -DateFormat='%Y-%m-%d %T'))),
+						-keyfld = 'sessionNo',
+						-keyval = (self->'sessionID'));
+	
+					$fw_debugTimers ? $fw_timer->(stop:'userQryRestoreUserSet');
+
+					if: (#fw_authSubQuery->'error');
+						$fw_error->(insert:'5501'='fwp_user');
+						$fw_apiError->(insert: '5444' = ('Session Refresh failed: ' + ((#fw_authSubQuery->'errors')->join:', ')));
+					/if;
+
+//	insert the sessionVars and sessionKeepers vars
+//	when the temp user is created no session vars exist, so the the serialized user data
+//	when restored for each page will not have session data in it
+//	session data is stored/restored separately
+//	so we need to inject that data here now so that the user object in RAM
+//	has an updated fw_usrVars data set which is then updated and stored by ->storeVars
+
+						(field:'sessionVars')
+							? ((var:#fw_usrObjVar)->'fw_usrVars')->(unserialize:(field:'sessionVars'));
+						(field:'sessionKeepers')
+							? ((var:#fw_usrObjVar)->'fw_usrKeepers')->(unserialize:(field:'sessionKeepers'));
+				/if;
+			/records;
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagRestoreUser');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->authorize
+//
+//	Description:
+//
+//	Verifies an authentication session for access to /admn section or other
+//	Creates a user profile via multiple variables.
+//	These variables are used in conditional tests to determine individual
+//	page access and visibility of page components in the /admn or other secure pages
+//
+//
+//	Usage:
+//
+//	generally this routine would be called automatically by siteConfig / modConfig
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0	(2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'authorize',
+	-optional = 'sessionID';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->authorize');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagAthz');
+
+//	session ID can be passed when the object is created or when this tag is called
+
+	if: (local_defined:'sessionID');
+		(self->'sessionID') = #sessionID;
+	/if;
+
+	local:
+		'fw_optionPair'		= string,
+		'fw_sessnDelta'		= string,
+		'fw_authSubQuery'	= (fwp_recordData: (self->'fw_authTbl'));
+
+	self->fw_initAuthQuery;
+
+//	parse the password options into locals
+//	and also stuffs them into the fw_usrProfile map
+//	this is done redundantly for each tag because
+//	lasso doesn`t allow substitution for self->
+//	and work arounds are awkward
+
+	iterate: (self->'fw_pswdOptions'), #fw_optionPair;
+		local:((#fw_optionPair->split:'=')->get:1)=integer:((#fw_optionPair->split:'=')->get:2);
+		(self->'fw_usrProfile')->(insert: ((#fw_optionPair->split:'=')->get:1) = integer:((#fw_optionPair->split:'=')->get:2));
+	/iterate;
+
+	if: (self->'sessionID');
+
+//	get the general profile fields and
+//	the profile fields for the specific module being worked on
+//	perform the search based on the sessionID
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryAthzGet');
+
+		(self->'_fw_authQuery')->(select:
+			-select = 'rcrdNo, sessionNo, sessionTime, sessionVars, sessionKeepers',
+			-keyfld = 'sessionNo',
+			-keyval = (self->'sessionID'));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryAthzGet');
+
+		$fw_debug ? var:'api_fwpAuth_user_getSession_sqlActn' = (self->'_fw_authQuery')->'queryString';
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: '5443' = ('Session Authorize failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+
+		records: -inlinename = (self->'_fw_authQuery')->'inlinename';
+
+			if: ((self->'_fw_authQuery')->'foundCount') == 1;
+
+//	capture the user record ID
+
+				(self->'fw_usrProfile')->(insert:('userRcrdID') = (field:'rcrdNo'));
+				
+				#fw_sessnDelta=(date_difference: 
+					(date), 
+					(field:'sessionTime'), 
+					-minute);
+				
+				if: (#fw_sessnDelta) < (integer:$fw_sessionTimeout);
+
+//	session is valid and active
+
+//	read profile tables, and add each field to the profile map
+
+					(self->'loginValid') = 'Y';
+					self->loadProfile;
+					(self->'fw_usrProfile')->(insert:('loginValid') = ('Y'));
+
+
+//	read related permissions table and build permissions map
+
+					self->loadPrivileges;
+
+//	read related filters table and build filters map
+
+					self->loadFilters;
+
+//	unscrunch session vars and restore to the internal maps
+//	normally, if the restoreVarsKeepers tag is used, then all vars are already
+//	recreated for the page, but the internal maps allow random access if necessary
+
+					if: (field:'sessionVars');
+					(self->'fw_usrVars')->(unserialize:(field:'sessionVars'));
+					/if;
+					if: (field:'sessionKeepers');
+						(self->'fw_usrKeepers')->(unserialize:(field:'sessionKeepers'));
+					/if;
+
+//	if using superSecure sessions change the session ID every page
+
+					if: $fw_gUseSessionEachPage;
+						(self->'sessionID')=(fwpStr_randomID:28);
+					/if;
+
+//	update the session time stamp
+
+					$fw_debugTimers ? $fw_timer->(start:'userQryAthzSet');
+
+					#fw_authSubQuery->(update:
+						-withoutLog,
+						-setpairs = (array:
+							(pair: 'sessionNo' = (self->'sessionID')),
+							(pair: 'sessionTime' = (date_format: (date), -DateFormat='%Y-%m-%d %T'))),
+						-keyfld = 'rcrdNo',
+						-keyval = (self->(getProfile:'userRcrdID')));
+
+					$fw_debugTimers ? $fw_timer->(stop:'userQryAthzSet');
+
+					$fw_debug ? var:'api_fwpAuth_user_sessionRefresh_sqlActn' = #fw_authSubQuery->'queryString';
+
+					if: (#fw_authSubQuery->'error');
+						$fw_error->(insert:'5501'='fwp_user');
+						$fw_apiError->(insert: '5451' = ('Session Refresh failed: ' + ((#fw_authSubQuery->'errors')->join:', ')));
+					/if;
+				else;
+
+//	specified session is stale (rejected)
+				
+					(self->'loginValid')='5012';
+				/if;
+			else;
+
+//	specified session ID not found
+
+				(self->'loginValid')='5010c';
+			/if;
+		/records;
+	else;
+	
+//	no session ID specified
+
+		(self->'loginValid')='5010d';
+	/if;
+
+	if: $fw_gLogAuth;
+		fwpLog_auth: 
+			-status='session',
+			-usrsession=(self->'sessionID'),
+			-usrAcct=(self->'loginAccount'),
+			-usrRcrd=(self->(getProfile:'userRcrdID')),
+			-usrName=(self->(getProfile:'userName')),
+			-pageInfo=$fw_logPageInfo,
+			-fwpInfo=$fw_logFWPInfo;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagAthz');
+
+/define_tag;
+
+//============================================================================
+//
+//	->killSession
+//
+//	Description:
+//
+//	Verifies an authentication session for access to /admn section or other
+//	Clears all session fields and session variable
+//
+//
+//	Usage:
+//
+//	generally this routine would be called when a user click a Logout link/btn
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0	(2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'killSession';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->killSession');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagKill');
+
+	self->fw_initAuthQuery;
+
+	if: (self->'sessionID');
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryKill');
+
+		(self->'_fw_authQuery')->(update:
+			-withoutLog,
+			-setpairs = (array:
+				(pair: 'sessionNo' = ''),
+				(pair: 'sessionTime' = ''),
+				(pair: 'sessionVars' = ''),
+				(pair: 'sessionProfile' = '')),
+			-keyfld = 'sessionNo',
+			-keyval = (self->'sessionID'));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryKill');
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: '5452' = ('Session destroy failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+	/if;
+
+	if: $fw_gLogAuth;
+		fwpLog_auth: 
+			-status='logout',
+			-usrsession=(self->'sessionID'),
+			-usrAcct=(self->'loginAccount'),
+			-usrRcrd=(self->(getProfile:'userRcrdID')),
+			-usrName=(self->(getProfile:'userName')),
+			-pageInfo=$fw_logPageInfo,
+			-fwpInfo=$fw_logFWPInfo;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagKill');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->loadProfile
+//
+//	Description:
+//
+//	reads the auth table and creates the internal map of user profile fields
+//	reads the profile table and adds to the internal user profile map
+//
+//
+//	Usage:
+//
+//	generally this routine would be called from within the user type only
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0	(2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'loadProfile';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->loadProfile');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagLoadProf');
+
+	local:
+		'fw_profTables'		= (array:(self->'fw_authTbl')),
+		'fw_thisTable'		= string,
+		'fw_profileQuery'	= null,
+		'fw_keyfld'			= string,
+		'fw_keyval'			= string;
+
+	if: (self->'sessionID');
+
+		local:
+			'fw_fieldNames' = array,
+			'fw_thisField' 	= string;
+
+		iterate: #fw_profTables, #fw_thisTable;
+
+			#fw_fieldNames 	= array;
+			#fw_thisField 	= string;
+
+			//	collect field names
+	
+			inline: 
+				-show,
+				-username	= $fw_gQueryUser,
+				-password	= $fw_gQueryPswd,
+				-database	= (self->'fw_db'),
+				-table		= #fw_thisTable,
+				-maxrecords = 'all';
+
+				if: !((error_currenterror: -errorcode) == 0);
+
+					$fw_error->(insert:'5501'='fwp_user');
+					$fw_apiError->(insert: ('5201') = 
+						('Session loadProf1 failed: ' + 
+						(error_currentError) + 
+						' (' + (error_currentError: -errorCode) + ')'));
+	
+				else;
+					//	we only want the fields which are not 
+					//	part of the standard rcrd and session sets
+					//	this could be an expensive loop of IF statements
+					//	but we cache the profile map in the session
+					//	so this only occurs when a session is initialized
+
+					loop: (column_name: -count);
+						if: !((column_name: loop_count)->(beginswith:'rcrd')) &&
+							!((column_name: loop_count)->(beginswith:'sess'));
+							#fw_fieldNames->(insert:(column_name: loop_count));
+						/if;
+					/loop;
+				/if;
+			/inline;
+
+			//	create profile from field names
+
+			#fw_profileQuery = (fwp_recordData: #fw_thisTable);
+
+			if: #fw_thisTable == (self->'fw_authTbl');
+				#fw_keyfld = 'rcrdNo';
+				#fw_keyval = (self->(getProfile:'userRcrdID'));
+			else;
+				#fw_keyfld = 'userProfID';
+				#fw_keyval = (self->(getProfile:'userRcrdID'));
+			/if;
+
+			$fw_debugTimers ? $fw_timer->(start:'userQryLoadProf');
+			
+			#fw_profileQuery->(select:
+				-select = (#fw_fieldNames->(join:', ')),
+				-keyfld = #fw_keyfld,
+				-keyval = #fw_keyval);
+
+			$fw_debugTimers ? $fw_timer->(stop:'userQryLoadProf');
+
+			if: (#fw_profileQuery->'error');
+				$fw_error->(insert:'5501'='fwp_user');
+				$fw_apiError->(insert: ('5201') = ('Session loadProf2 failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+			else;
+				records: -inlinename = #fw_profileQuery->'inlinename';
+					iterate: #fw_fieldNames, #fw_thisField;
+						(self->'fw_usrProfile')->(insert:(#fw_thisField)=(field:#fw_thisField));
+					/iterate;
+
+					//	calculated profile vars
+
+					if: #fw_thisTable == (self->'fw_authTbl');
+						(self->'fw_usrProfile')->(insert:('userName') = ((field:'userNameFirst') + ' ' + (field:'userNameLast')));
+						(self->'fw_usrProfile')->(insert:('userPswdDays') = ((date_difference: (date), (field:'userPswdCreated'), -day)));
+					/if;
+				/records;
+			/if;
+		/iterate;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagLoadProf');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->loadPrivileges
+//
+//	Description:
+//
+//	reads the profile table and creates the internal map of user privileges
+//
+//
+//	Usage:
+//
+//	generally this routine would be called from within the user type only
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0	(2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'loadPrivileges';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->loadPrivileges');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagLoadPrivs');
+
+	local:
+		'fw_tagmsStart'		= _date_msec,
+		'fw_prevDataSet' 	= string,
+		'fw_privQuery'		= (fwp_recordData: (self->'fw_privTbl'));
+
+	if: (self->'sessionID');
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryLoadPrivs');
+
+		#fw_privQuery->(select: 
+			-quiet,
+			-select		= 'userPrivSet, userPrivName, userPrivValue',
+			-keyfld		= 'userPrivID',
+			-keyval		= (self->(getProfile:'userRcrdID')),
+			-orderby	= 'userPrivSet ASC',
+			-limit		= '*');
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryLoadPrivs');
+
+		$fw_debug
+			? var:'api_fwpAuth_user_loadPrivileges_sqlActn' = (#fw_privQuery->'queryString');
+
+		if: (#fw_privQuery->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: ('5201') = ('Session loadPrivs failed: ' + ((#fw_privQuery->'errors')->join:', ')));
+		else;
+			records: -inlinename = #fw_privQuery->'inlinename';
+				if:#fw_prevDataSet != (field:'userPrivSet');
+					(self->'fw_usrPrivileges')->(insert: (field:'userPrivSet') = map);
+				/if;
+				
+				((self->'fw_usrPrivileges')->(find:(field:'userPrivSet')))->(insert:
+					(field:'userPrivName')=(field:'userPrivValue'));
+
+				#fw_prevDataSet = (field:'userPrivSet');
+			/records;
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagLoadPrivs');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->loadFilters
+//
+//	Description:
+//
+//	reads the filters table and creates the internal map of user privileges
+//
+//
+//	Usage:
+//
+//	generally this routine would be called from within the user type only
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0	(2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'loadFilters';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->loadFilters');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagLoadFltrs');
+
+	local:
+		'_fw_fltrQuery' = string,
+		'fw_fltrPairs' 	= array,
+		'fw_fltrQuery'	= (fwp_recordData: (self->'fw_fltrTbl'));
+
+	if: (self->'sessionID');
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryLoadFltrs');
+		
+		#fw_fltrQuery->(select: 
+			-quiet,
+			-select		= 'userFltrName, userFltrTable, userFltrField, userFltrMatch, userFltrOp',
+			-keyfld		= 'userFltrID',
+			-keyval		= (self->(getProfile:'userRcrdID')),
+			-limit		= '*');
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryLoadFltrs');
+
+		$fw_debug
+			? var:'api_fwpAuth_user_loadFilters_sqlActn' = (#fw_fltrQuery->'queryString');
+			
+		if: (#fw_fltrQuery->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: ('5201') = ('Session loadFltrs failed: ' + ((#fw_fltrQuery->'errors')->join:', ')));
+		else;
+			records: -inlinename = #fw_fltrQuery->'inlinename';
+
+				(self->'fw_usrFilters')->(insert: (field:'userFltrName') = map);
+				
+				((self->'fw_usrFilters')->(find:(field:'userFltrName')))->(insert:
+					('table')=(field:'userFltrTable'));
+
+				((self->'fw_usrFilters')->(find:(field:'userFltrName')))->(insert:
+					('field')=(field:'userFltrField'));
+
+				((self->'fw_usrFilters')->(find:(field:'userFltrName')))->(insert:
+					('match')=(field:'userFltrMatch'));
+
+				((self->'fw_usrFilters')->(find:(field:'userFltrName')))->(insert:
+					('op')=(field:'userFltrOp'));
+
+				select: (field:'userFltrOp');
+					case: 'btw';
+						#_fw_fltrQuery = 
+							('(' + (field:'userFltrField') + 
+							' >= "' + (encode_sql:(((field:'userFltrMatch')->split:'\r')->get:1)) + '"');
+						#_fw_fltrQuery += 
+							(' AND ' + (field:'userFltrField') + 
+							' <= "' + (encode_sql:(((field:'userFltrMatch')->split:'\r')->get:2)) + '") ');
+
+					case: 'lt';
+						#_fw_fltrQuery = 
+							((field:'userFltrField') + 
+							' < "' + (encode_sql:(field:'userFltrMatch')) + '" ');
+					case: 'lte';
+						#_fw_fltrQuery = 
+							((field:'userFltrField') + 
+							' <= "' + (encode_sql:(field:'userFltrMatch')) + '" ');
+					case: 'gt';
+						#_fw_fltrQuery = 
+							((field:'userFltrField') + 
+							' > "' + (encode_sql:(field:'userFltrMatch')) + '" ');
+					case: 'gte';
+						#_fw_fltrQuery = 
+							((field:'userFltrField') + 
+							' >= "' + (encode_sql:(field:'userFltrMatch')) + '" ');
+
+					case: 'eq';
+						#_fw_fltrQuery = 
+							((field:'userFltrField') + 
+							'="' + (encode_sql:(field:'userFltrMatch')) + '" ');
+					case: 'bw';
+						#_fw_fltrQuery = 
+							((field:'userFltrField') + 
+							' LIKE "' + (encode_sql:(field:'userFltrMatch')) + '%" ');
+					case: 'ew';
+						#_fw_fltrQuery = 
+							((field:'userFltrField') + 
+							' LIKE "%' + (encode_sql:(field:'userFltrMatch')) + '" ');
+					case;
+						#_fw_fltrQuery = 
+							((field:'userFltrField') + 
+							' LIKE "%' + (encode_sql:(field:'userFltrMatch')) + '%" ');
+				/select;
+
+				((self->'fw_usrFilters')->(find:(field:'userFltrName')))->(insert:
+					('query')=(#_fw_fltrQuery));
+
+				select: (field:'userFltrOp');
+					case: 'btw';
+						#fw_fltrPairs->(insert: (pair: '-op' = 'gte'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (((field:'userFltrMatch')->split:'::')->get:1)));
+						#fw_fltrPairs->(insert: (pair: '-op' = 'lte'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (((field:'userFltrMatch')->split:'::')->get:2)));
+
+					case: 'lt';
+						#fw_fltrPairs->(insert: (pair: '-op' = 'lt'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (field:'userFltrMatch')));
+
+					case: 'lte';
+						#fw_fltrPairs->(insert: (pair: '-op' = 'lte'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (field:'userFltrMatch')));
+
+					case: 'gt';
+						#fw_fltrPairs->(insert: (pair: '-op' = 'gt'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (field:'userFltrMatch')));
+
+					case: 'gte';
+						#fw_fltrPairs->(insert: (pair: '-op' = 'gte'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (field:'userFltrMatch')));
+
+					case: 'eq';
+						#fw_fltrPairs->(insert: (pair: '-op' = 'eq'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = ('=' + field:'userFltrMatch')));
+
+					case: 'bw';
+						#fw_fltrPairs->(insert: (pair: '-op' = 'bw'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (field:'userFltrMatch')));
+
+					case: 'ew';
+						#fw_fltrPairs->(insert: (pair: '-op' = 'ew'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (field:'userFltrMatch')));
+
+					case;
+						#fw_fltrPairs->(insert: (pair: '-op' = 'cn'));
+						#fw_fltrPairs->(insert: (pair: (field:'userFltrField') = (field:'userFltrMatch')));
+
+				/select;
+
+				((self->'fw_usrFilters')->(find:(field:'userFltrName')))->(insert:
+					('pairs')=(#fw_fltrPairs));
+
+			/records;
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagLoadFltrs');
+
+/define_tag;
+
+
+//: -
+//============================================================================
+//
+//	_unknowntag
+//
+//	Description:
+//
+//	provides a shorthand method for retrieving priv, filter, profile vars
+//	we simply trap the unknown tag and convert it to a standard tag call
+//
+//	use also ->getPrivilege, ->getProfile, ->getFilter
+//	this old method retained for backwards compatibility
+//	and actually updated to include the filters & properties capability
+//	as a shorthand method
+//
+//	Usage:
+//
+//	if tag_name begins with priv. (or prvlg.) then a permission is requested
+//	if tag_name begins with fltr. then a filter is requested
+//	if tag_name begins with prof. then a profile is requested
+//	
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'_unknowntag'; 
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->unknownTag');
+
+	local:'fw_usrProperty' = tag_name;
+
+//	::HACK::
+//	this is a bandaid to correct the behavior of Lasso
+//	calling _unknownTag before checking for an instance var 
+//	when the ivar is called unquoted
+	if: self->properties->first->contains:(string:#fw_usrProperty);
+		return: self->properties->first->find:(string:#fw_usrProperty);
+	/if;
+
+	if: (local:'fw_usrProperty')->beginswith: 'priv.';
+
+		#fw_usrProperty->removeleading:'priv.';
+
+		return: (self->getPrivilege: #fw_usrProperty);
+		
+	else: (local:'fw_usrProperty')->beginswith: 'prvlg.';
+
+		#fw_usrProperty->removeleading:'prvlg.';
+
+		return: (self->getPrivilege: #fw_usrProperty);
+		
+	else: (local:'fw_usrProperty')->beginswith: 'fltr.';
+
+		#fw_usrProperty->removeleading:'fltr.';
+
+		return: (self->getFilter: #fw_usrProperty);
+
+	else: (local:'fw_usrProperty')->beginswith: 'prof.';
+
+		#fw_usrProperty->removeleading:'prof.';
+
+		return: (self->getProfile: #fw_usrProperty);
+
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->getProfile
+//
+//	Description:
+//
+//	retrieves a user`s specified profile field
+//
+//	Usage:
+//
+//	user->(getProfile:'profileName')
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'getProfile',
+	-required='fw_profNm';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->getProfile', -fw_profNm = #fw_profNm);
+
+	return: (self->'fw_usrProfile')->find:#fw_profNm;
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->getPrivilege
+//
+//	Description:
+//
+//	retrieves a user`s specified data set access privilege
+//
+//	Usage:
+//
+//	user->(getPrivilege:'mod_perm')
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'getPrivilege',
+	-required='fw_permNm';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->getPrivilege', -fw_permNm = #fw_permNm);
+
+//	the data is not stored in mod_perm format
+//	but the programmer must refer to the permissions as mod_perm
+//	which is then split at _ where the mod is a map name, 
+//	and Perm is an element name containing a Y or N value
+
+	local:
+		'fw_modNm'=@(#fw_permNm->split:'_')->get:1,
+		'fw_privNm'=@(#fw_permNm->split:'_')->get:2;
+
+//	if there isn`t a module map, the second find will cause Lasso NULL error
+//	so need to verify module first
+
+	if: ((self->'fw_usrPrivileges')->(find:#fw_modNm))->type == 'map';
+		return: (((self->'fw_usrPrivileges')->find:#fw_modNm)->find:#fw_privNm);
+	/if;
+	
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->getFilter
+//
+//	Description:
+//
+//	retrieves a user`s specified filter map 
+//	or field within the map if specified
+//
+//	Usage:
+//
+//	to retrieve a component of the array
+//		user->(getFilter:'filterName_component')
+//		component = table, field, match, op, query
+//	
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'getFilter',
+	-required='fw_fltrRule';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->getFilter', -fw_fltrRule = #fw_fltrRule);
+
+//	the data is not stored in name_component format
+//	but the programmer must refer to the filter as name_component
+//	which is then split at _ where the name is a map name, 
+//	and components is an element name containing the value
+
+	if: #fw_fltrRule >> '_';
+
+		local:
+			'fw_fltrName'		= (#fw_fltrRule->(split:'_'))->(get:1),
+			'fw_fltrComponent'	= (#fw_fltrRule->(split:'_'))->(get:2);
+	
+//	if there isn`t a filter map, the second find will cause Lasso NULL error
+//	so need to verify name map first
+
+		if: ((self->'fw_usrFilters')->(find:#fw_fltrName))->type == 'map';
+			return: (((self->'fw_usrFilters')->find:#fw_fltrName)->find:#fw_fltrComponent);
+		/if;
+	else;
+//	return the whole map
+
+		return: (self->'fw_usrFilters')->(find:#fw_fltrRule);
+	/if;
+/define_tag;
+
+
+//: -
+//============================================================================
+//
+//	->restoreVarsKeepers
+//
+//	Description:
+//
+//	Retrieves and reinstates vars stored in sessionVars and sessionKeepers
+//	The session is loosely validated in checking for expiration time only
+//
+//
+//	Usage:
+//
+//	generally this routine would be called in siteConfig prior to 
+//	loading modConfig and pageConfig
+//	it is not really a part of the normal session
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'restoreVarsKeepers';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->restoreVarsKeepers');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagRestoreVars');
+
+	local:
+		'fw_sessnDelta'		= string,
+		'fw_thisItem'		= string;
+
+	if: (self->'sessionID');
+
+//	get the session fields and
+//	perform the search based on the sessionID
+
+		self->fw_initAuthQuery;
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryRestoreVars');
+
+		(self->'_fw_authQuery')->(select:
+			-select = 'sessionNo, sessionTime, sessionVars, sessionKeepers',
+			-keyfld	= 'sessionNo',
+			-keyval = (self->'sessionID'));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryRestoreVars');
+
+		$fw_debug ? var:'api_fwpAuth_user_restoreVars_sqlActn' = ((self->'_fw_authQuery')->'queryString');
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: '5445' = ('Session Vars Restore failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+
+//	verify that we have an exact match and that the session has not expired
+
+		records: -inlinename=(self->'_fw_authQuery')->'inlinename';
+
+			if: ((self->'_fw_authQuery')->'foundCount') && ((field:'sessionNo') == (self->'sessionID'));
+
+				#fw_sessnDelta=(date_difference: 
+					(date), 
+					(field:'sessionTime'), 
+					-minute);
+
+				if: (#fw_sessnDelta) < (integer:$fw_sessionTimeout);
+
+//	session is active, grab the sessionVars and sessionKeepers fields
+//	and recreate each of the vars
+
+					if: (field:'sessionVars');
+						(self->'fw_usrVars')->(unserialize:(field:'sessionVars'));
+					/if;
+					if: (field:'sessionKeepers');
+						(self->'fw_usrKeepers')->(unserialize:(field:'sessionKeepers'));
+					/if;
+
+					iterate: (self->'fw_usrVars')->keys, #fw_thisItem;
+						if: !(var_defined:(#fw_thisItem));
+							var:(#fw_thisItem) = (self->'fw_usrVars')->(find:#fw_thisItem);
+						/if;
+					/iterate;
+
+					iterate: (self->'fw_usrKeepers')->keys, #fw_thisItem;
+						if: !(var_defined:(#fw_thisItem));
+							var:(#fw_thisItem) = (self->'fw_usrKeepers')->(find:#fw_thisItem);
+						/if;
+					/iterate;
+					
+// also, grab userLanguage and set $fw_client language to that value
+
+//					field('userLanguage') && var('fw_client') ? $fw_client->(setLanguage(field('userLanguage'))); 
+
+				else;
+
+//	specified session ID is stale
+
+					self->'loginValid'='5012';
+				/if;
+			else;
+
+//	specified session ID not found
+
+				self->'loginValid'='5010g';
+			/if;
+		/records;
+	else;
+
+//	session ID not specified
+
+		self->'loginValid'='5010h';
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagRestoreVars');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->getVar
+//
+//	Description:
+//
+//	Retrieves a named variable from a map (self->'fw_usrVars') 
+//	which is preserved between logins as long term session data
+//
+//	Usage:
+//
+//	user->(getVar:'fw_r')
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'getVar',
+	-required='fw_varNm';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->getVar');
+
+	return: (self->'fw_usrVars')->find:#fw_varNm;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->addVars
+//
+//	Description:
+//
+//	Adds one or more named variables to a map (self->'fw_usrVars') 
+//	which is preserved between logins as long term session data
+//
+//	Usage:
+//
+//	this routine can be called at any time
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'addVars',
+	-required = 'varList';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->addVars', -varList = #varList);
+
+	local: 
+		'fw_varList'	= @(local:'varList'),
+		'fw_thisVar'	= string;
+
+	if: #fw_varList;
+		#fw_varList = (fwpCnfg_splitComma: #fw_varList);
+	/if;
+
+	if: (self->'sessionID');
+		iterate: #fw_varList, #fw_thisVar;
+			if: (var_defined:#fw_thisVar);
+				(self->'fw_usrVars')->(insert: (#fw_thisVar)=(var:#fw_thisVar));
+			/if;
+		/iterate;
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->removeVars
+//
+//	Description:
+//
+//	Removes a named variable from a map (self->'fw_usrVars') 
+//	which is preserved between logins as long term session data
+//
+//	Usage:
+//
+//	this routine can be called at any time
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'removeVars',
+	-required = 'varList';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->removeVars');
+
+	local: 'fw_varList'=@(local:'varList');
+	local: 'fw_thisVar'=string;
+
+	if: #fw_varList;
+		#fw_varList = (fwpCnfg_splitComma: #fw_varList);
+	/if;
+
+	if: (self->'sessionID');
+		iterate: #fw_varList, #fw_thisVar;
+			(self->'fw_usrVars')->remove:(#fw_thisVar);
+		/iterate;
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->storeVars
+//
+//	Description:
+//
+//	Stores (self->'fw_usrVars') to the user`s record
+//
+//	Usage:
+//
+//	generally this routine would be called at the end of a template
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'storeVars';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->storeVars', -varslist=(self->'fw_usrVars'));
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagStoreVars');
+
+	local:
+		'fw_sessionRaw' = string;
+
+	if: (self->'sessionID') && ((self->'fw_usrVars')->size > 0);
+
+		self->fw_initAuthQuery;
+
+		#fw_sessionRaw = ((self->'fw_usrVars')->serialize);
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryStoreVars');
+
+		(self->'_fw_authQuery')->(update:
+			-withoutLog,
+			-setpairs = (array: (pair: 'sessionVars' = #fw_sessionRaw)),
+			-keyfld = 'rcrdNo', 
+			-keyval = (self->(getProfile:'userRcrdID')));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryStoreVars');
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: '5447' = ('Session vars update failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagStoreVars');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->clearVars
+//
+//	Description:
+//
+//	Stores (self->'fw_usrVars') to the user`s record
+//
+//	Usage:
+//
+//	use whenever the session vars should be cleared
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'clearVars';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->clearVars');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagClearVars');
+
+	self->fw_initAuthQuery;
+
+	if: (self->'sessionID');
+
+		(self->'fw_usrVars') = map;
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryClearVars');
+
+		(self->'_fw_authQuery')->(update:
+			-withoutLog,
+			-setpairs = (array: (pair: 'sessionVars' = '')),
+			-keyfld = 'rcrdNo', 
+			-keyval = (self->(getProfile:'userRcrdID')));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryClearVars');
+
+		$fw_debug ? var:'api_fwpAuth_user_clearVars_sqlActn' = ((self->'_fw_authQuery')->'queryString');
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: '5449' = ('Session vars clear failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagClearVars');
+
+/define_tag;
+
+
+
+//============================================================================
+//
+//	->getKeeper
+//
+//	Description:
+//
+//	Retrieves a named variable from a map (self->'fw_usrKeepers') 
+//	which is preserved between logins as long term session data
+//
+//	Usage:
+//
+//	user->(getVar:'fw_r')
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'getKeeper',
+	-required='fw_varNm';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->getKeeper');
+
+	return: (self->'fw_usrKeepers')->find:#fw_varNm;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->addKeeper
+//
+//	Description:
+//
+//	Adds one or more named variables to a map (self->'fw_usrKeepers') 
+//	which is preserved between logins as long term session data
+//
+//	Usage:
+//
+//	this routine can be called at any time
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'addKeeper',
+	-required = 'varList';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->addKeeper');
+
+	local: 'fw_varList'=@(local:'varList');
+	local: 'fw_thisVar'=string;
+
+	if: #fw_varList;
+		#fw_varList = (fwpCnfg_splitComma: #fw_varList);
+	/if;
+
+	if: (self->'sessionID');
+		iterate: #fw_varList, #fw_thisVar;
+			if: (var_defined:#fw_thisVar);
+				(self->'fw_usrKeepers')->(insert: (#fw_thisVar)=(var:#fw_thisVar));
+			/if;
+		/iterate;
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->removeKeeper
+//
+//	Description:
+//
+//	Removes a named variable from a map (self->'fw_usrKeepers') 
+//	which is preserved between logins as long term session data
+//
+//	Usage:
+//
+//	this routine can be called at any time
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'removeKeeper',
+	-required = 'varList';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->removeKeeper');
+
+	local: 'fw_varList'=@(local:'varList');
+	local: 'fw_thisVar'=string;
+
+	if: #fw_varList;
+		#fw_varList = (fwpCnfg_splitComma: #fw_varList);
+	/if;
+
+	if: (self->'sessionID');
+		iterate: #fw_varList, #fw_thisVar;
+			(self->'fw_usrKeepers')->remove:(#fw_thisVar);
+		/iterate;
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->storeKeepers
+//
+//	Description:
+//
+//	Stores (self->'fw_usrKeepers') to the user`s record
+//
+//	Usage:
+//
+//	generally this routine would be called at the end of a template
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'storeKeepers';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->storeKeepers');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagStoreKeepers');
+
+	local:
+		'fw_sessionRaw' = string;
+
+	if: (self->'sessionID') && ((self->'fw_usrKeepers')->size > 0);
+		
+		self->fw_initAuthQuery;
+
+		#fw_sessionRaw = (self->'fw_usrKeepers')->serialize;
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryStoreKeepers');
+
+		(self->'_fw_authQuery')->(update:
+			-withoutLog,
+			-setpairs = (array: (pair: 'sessionKeepers' = #fw_sessionRaw)),
+			-keyfld = 'rcrdNo', 
+			-keyval = (self->(getProfile:'userRcrdID')));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryStoreKeepers');
+
+		$fw_debug ? var:'api_fwpAuth_user_storeVars_sqlActn' = ((self->'_fw_authQuery')->'queryString');
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: '5448' = ('Session keepers update failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagStoreKeepers');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->clearKeepers
+//
+//	Description:
+//
+//	Stores (self->'fw_usrKeepers') to the user`s record
+//
+//	Usage:
+//
+//	use whenever the session vars should be cleared
+//
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'clearKeepers';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->clearKeepers');
+
+	$fw_debugTimers ? $fw_timer->(start:'userTagClearKeepers');
+
+	self->fw_initAuthQuery;
+
+	if: (self->'sessionID');
+
+		(self->'fw_usrKeepers') = map;
+
+		$fw_debugTimers ? $fw_timer->(start:'userQryClearKeepers');
+
+		(self->'_fw_authQuery')->(update:
+			-withoutLog,
+			-setpairs = (array: (pair: 'sessionKeepers' = '')),
+			-keyfld = 'rcrdNo', 
+			-keyval = (self->(getProfile:'userRcrdID')));
+
+		$fw_debugTimers ? $fw_timer->(stop:'userQryClearKeepers');
+
+		$fw_debug ? var:'api_fwpAuth_user_clearVars_sqlActn' = ((self->'_fw_authQuery')->'queryString');
+
+		if: ((self->'_fw_authQuery')->'error');
+			$fw_error->(insert:'5501'='fwp_user');
+			$fw_apiError->(insert: '5450' = ('Session keepers clear failed: ' + (((self->'_fw_authQuery')->'errors')->join:', ')));
+		/if;
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'userTagClearKeepers');
+
+/define_tag;
+
+//: -
+//============================================================================
+//
+//	->testPswd
+//
+//	Description:
+//
+//	Validates that a password meets criteria defned in the config file
+//
+//	Usage:
+//
+//	this routine should be used every time a new password is created
+//	use it as part of the form validation process for password fields
+//
+//	Maintenance Notes:
+//
+//	ver 1.2 (2006-01-16) -- added comparison to second supplied var name
+//	ver 1.1 (2006-01-16) -- rewrote for FWP4 error handling and added return value
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'testPswd',
+	-required='fw_newpw',
+	-optional='compare';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->testPswd');
+
+	local:
+		'fw_newpwName'		= #fw_newpw,
+		'fw_newpwValue'		= (var:#fw_newpw),
+		'fw_newpwName2'		= string,
+		'fw_newpwvalue2'	= string,
+		'fw_optionPair'		= string;
+
+	if: (params->find:'-compare');
+		#fw_newpwName2  = ((params->find:'-compare')->get:1)->second;
+		#fw_newpwValue2 = var:(((params->find:'-compare')->get:1)->second);
+	/if;
+
+//	parse the password options into locals
+//	this is done redundantly for each tag because
+//	lasso didn't allow substitution for self->
+//	when this was written and work arounds are awkward
+
+	iterate: (self->'fw_pswdOptions'), #fw_optionPair;
+		local:((#fw_optionPair->split:'=')->get:1)=integer:((#fw_optionPair->split:'=')->get:2);
+	/iterate;
+
+// mandatory no white spaces in passwords < 16 chars
+	if: (#fw_newpwValue->size < 16) && (string_findregexp: #fw_newpwValue, -find='[\\s]')->size;
+		(self->'testpwError') = true;
+		$fw_validator->(insertErrorMsg: 
+			-input	 = #fw_newpwName,
+			-valcode = 'pswdNoSpace');
+	/if;
+
+// length 
+	if: (string_length: #fw_newpwValue) < #fw_kUsrPswdMinLen;
+		(self->'testpwError') = true;
+		$fw_validator->(insertErrorMsg: 
+			-input 		= #fw_newpwName,
+			-valcode 	= 'pswdLength',
+			-paramValue = #fw_kUsrPswdMinLen);
+	/if;
+
+//	contain an uppercase
+	if: (#fw_kUsrPswdUpper > 0) && (((string_findregexp: #fw_newpwValue, -find='[A-Z]')->size) == 0);
+		(self->'testpwError') = true;
+		$fw_validator->(insertErrorMsg: 
+			-input 	 = #fw_newpwName,
+			-valcode = 'pswdUppercase');
+	/if;
+
+//	contain a lowercase
+	if: (#fw_kUsrPswdLower > 0) && (((string_findregexp: #fw_newpwValue, -find='[a-z]')->size) == 0);
+		(self->'testpwError') = true;
+		$fw_validator->(insertErrorMsg: 
+			-input 	 = #fw_newpwName,
+			-valcode = 'pswdLowercase');
+	/if;
+
+//	contain a number
+	if: (#fw_kUsrPswdDigit > 0) && (((string_findregexp: #fw_newpwValue, -find='[\\d]')->size) == 0);
+		(self->'testpwError') = true;
+		$fw_validator->(insertErrorMsg: 
+			-input 	 = #fw_newpwName,
+			-valcode = 'pswdNumeral');
+	/if;
+
+//	contain a symbol from keys 1-8
+	if: (#fw_kUsrPswdSymbol > 0) && (((string_findregexp: #fw_newpwValue, -find='[\\*\\&\\^\\%\\$\\#\\@\\!]')->size) == 0);
+		(self->'testpwError') = true;
+		$fw_validator->(insertErrorMsg: 
+			-input 	 = #fw_newpwName,
+			-valcode = 'pswdSymbol');
+	/if;
+
+//	must be the same as a second input
+	if: #fw_newpwName2 && #fw_newpwValue != #fw_newpwValue2;
+		$fw_formIsNotValid = true;
+		$fw_validator->(insertErrorMsg: 
+			-input 	 = #fw_newpwName2,
+			-valcode = 'pswdSecond');
+	/if;
+
+//	make sure it is not the same as prev used passwords
+	if: (#fw_kUsrPswdHistory > 0) && ((self->getProfile:'userPswdHistory') >> encrypt_MD5:#fw_newpwValue);
+		(self->'testpwError') = true;
+		$fw_validator->(insertErrorMsg: 
+			-input 	 = #fw_newpwName,
+			-valcode = 'pswdUsed');
+	/if;
+
+	return: (self->'testpwError');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->updtPswdHistory
+//
+//	Description:
+//
+//	Manages the userPswdHistory field of the user database
+//
+//	Usage:
+//
+//	this routine should be called every time a new password is created
+//	place a call to this tag in the validate file
+//
+//	-history = the name of the var, not the data
+//	-newpw = the plain text value of the new password
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//............................................................................
+
+define_tag:'updtPswdHistory',
+	-required='history',
+	-required='newpw';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_user->updtPswdHistory');
+
+	local:
+		'fw_pwHistoryVar'	= local:'history',
+		'fw_newpw'			= local:'newpw',
+		'fw_optionPair'		= string;
+
+//	parse the password options into locals
+//	this is done redundantly for each tag because
+//	lasso doesn`t allow substitution for self->
+//	and work arounds are awkward
+
+	iterate: (self->'fw_pswdOptions'), #fw_optionPair;
+		local:((#fw_optionPair->split:'=')->get:1)=integer:((#fw_optionPair->split:'=')->get:2);
+	/iterate;
+
+//	add to password history
+
+	if: (self->'sessionID') && (#fw_kUsrPswdHistory > 0);
+
+		(var:#fw_pwHistoryVar) = (encrypt_MD5:#fw_newpwValue) + '\r' + (var:#fw_pwHistoryVar);
+		local:'fw_pwHistoryCount' = ((var:#fw_pwHistoryVar)->split:'\r')->size;
+
+		if: #fw_pwHistoryCount >= #fw_kUsrPswdHistory;
+
+			local:'fw_pwHistory' = ((var:#fw_pwHistoryVar)->split:'\r');
+			#fw_pwHistory->remove:#fw_pwHistoryCount;
+
+			(var:#fw_pwHistoryVar) = string;
+			iterate: #fw_pwHistory, local:'thisPw';
+				(var:#fw_pwHistoryVar) += #thisPw;
+				(var:#fw_pwHistoryVar) += '\r';
+			/iterate;
+			(var:#fw_pwHistoryVar)->removetrailing:'\r';
+
+		/if;
+	/if;
+
+/define_tag;
+
+/define_type;
+?>

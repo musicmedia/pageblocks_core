@@ -1,0 +1,86 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGui_emailMask }
+	{rsrcType=		tag }
+	{rsrcName=		fwpGui_emailMask.ctag }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpGui_emailMask }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits, adapted from Johan Sölve tag at
+					http://www.listsearch.com/lassotalk.lasso?id=122260 }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			creates an email link using entities to mask
+					addresses from email harvesting robots }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-12 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	some little tweaks to make it a bit better }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag: 'fwpGUI_emailMask',	-priority='replace',
+	-required='addr',
+	-optional='link';
+
+	local:
+		'fw_addr'		= local:'addr',
+		'fw_link'		= @local:'link',
+		'fw_addr2'		= (string),
+		'fw_thisChar' 	= (string),
+		'fw_hex'		= 0;
+
+	if: !(local:'fw_link');
+		#fw_link = #fw_addr;
+		#fw_link->(replace: '@', '-at-');
+		#fw_link->(replace: '.', '-dot-');
+	/if;
+
+	#fw_addr = 'mailto:' + #fw_addr;
+
+	//	creates global variable hex map on first encounter
+	if: (global:'fw_gHexMap')->type != 'map';
+		global:'fw_gHexMap'=(map);
+		loop: -loopfrom=1, -loopto=255;
+			// convert decimal number to ascii character using decode_URL
+			#fw_hex = loop_count;
+			#fw_hex->(setformat: -hexadecimal=true);
+			#fw_hex = (string: #fw_hex);
+			#fw_hex->removeleading: '0x';
+			#fw_hex = '00' + #fw_hex;
+			#fw_hex = (#fw_hex)->(substring: (#fw_hex->length - 1));
+			$fw_gHexMap->(insert: (decode_url: ('%' + #fw_hex)) = #fw_hex);
+		/loop;
+	/if;
+
+	//	converts the email addr to entities
+	iterate: #fw_addr, #fw_thisChar;
+		#fw_addr2 += '&#x';
+		#fw_addr2 += ($fw_gHexMap->find:#fw_thisChar);
+		#fw_addr2 += ';';
+	/iterate;
+
+	local:'fw_linkCode' = '<a href=" ' + #fw_addr2 + '">' + #fw_link + '</a>';
+
+	return: @#fw_linkCode;
+
+/define_tag;
+?>

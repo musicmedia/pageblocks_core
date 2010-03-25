@@ -1,0 +1,53 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpNum_dec6.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpNum_dec6 }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpNum_dec6 }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			formats a number with four decimal places and thousands separators }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.2.5 }
+	{maintdate=		2006-07-23 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added comma stripping so strings like 1,000 would
+	 				convert properly }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.3 }
+	{maintdate=		2007-07-08 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpNum_dec6', -priority='replace';
+
+	local:'fw_num' = string:(params->get:1);
+	#fw_num->(replace:',','');
+	#fw_num = decimal:#fw_num;
+
+	#fw_num->(setformat: 
+		-precision		= 6, 
+		-groupchar		= $fw_client->thousandsChar,
+		-decimalchar	= $fw_client->decimalChar);
+
+	return: #fw_num;
+
+/define_tag;
+?>

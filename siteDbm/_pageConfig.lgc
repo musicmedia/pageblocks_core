@@ -1,0 +1,37 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//	Maintenance Notes:
+//
+//	ver 1.0 (2006-01-16) -- initial release
+//
+//.............................................................................
+
+//	---------------------------------------------------------------------------
+//	modConfig
+//
+
+	var('fw_pgAuthRequired'	= false,
+		'fw_pgHeader'		= 'hdr_genl.dsp', 
+		'fw_pgFooter'		= 'ftr_sitemngr.dsp'
+	);
+
+//	---------------------------------------------------------------------------
+//	pageConfig
+//
+
+	select($fw_requestPage->('name'));
+	
+		case('migrator');
+			$fw_pgTitle		= 'dbMigrator';
+			$fw_pgTemplate	= '1col';
+			$fw_headContent->addCssFile($fw_sPath->'css' + 'styles_admin.css');
+			
+		case;
+			fwpPage_pageNotFound;
+	
+	/select;
+
+?>

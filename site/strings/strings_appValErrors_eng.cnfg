@@ -1,0 +1,70 @@
+﻿[output_none]
+//............................................................................
+//
+//	pageblocks: (c) 2002-2006 http://www.pageblocks.org/
+//
+//............................................................................
+//
+//	{fileName=		lang_errAppVal_eng.cnfg }
+//	{rsrcType=		config }
+//	{rsrcName=		lang_errAppVal }
+//	{rsrcHTTP=		www.pageblocks.org/refc/lang_errAppVal }
+//	
+//	{lassoVrsnMin=	8.1.0 }
+//	{lassoVrsnMax=	8.5.1 }
+//
+//	{author=		Greg Willits }
+//	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+//	{authorHTTP=	www.pageblocks.org }
+//
+//	{desc=			Language configuration file for core validation codes }
+//
+//	{maintvsrn=		1.0 }
+//	{maintrelease=	5.1.0 }
+//	{maintdate=		2006-01-06 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	initial release }
+//
+//.............................................................................
+
+//=============================================================================
+//	Error Message Language Configuration
+//	- the file name defines the language
+//	- all reusable messages must be defined before they are mentioned by insert___
+//-----------------------------------------------------------------------------
+// 	note that each line will be trimmed,
+//	and all whitespace after ___ will be trimmed,
+//	so use space entity if you want to split the 
+//	msg up into rows of short lengths in source code
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+//
+//	reusable message elements
+//
+//
+//
+
+
+//=============================================================================
+//
+//	Custom Validation Error Messages
+//
+//	custom validation codes should start with a hyphen
+//	to avoid conflict with any future possible core code
+//
+//
+
+{{-flnm:
+msg___	[#msgFirstWord] field [#inputLabel] must be comprised of only small letter characters from the English alfabet (a...z), numbers (0...9) and the signs - and _.
+}}
+
+{{-extns:
+msg___	[#msgFirstWord] field [#inputLabel] must be comprised of only letters (a...z, A...Z) including extended European letters, numbers (0...9) and a selection of symbols including '".,-_:;?!%&()/{}=
+}}
+
+{{-extn:
+msg___	[#msgFirstWord] field [#inputLabel] must be comprised of only letters (a...z, A...Z) including extended European letters, numbers (0...9) and a the signs '.-?
+}}
+
+[/output_none]

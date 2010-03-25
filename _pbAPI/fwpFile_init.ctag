@@ -1,0 +1,45 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpFile_init.ctag }
+	{rsrcType=		ctag }
+	{rsrcName=		fwpFile_init }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpFile_init }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes	the page level vars and resources
+					of the fwpFile framework. }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+//
+//	fw_uploadMIMEs 			(array) list of file MIME types allowed for upload. Set to empty array for no restrictions
+//	fw_uploadSizeMax 		(0) indicates in bytes the maximum file upload size. Set to 0 for no limit
+//
+//............................................................................
+
+define_tag:'fwpFile_init';
+
+	var:
+		'fw_uploadMIMEs'		= array,
+		'fw_uploadSizeMax'		= 0;
+
+/define_tag;
+
+?>

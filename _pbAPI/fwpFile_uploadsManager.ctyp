@@ -1,0 +1,261 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpFile_uploadsManager.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_uploadsManager }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_uploadsManager }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			captures uploads and relocates them }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	fixed several bugs where I was using wrong names 
+					from the uploads array }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_uploadsManager';
+
+	local:
+		'destinationPath'	= string,
+		'capturedInputs'	= array,
+		'results'			= map,
+		'captureSets'		= array,
+		'fw_errorBuffer'	= array;
+
+
+//============================================================================
+//
+//	->onCreate
+//
+//
+//............................................................................
+
+define_tag:'onCreate';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_fileUploads created');
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->captureInputs
+//
+//
+//............................................................................
+
+define_tag:'captureInputs',
+	-optional = 'capturedInputs',
+	-optional = 'asSetNamed';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_fileUploads->captureInputs', -inputs = #capturedInputs);
+
+	local:
+		'captureSetName'	= string,
+		'thisUpload'		= string,
+		'notAllowedErrors'	= array,
+		'isAllowedType'		= false,
+		'isAllowedSize'		= false,
+		'isAllowedInput'	= false,
+		'fileTempPath'		= string,
+		'fileType'			= string,
+		'fileSize'			= string,
+		'fileExt'			= string,
+		'fileRealName'		= string,
+		'fileInput'			= string,
+		'errTemp'			= map;
+
+	if: #capturedInputs;
+		#capturedInputs->(replace: ' ','');
+		#capturedInputs = #capturedInputs->(split:',');
+		(self->'capturedInputs') = #capturedInputs;
+	/if;
+
+	#capturedInputs && (params >> '-asSetNamed')
+		? (self->'captureSets')->(insert: #asSetNamed = #capturedInputs)
+		| (self->'captureSets')->(insert: (((self->'captureSets')->size) + 1) = #capturedInputs);
+
+	inline:
+		-username = $fw_gUploadUser,
+		-password = $fw_gUploadPswd;
+
+		if: file_uploads;
+			iterate: file_uploads, #thisUpload;
+
+				($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_fileUploads->captureInputs', -thisUpload=#thisUpload);
+
+				#notAllowedErrors	= array;
+				#isAllowedType		= false;
+				#isAllowedSize		= false;
+				#isAllowedInput		= false;
+
+				#fileTempPath	= #thisUpload->(find:'path');
+				#fileType		= ((#thisUpload->find:'type')->split:'/')->last;
+				#fileSize		= #thisUpload->(find:'size');
+				#fileInput		= #thisUpload->(find:'param');
+				#fileExt		= #thisUpload->(find:'origextension');
+				#fileRealName	= #thisUpload->(find:'origname');
+				#fileRealName	= #fileRealName->(split:'/')->last->(split:'\\')->last;
+
+				#fileRealName->trim;
+
+				(#capturedInputs->size > 0)
+					? #isAllowedInput = ((#capturedInputs->(find:#fileInput))->last)
+					| #isAllowedInput = true;
+
+				($fw_uploadMIMEs->size > 0)
+					? #isAllowedType = (($fw_uploadMIMEs->find:#fileType)->last)
+					| #isAllowedType = true;
+
+				($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_fileUploads->captureInputs', -isAllowedType=#isAllowedType);
+
+				($fw_uploadSizeMax > 0)
+					? #isAllowedSize = ($fw_uploadSizeMax > #fileSize)
+					| #isAllowedSize = true;
+
+				($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_fileUploads->captureInputs', -isAllowedSize=#isAllowedSize);
+
+				if: #isAllowedInput;
+					if: !#isAllowedSize;
+						#notAllowedErrors->(insert:5121);
+						if: (self->'fw_errorBuffer') !>> #fileRealName;
+							(self->'fw_errorBuffer')->(insert: #fileRealName = '5121');
+							$fw_error->(insert:'5121' = #fileRealName);
+						/if;
+					/if;
+					if: !#isAllowedType;
+						#notAllowedErrors->(insert:5120);
+						if: (self->'fw_errorBuffer') !>> #fileRealName;
+							(self->'fw_errorBuffer')->(insert: #fileRealName = '5120');
+							$fw_error->(insert:'5120' = #fileRealName);
+						/if;
+					/if;
+
+//	pageblocks converts all html inputs into vars
+//	so, here we convert he upload input into a var with the contents of just the real file name
+//	this is intended to make it easier for fwp_recordData to pass field data onto the database
+
+					(var:#fileInput) = #fileRealName;
+
+					(self->'results')->(insert: 
+						#fileInput = (map:
+							'path' 			= #fileTempPath,
+							'type' 			= #fileType,
+							'size' 			= #fileSize,
+							'origextension' = #fileExt,
+							'origname' 		= #fileRealName,
+							'errors'		= #notAllowedErrors));
+
+				/if;
+			/iterate;
+			($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_fileUploads->captureInputs', -results = (self->'results'));
+		/if;
+	/inline;
+/define_tag;
+
+
+//============================================================================
+//
+//	->moveFilesTo
+//
+//
+//............................................................................
+
+define_tag:'moveFilesTo',
+	-required = 'destinationPath',	-type = 'string';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwp_fileUploads->moveFilesTo', -path = #destinationPath);
+
+	local:
+		'replaceSpaces' 	= false,
+		'spaceChar' 		= '_',
+		'thisInput'			= string,
+		'thisUpload'		= map,
+		'fileTempPath'		= string,
+		'fileErrors'		= array,
+		'fileRealName'		= string;
+
+	(params >> '-replaceSpaces')
+		? #replaceSpaces = true;
+
+	if: (params >> '-replaceSpacesWith')
+		#replaceSpaces = true;
+		#spaceChar = ((params->find:'-replaceSpacesWith')->last);
+	/if;
+
+	#destinationPath->trim;
+	!(#destinationPath->endsWith:'/')
+		? #destinationPath += '/';
+
+	inline:
+		-username = $fw_gUploadUser,
+		-password = $fw_gUploadPswd;
+
+		if: !(file_exists:#destinationPath);
+
+			$fw_error->(insert: '5122' = 'fwp_fileUploads');
+			$fw_debug ? $fw_tagTracer->(add:'fwp_fileUploads->moveFilesTo', -ERROR = 'destination path does not exist or cannot be accessed because ' + file_currentError);
+			$fw_criticalLog ? log_critical:('pbError : fwp_fileUploads destination path ' + #destinationPath + ' does not exist or cannot be accessed because ' + file_currentError);
+		
+		else;
+
+			iterate: (self->'capturedInputs'), #thisInput;
+
+				#thisUpload = ((self->'results')->find:#thisInput);
+
+				($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_fileUploads->moveFilesTo', -thisUpload = #thisUpload);
+		
+				if: #thisupload;
+					#fileTempPath	= #thisUpload->(find:'path');
+					#fileErrors		= #thisUpload->(find:'errors');
+					#fileRealName	= #thisUpload->(find:'origname');
+		
+					if: !#fileErrors;
+						file_create: (#destinationPath + #fileRealName), -fileoverwrite;
+						
+								($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_fileUploads : create file', 
+																-file = (#destinationPath + #fileRealName),
+																-status = file_currentError);
+								($fw_criticalLog && (file_currentError != 0)) ? log_critical:('pbError : fwp_fileUploads could not create ' + (#destinationPath + #fileRealName) + ' because ' + file_currentError);
+								(file_currentError != 0) ? $fw_error->(insert:'5122' = 'fwp_fileUploads');
+			
+						file_write: (#destinationPath + #fileRealName), file_read:#fileTempPath;
+					
+								($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwp_fileUploads : write file', 
+																-file = (#destinationPath + #fileRealName),
+																-status = file_currentError);
+								($fw_criticalLog && (file_currentError != 0)) ? log_critical:('pbError : fwp_fileUploads could not write ' + (#destinationPath + #fileRealName) + ' because ' + file_currentError);
+								(file_currentError != 0) ? $fw_error->(insert:'5122' = 'fwp_fileUploads');
+					/if;
+				/if;
+			/iterate;
+		/if;
+	/inline;
+
+/define_tag;
+
+/define_type;
+?>

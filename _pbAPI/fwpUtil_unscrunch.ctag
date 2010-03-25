@@ -1,0 +1,54 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpUtil_unscrunch.ctag }
+	{rsrcType=		type }
+	{rsrcName=		fwpUtil_unscrunch }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpUtil_unscrunch }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			reverses the scrunch process to convert a web form compatible
+					data form back into its native lasso structure }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+
+define_tag:'fwpUtil_unscrunch', -priority='replace',
+	-required='unscrunch';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpUtil_unscrunch');
+
+	local:'fw_unscrunch' = #unscrunch;
+
+	#fw_unscrunch->(unserialize:(decompress:(decode_base64:#fw_unscrunch)));
+	
+	return: #fw_unscrunch;
+
+/define_tag;
+
+?>

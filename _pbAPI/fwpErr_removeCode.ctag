@@ -1,0 +1,49 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpErr_removeCode.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpErr_removeCode }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpErr_removeCode }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This file removes all occurrences of the specified error
+					code from the fw_error array. }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpErr_removeCode', -priority='replace',
+	-required = 'code';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpErr_removeCode');
+
+	iterate: $fw_error->(findindex:#code), local:'thisError';
+		$fw_error->(remove:#thisError);
+	/iterate;
+
+/define_tag;
+?>

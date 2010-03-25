@@ -1,0 +1,220 @@
+/*
+	#################################################
+	#												#
+	#	** typography rules **						#
+	#	www.coco.dk admin system					#
+	#	this code is intellectual proporty of		#
+	#	musicmedia.dk, please proceed with caution!	#
+	#												#
+	#################################################
+*/
+
+/*	--------------------------------------------- */
+/*	### general typography ###  */
+
+body, a, ul, li, label, legend, select, input, textarea, table, th, td, h1, h2, h3, h4, dt, dd {
+	font: 11px "lucida grande", verdana, arial, sans-serif;
+}
+
+div {
+	line-height: 0;
+}
+
+img {
+	font-size: 10px;
+}
+
+p {
+	margin-bottom: 0.5em;
+	line-height: 1.4em;
+}
+
+a, #main a {
+	font-weight: bold;
+	text-decoration: none;
+}
+
+a:hover, #main a:hover {
+	text-decoration: underline;
+}
+
+h1, h2, h3, .bold, .alert, span.inputerrfldnm, label.inputerrfldnm, div.twolan var, dt, legend, th {
+	font-weight: bold;
+}
+
+h2 {
+	font-size: 150%;
+}
+
+h3 {
+	margin: 8px 0 2px;
+}
+
+.italic {
+	font-weight: normal;
+	font-style: italic;
+}
+
+.normal {
+	font-weight: normal;
+	font-style: normal;
+}
+
+.notthis {
+	text-decoration: line-through;
+}
+
+/* @group mainnav */
+
+ul#mainnav a.twoline, ul#mainnav div.dimtwo {
+	line-height: 90%;
+}
+
+ul#mainnav li a, ul#mainnav div.dim, #mainnav div.dimtwo {
+	text-decoration: none;
+	font-weight: 800;
+	font-family: verdana, arial, sans-serif;
+}
+
+
+
+/* @end */
+
+/* @group left */
+
+#left #menugrp div.tle {
+	line-height: normal;
+	font-weight: bold;
+}
+
+ul#leftnav a {
+	font-weight: normal;
+	line-height: normal;
+}
+
+ul#leftnav a:hover {
+	text-decoration: none;
+}
+
+/* @end */
+
+/* @group feedback */
+
+#feedback p {
+	margin-bottom: 0.3em;
+	line-height: normal;
+}
+
+#feedback a {
+	font-weight: bold;
+	border-bottom: 1px dotted;
+}
+
+#feedback a.sub {
+	font-weight: normal;
+}
+
+#feedback a:hover {
+	border-bottom: 1px solid;
+}
+
+
+
+/* @end */
+
+/* @group main */
+
+#main div.links a {
+	font-weight: normal;
+}
+
+#main div.links a:hover {
+	text-decoration: none;
+}
+
+
+/* @end */
+
+/* @group footer */
+
+ul#footernav li a {
+	font-weight: 400;
+}
+
+/* @end */
+
+/* @group form element rules and related */
+
+label.alert {
+	font-weight: bold;
+}
+
+label.title {
+	font-weight: bold;
+	text-align: left;
+}
+
+label.radio, label.checkbox	{
+	text-align: left;
+}
+
+input.submit, input.reset, input.delete, input.deleteSmall, input.deleteSmallDisab {
+	font-family: arial, helvetica;
+	font-weight: bold;
+}
+
+input.deleteSmall, input.deleteSmallDisab {
+	font-size: 90%;
+	font-weight: normal;
+}
+
+fieldset#dsp p {
+	clear: left;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+fieldset#dsp label {
+	font-weight: normal;
+}
+
+fieldset var, fieldset#dsp var, div.twolan var {
+	font-style: normal;
+}
+
+
+/* @end */
+
+/* @group various classes */
+
+
+.dim {
+	line-height: normal;
+}
+
+/* @end */
+
+/* @group tables */
+
+th a, th a:hover {
+	text-decoration: none;
+}
+
+th {
+	text-align: left;
+}
+
+
+
+/* @end */
+
+/* @group autocompleter and other ajax related */
+
+div#contact, div#annot {
+	line-height: normal;
+}
+
+
+
+/* @end */
+

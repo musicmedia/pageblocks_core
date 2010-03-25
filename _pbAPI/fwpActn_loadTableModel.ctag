@@ -1,0 +1,315 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_loadTableModel.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_loadTableModel }
+	{rsrcHTTP=		www.fwpro.com/refc/fwpActn_loadTableModel }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This tag reads a table definition file and creates
+					individual ordered arrays of form paramater names and 
+					database field names in corresponding order. This is used
+					by the database action routines to automate the 
+					construction of SQL statements based on form inputs. 
+					This tag *must run from the LassoStartup folder as it makes
+					use of the -privileged status as of 1.2.3 }
+
+	{maintvsrn=		1.2.4 }
+	{maintrelease=	5.5.0 }
+	{maintdate=		2008-08-01 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	database table names now required via external tag named
+					fwpActn_loadTableNames, which lives in LassoStartup
+					this way this tag can live in /_pbAPI. }
+
+	{maintvsrn=		1.2.3 }
+	{maintrelease=	5.3.0 }
+	{maintdate=		2007-08-12 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	reversed the change made for 1.2.2 and put  
+					database_tableNames back in and assigned the tag
+					-privileged status. This allows us to skip assigning 
+					rights in siteAdmin, and is also database agnostic. }
+					
+	{maintvsrn=		1.2.2 }
+	{maintrelease=	5.2.5b }
+	{maintdate=		2007-08-01}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	replaced use of database_tableNames with an -sql query
+	 				to detect config error 5090 }
+					
+	{maintvsrn=		1.2.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-21}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added inputNameMap instance var }
+					
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-28}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added thread lock access to the global var model cache,
+					added support for double braced sections to begin to
+					unify all the config file formats,
+					added processing of the connector info so it can
+					be defined just once in _initMasters }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+
+define_tag:'fwpActn_loadTableModel',
+	-required = 'tableName';
+
+	$fw_debug ? $fw_tagTracer->(add:'fwpActn_loadTableModel', -tableName = #tableName);
+
+//	fw_tableDefn stores the full unparsed contents of the text file
+//	inputNames stores the array of form param names corresponding to the fieldNames
+//	fieldNames stores the array of field names corresponding to the inputNames
+//	fieldTypes stores the array of field types corresponding to the inputNames
+//	valCodes stores the array of key codes corresponding to the inputNames
+//	fieldNameMap stores a map with (inputName = fieldName)
+//	fieldTypeMap stores a map with (inputName = fieldType)
+//	valCodeMap stores a map with (inputName = valCodes)
+
+if:	 ($fw_gDbTableModels->find:#tableName)->size > 0;
+
+	return: true;
+	
+else;
+
+	local:
+		'fw_configName'		= string,
+		'fw_tableDefn'		= string,
+		'fw_fieldList'		= string,
+
+		'fw_fieldDefn'		= string,
+		'fw_thisItem'		= string,
+		'fw_delimiterBegin'	= string,
+		'fw_delimiterEnd'	= string,
+	
+		'conn'				= string,
+		'db'				= string,
+		'tbl'				= string,
+		'keyfld'			= string,
+		'lockfld'			= string,
+	
+		'dbTableNames'		= array,
+		'inputNames'		= array,
+		'fieldNames'		= array,
+		'fieldTypes'		= array,
+		'valCodes'			= array,
+		'inputNameMap'		= map,
+		'fieldNameMap'		= map,
+		'fieldTypeMap'		= map,
+		'valCodeMap'		= map;
+		
+	#fw_configName = 'tableModel_' + #tableName + fw_kCnfgExt;
+
+	#fw_tableDefn = (fwpCnfg_loadFile:#fw_configName);
+
+//----------------------------------------------------------------
+// 	extract data sections
+//
+
+	if: !#fw_tableDefn;
+
+		// 	we don't normally report or log this error because
+		//	the likely cause is that the tableModel file was not found
+		//	which the file loading process would have already reported
+		//	and we don't need multiple reports of that fact
+		
+		($fw_debug >= fw_kVerbose) ? $fw_error->(insert:'5201' = 'fwpActn_loadTableModel');
+		($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpActn_loadTableModel', -ERROR = 'file not found: ' + #fw_configName);
+		($fw_debug >= fw_kVerbose) && $fw_criticalLog ? log_critical:('pbError : fwpActn_loadTableModel could not load (probably could not find) ' + #fw_configName);
+		return: false;
+
+	else;
+
+		($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpActn_loadTableModel', -status = 'file loaded: ' + #fw_configName);
+
+//	detect version 5.0 vs 5.1 format
+
+		if: #fw_tableDefn >> '{{serverType___';
+			#fw_delimiterBegin = '{{';
+			#fw_delimiterEnd = '}}';
+		else;
+			#fw_delimiterBegin = '{';
+			#fw_delimiterEnd = '}';
+		/if;		
+		
+		#conn 	 = (string_findregexp: #fw_tableDefn, 
+					-find=(#fw_delimiterBegin + 'serverType___([^\\}]+)' + #fw_delimiterEnd))->last;
+
+		#db 	 = (string_findregexp: #fw_tableDefn, 
+					-find=(#fw_delimiterBegin + 'databaseName___([^\\}]+)' + #fw_delimiterEnd))->last;
+
+		#tbl 	 = (string_findregexp: #fw_tableDefn, 
+					-find=(#fw_delimiterBegin + 'tableName___([^\\}]+)' + #fw_delimiterEnd))->last;
+
+		#keyfld  = (string_findregexp: #fw_tableDefn, 
+					-find=(#fw_delimiterBegin + 'keyfield___([^\\}]+)' + #fw_delimiterEnd))->last;
+
+		#lockfld = (string_findregexp: #fw_tableDefn, 
+					-find=(#fw_delimiterBegin + 'lockField___([^\\}]+)' + #fw_delimiterEnd))->last;
+					
+		#fw_fieldList = (string_findregexp: #fw_tableDefn, 
+					-find=(#fw_delimiterBegin + 'tableModel___([^\\}]+)' + #fw_delimiterEnd))->last;
+
+
+//----------------------------------------------------------------
+// 	parse the misc table data
+//
+
+		#conn->trim;
+		#db->trim;
+		#tbl->trim;
+		#keyfld->trim;
+		#lockfld->trim;
+	
+		#conn >> '['
+			? #conn = process:#conn;
+		#db >> '['
+			? #db = process:#db;
+		#tbl >> '['
+			? #tbl = process:#tbl;
+	
+		!#conn || !#db || !#tbl || !#keyfld || !#lockfld || !#fw_fieldList
+			? $fw_error->(insert:'5201' = 'fwpActn_loadTableModel');
+
+		if: $fw_debug;
+
+			!#conn 			? $fw_tagTracer->(add:'fwpActn_loadTableModel', -ERROR = 'serverType___ not defined');
+			!#db 			? $fw_tagTracer->(add:'fwpActn_loadTableModel', -ERROR = 'databaseName___ not defined');
+			!#tbl 			? $fw_tagTracer->(add:'fwpActn_loadTableModel', -ERROR = 'tableName___ not defined');
+			!#keyfld 		? $fw_tagTracer->(add:'fwpActn_loadTableModel', -ERROR = 'keyfield___ not defined');
+			!#lockfld 		? $fw_tagTracer->(add:'fwpActn_loadTableModel', -ERROR = 'lockField___ not defined');
+			!#fw_fieldList 	? $fw_tagTracer->(add:'fwpActn_loadTableModel', -ERROR = 'tableModel___ not defined');
+
+			!#conn && $fw_criticalLog 			? log_critical: ('pbError : fwpActn_loadTableModel serverType___ not defined in  ' + #fw_configName);
+			!#db && $fw_criticalLog 			? log_critical: ('pbError : fwpActn_loadTableModel databaseName___ not defined  ' + #fw_configName);
+			!#tbl && $fw_criticalLog 			? log_critical: ('pbError : fwpActn_loadTableModel tableName___ not defined  ' + #fw_configName);
+			!#keyfld && $fw_criticalLog 		? log_critical: ('pbError : fwpActn_loadTableModel keyfield___ not defined  ' + #fw_configName);
+			!#lockfld && $fw_criticalLog 		? log_critical: ('pbError : fwpActn_loadTableModel lockField___ not defined  ' + #fw_configName);
+			!#fw_fieldList && $fw_criticalLog 	? log_critical: ('pbError : fwpActn_loadTableModel tableModel___ not defined  ' + #fw_configName);
+		/if;
+
+	     #dbTableNames = fwpActn_loadTableNames(#db); // external tag living in LassoStartup
+
+        if: #dbTableNames !>> #tbl;
+            $fw_error->(insert:'5090' = 'fwpActn_loadTableModel');
+			$fw_debug ? $fw_tagTracer->(add:'fwpActn_loadTableModel', 
+											-ERROR = 'database or table name in ' + #fw_configName + ' is not available or is incorrectly defined',
+											-db=#db,
+											-tbl=#tbl,
+											-dbTableNames=(string:#dbTableNames));
+            $fw_criticalLog ? log_critical:('pbError : database or table name in ' + #fw_configName + ' is not available or is incorrectly defined');
+        /if;
+
+//----------------------------------------------------------------
+//	parse the fieldList
+
+//	we have to ensure that every line has the minimum 
+//	reqd number of tabs (columns)
+//	as there is risk that trailing tabs are left off
+//	rather than iterate through the whole table and check formatting
+//	just add columns by changing \r to \t\t\t\r
+//	this will create filler columns where needed
+//	it will also create extra column in places, but we don`t care
+//	as it doesn`t add much bulk, and won`t harm the rest of the code, 
+//	and in the end, it is faster to process
+	
+		#fw_fieldList->(replace:'\r\n', '\r');
+		#fw_fieldList->(replace:'\n', '\r');
+		#fw_fieldList->trim;
+		#fw_fieldList += '\r';
+	
+		#fw_fieldList = (string_replaceregexp: 
+			#fw_fieldList, 
+			-find='\t+',
+			-replace='\t');
+	
+		#fw_fieldList = (string_replaceregexp: 
+			#fw_fieldList, 
+			-find='\r',
+			-replace='\t\t\t\r');
+	
+		#fw_fieldList = #fw_fieldList->(split:'\r');
+		#fw_fieldList = (fwpCnfg_deComment: #fw_fieldList);
+	
+		iterate: #fw_fieldList, #fw_fieldDefn;
+			#fw_fieldDefn = #fw_fieldDefn->(split:'\t');
+			#inputNames->(insert:(#fw_fieldDefn->(get:1)));
+			#fieldNames->(insert:(#fw_fieldDefn->(get:2)));
+			#fieldTypes->(insert:(#fw_fieldDefn->(get:3)));
+			#valCodes->(insert:(#fw_fieldDefn->(get:4)));
+		/iterate;
+
+//	create maps so we can pull any parameter based on the inputName
+
+		iterate: #inputNames, #fw_thisItem;
+			#inputNameMap->(insert:(#fieldNames->get:loop_count) = #fw_thisItem);
+			#fieldNameMap->(insert:#fw_thisItem = (#fieldNames->get:loop_count));
+			#fieldTypeMap->(insert:#fw_thisItem = (#fieldTypes->get:loop_count));
+			#valCodeMap->(insert:#fw_thisItem = fwpCnfg_splitComma:(#valCodes->get:loop_count));
+		/iterate;
+
+//----------------------------------------------------------------
+//	store config data to global var object
+//
+
+		$fw_gDbTableModels_rwlock->readUnlock;
+		$fw_gDbTableModels_rwlock->writeLock;
+		
+			$fw_gDbTableModels->(insert:
+				#tableName = (map:
+					'conn'			= #conn,
+					'db'			= #db,
+					'tbl'			= #tbl,
+					'keyfld' 		= #keyfld,
+					'lockfld' 		= #lockfld,
+					'inputNames' 	= #inputNames,
+					'fieldNames' 	= #fieldNames,
+					'fieldTypes' 	= #fieldTypes,
+					'valCodes'		= #valCodes,
+					'inputNameMap'	= #inputNameMap,
+					'fieldNameMap'	= #fieldNameMap,
+					'fieldTypeMap'	= #fieldTypeMap,
+					'valCodeMap'	= #valCodeMap));
+	
+		$fw_gDbTableModels_rwlock->writeUnlock;
+		$fw_gDbTableModels_rwlock->readLock;
+
+		if: error_code == 0;
+			return: true;
+		else;
+			return: false;
+		/if;
+	/if;
+/if;
+/define_tag;
+?>

@@ -1,0 +1,76 @@
+﻿<?lassoscript
+
+	if($fw_user->('loginValid') == 'Y');
+	
+	
+	//	---------------------------------------------------------------------------
+	//	detect button clicks here
+	//
+	
+		if(var('btnMainShowAll.x') || var('btnSearch.x'));
+		
+			fwpActn_searchState( 
+				-reset,
+				-table = $fw_gTables->find('appstrings'),
+				-id = 'fwpPagesAdmin'
+			);
+		
+		else(var('btnMainNewRcrd.x'));
+		
+			redirect_URL('addForm?fw_s=' + $fw_s);
+		
+		else(var('btnMainSearch.x'));
+		
+			redirect_URL('search?fw_s=' + $fw_s);
+		
+		else;
+	
+			fwpActn_searchState( 
+				-restore,
+				-table = $fw_gTables->find('appstrings'),
+				-id = 'fwpPagesAdmin'
+			);
+	
+		/if;
+	
+	
+	//	---------------------------------------------------------------------------
+	//	handle the list
+	//
+	
+		$fw_edvCurrentView = 'home';
+		fwpActn_unlock;
+		
+		// need to make a var with the query string, otherwise fwp_listRcrds doesnt grab it
+		var('qry' = "stringLanguage = '" + $fw_gCoreLanguage + "'");
+
+		var('stringsList'	= fwp_listRcrds(
+			-quiet,
+			-inputs	= 'm_rStat, m_strPath, m_strName, m_strValue, m_strLang',
+			-name	= 'stringsList',
+			-config	= 'stringsAdmin',
+			-where	= $qry,
+			-table	= $fw_gTables->find('appstrings'),
+			-select	= 'rcrdNo, rcrdStatus, rcrdModified, rcrdModifiedBy, stringLanguage, stringPagePath, stringName, stringValue, stringClientMedia, stringClientVariant',
+			-sort	= 'stringPagePath```asc```by path',
+			-keyfld	= 'rcrdno'
+		));
+		
+		var('appLanguages'	= fwp_valueList(
+			-table		= 'vlists',
+			-list		= 'appStringsLanguages',
+			-scope		= 'site',
+			-language	= $fw_gCoreLanguage,
+			-titleOption= 'Select Language...',
+			-attributes	= map(
+				'name'		= 'editLang',
+				'id'		= 'editLang',
+				'onchange'	= 'if(this.selectedIndex != 0){ this.form.submit(); }'
+			)
+		));
+
+		var('fw_errQuiet5100'	= true);
+		
+	/if;
+
+?>

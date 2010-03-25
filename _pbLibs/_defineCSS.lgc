@@ -1,0 +1,40 @@
+<?LassoScript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2006 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_setCSS.lgc }
+	{rsrcType=		include }
+	{rsrcName=		fwpPage_setCSS }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_setCSS }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.1 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine loads a specific CSS sheet based on the 
+					browser type, or the site section. It should be altered
+					to meet the CSS needs of the site. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+//	'\t<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />\r'; 
+//	$fw_requestPage->('path') !>> 'admin' && $fw_requestPage->('path') !>> 'quiz' && $fw_requestPage->('name') !>> 'clip' ? 
+//	'\t<!--[if IE 6]>\r' + 
+//		'\t\t<link rel="stylesheet" type="text/css" href="/site/css/ie6.css" />\r' + 
+//	'\t<![endif]-->\r'; 
+
+?>

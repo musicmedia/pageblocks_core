@@ -1,0 +1,233 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_pageStrings.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		fwp_pageStrings }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwp_pageStrings }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Provides retrieval interface to	localized strings for 
+					application content based on a pageName. Strings
+					must be stored in a data table. }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2008-07-20 }
+	{maintauthor=	Nikolaj de Fine Licht }
+	{maintnotes=	changed string lookup query in appStrings table in tag getStringsForPage
+					to search on client language too in order to reduce to only one, not-language specific table }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-08-01 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_type:'fwp_pageStrings', -prototype;
+
+	local:
+		'usePageStrings'		= boolean,
+		'pageStrings'			= map,
+		'fw_unknownStringValue' = '<span class="bold">UNKNOWN STRING REQUESTED</span>';
+	
+
+//============================================================================
+//
+//	->turnPageStringsOn
+//
+//
+//
+//............................................................................
+
+define_tag:'activate';
+	(self->'usePageStrings') = true;
+/define_tag;
+
+
+//============================================================================
+//
+//	->turnPageStringsOff
+//
+//
+//
+//............................................................................
+
+define_tag:'deactivate';
+	(self->'usePageStrings') = false;
+/define_tag;
+
+
+//============================================================================
+//
+//	->unknownTag
+//
+//	allows cleaner syntax for retreiving string
+//
+//
+//............................................................................
+
+define_tag:'_unknowntag';
+
+//	::HACK::
+//	this is a bandaid to correct the behavior of Lasso
+//	calling _unknownTag before checking for an instance var 
+//	when the ivar is called unquoted
+	if: self->properties->first >> tag_name;
+		return: self->properties->first->find:tag_name;
+	/if;
+
+	if: !((self->'pageStrings') >> tag_name);
+		return: (self->'fw_unknownStringValue');
+	else: (params && (params >> '-withProcess'));
+		return: process:((self->'pageStrings')->find: tag_name);
+	else;
+		return: ((self->'pageStrings')->find: tag_name);
+	/if;
+
+/define_tag;
+
+
+//============================================================================
+//
+//	->getStringsForPage
+//
+//	retrieves all strings from the appstrings table that belong to a 
+//	specific page
+//
+//............................................................................
+
+define_tag:'getStringsForPage',
+	-optional = 'path',		-type = 'string';
+	
+	$fw_debugTimers ? $fw_timer->(start:'pageStrings.getStringsForPage');
+
+	local(
+		'fw_pagePath'		= local:'path',
+		'fw_language'		= string,
+		'fw_media'			= string,
+		'fw_variant'		= string,
+		'stringsFromPath' 	= fwp_recordData($fw_gTables->find('appstrings')
+	));
+	
+//	$fw_tagTracer->(add('fwp_pageStrings->getStringsForPage', -stringsFromPath = #stringsFromPath));
+
+	!#fw_pagePath
+		? #fw_pagePath = ($fw_requestPage->'path') + ($fw_requestPage->'page');
+
+	params && (params >> '-language')
+		? #fw_language = ((params->find:'-language')->get:1)->second
+		| #fw_language = ($fw_client->'language');
+	
+	params && (params >> '-media')
+		? #fw_media = ((params->find:'-media')->get:1)->second
+		| #fw_media = ($fw_client->'media');
+	
+	params && (params >> '-variant')
+		? #fw_variant = ((params->find:'-variant')->get:1)->second
+		| #fw_variant = ($fw_client->'variant');
+
+	if: fw_kUsePageStringsAutoDegrade;
+	
+		#stringsFromPath->(select(
+			-quiet,
+			-asRecordsMapsFields,
+			-limit	= '*', 
+			-select = 'stringName, stringLanguage, stringValue, stringClientMedia, stringClientVariant',
+			-where 	= "stringPagePath = '" + #fw_pagePath + "' AND stringLanguage = '" + #fw_language + "'"
+		));
+
+		$fw_debug ? var:'api_pageStrings_selectQryA' = #stringsFromPath;
+
+		local:
+			'stringsFromRcrds'	= map,
+			'strNames' 			= set,
+			'strName'			= string,
+			'strMedia'			= string,
+			'strView'			= string,
+			'thisRcrd'			= map,
+			'thisStrName'		= map;
+
+// ::TODO:: cache pageStrings
+//	in a future update, the results of creating pageStrings will be cached
+
+//	create basic map from all available records
+
+		iterate: #stringsFromPath->'records', #thisRcrd;
+
+			#strName	= (#thisRcrd->find:'stringName');
+			#strMedia	= (#thisRcrd->find:'stringClientMedia');
+			#strView	= (#thisRcrd->find:'stringClientVariant');
+			
+			#strNames->(insert: #strName);
+
+			!(#stringsFromRcrds >> #strName)
+				? #stringsFromRcrds->(insert: #strName = map);
+				
+			!((#stringsFromRcrds->find:#strName) >> #strMedia)
+				? (#stringsFromRcrds->find:#strName)->(insert: #strMedia = map);
+
+			!(((#stringsFromRcrds->find:#strName)->find:#strMedia) >> #strView)
+				? ((#stringsFromRcrds->find:#strName)->find:#strMedia)->(insert: #strView = map);
+				
+			(((#stringsFromRcrds->find:#strName)->find:#strMedia)->find:#strView) = 
+				(#thisRcrd->find:'stringValue');
+
+		/iterate;
+
+//	per strName, find the requested media and variant and insert into pageStrings
+//	using defaults where the exact media and/or view is not available from the database
+
+		local:'thisStrMap' = map;
+
+		iterate: #strNames, #thisStrName;
+		
+			#thisStrMap = @(#stringsFromRcrds->find:#thisStrName);
+			
+			if: (#thisStrMap >> #fw_media) && ((#thisStrMap->find:#fw_media) >> #fw_variant);
+				(self->'pageStrings')->(insert: #thisStrName = @((#thisStrMap->find:#fw_media)->find:#fw_variant));
+			else: (#thisStrMap >> #fw_media)	&& !((#thisStrMap->find:#fw_media) >> #fw_variant);
+				(self->'pageStrings')->(insert: #thisStrName = @((#thisStrMap->find:#fw_media)->find:'default'));
+			else; 
+				(self->'pageStrings')->(insert: #thisStrName = @((#thisStrMap->find:'all')->find:'default'));
+			/if;
+
+		/iterate;
+
+	else;
+
+		#stringsFromPath->(select:
+			-quiet,
+			-select = 'stringName, stringValue',
+			-where 	= "stringPagePath='" + #fw_pagePath + "'" 
+					  + " AND stringClientMedia='" + #fw_media + "'"
+					  + " AND stringClientVariant='" + #fw_variant + "'");
+
+		$fw_debug ? var:'api_pageStrings_selectQryB' = #stringsFromPath;
+
+		records: -inlineName = #stringsFromPath->'inlineName';
+			(self->'pageStrings')->(insert: (field:'stringName') = (field:'stringValue'));
+		/records;
+
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'pageStrings.getStringsForPage');
+
+/define_tag;
+
+/define_type;
+?>

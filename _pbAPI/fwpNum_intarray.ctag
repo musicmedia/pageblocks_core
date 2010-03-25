@@ -1,0 +1,94 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpNum_intArray.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpNum_intArray }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpNum_intArray }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Creates absolute and relative arrays of numbers. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+//
+//	-first		= first number in the array
+//	-last		= last number in the array
+//	-origin 	= numeric origin for relative arrays
+//				= use string 'year' to set origin as the current YYYY value
+//	-inc		= increment step between each value
+//
+//	............................................................................
+
+define_tag:'fwpNum_intArray', 
+	-priority='replace',
+	-optional='origin',
+	-optional='first',
+	-optional='last',
+	-optional='inc';
+
+	local:
+		'rArray'	= (array),
+		'fw_origin'	= local:'origin',
+		'fw_first'	= local:'first',
+		'fw_last'	= local:'last',
+		'fw_inc'	= local:'inc';
+
+	if: !(local:'fw_first');
+		#fw_first = 0;
+	/if;
+
+	if: !(local:'fw_last');
+		#fw_last = 0;
+	/if;
+
+	if: !(local:'fw_inc');
+		#fw_inc = 1;
+	else;
+		#fw_inc = math_abs:#fw_inc;
+	/if;
+
+	if: !(local:'fw_origin');
+		#fw_origin = '';
+	/if;
+
+	if: (#fw_origin >> 'year') || (((params->find:'-year')->size) > 0);
+		#fw_origin = (date)->year;
+	/if;
+
+	#fw_origin = integer:#fw_origin;
+	#fw_first += #fw_origin;
+	#fw_last += #fw_origin;
+
+	if: #fw_first > #fw_last;
+		#fw_inc = (-1) * #fw_inc;
+	/if;
+
+	loop: 
+		-from = #fw_first, 
+		-to = #fw_last, 
+		-by = #fw_inc;
+		#rArray->(insert: loop_count);
+	/loop;
+
+	return:#rArray;
+
+/define_tag;
+?>

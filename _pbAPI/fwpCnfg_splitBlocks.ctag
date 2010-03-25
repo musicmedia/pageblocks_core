@@ -1,0 +1,82 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_splitBlocks.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpCnfg_splitBlocks }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpCnfg_splitBlocks }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Converts a series of config blocks into 
+					an array of Lasso pairs. }
+
+	{maintvsrn=		1.1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems,
+	 				changed some internal vars for better readability }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-01-02 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpCnfg_splitBlocks', -priority='replace',
+	-required = 'blocks';
+
+//	-asArray
+
+	($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpCnfg_splitBlocks');
+
+	local:
+		'splitResults' 	= map,
+		'configData'	= #blocks,
+		'thisBlock'		= string,
+		'blockName'		= string,
+		'blockData'		= string;
+
+	(params >> '-asArray')
+		? #splitResults = array;
+
+	if: #configData; 
+		if: ((#configData->type != 'string') && (#configData->type != 'bytes'));
+			$fw_error->(insert:'5201'='fwpCnfg_splitBlocks');
+			$fw_debug ? $fw_apiError->(insert:'5241'=(#blocks->type));
+			$fw_debug ? $fw_tagTracer->(add:'fwpCnfg_splitBlocks', -ERROR = 'input was not a string or bytes');
+			$fw_criticalLog ? log_critical:'pbError : input to fwpCnfg_splitBlocks was not a string or bytes';
+		else;
+
+			(#configData = (string_findRegExp:#configData, -find='{{[\\s\\S]+?}}'));
+
+			iterate: #configData, #thisBlock;
+				#blockName = (string_findRegExp: #thisBlock, -find='{{([\\w]+?):')->last;
+				!#blockName ? #blockName = loop_count;
+				#blockData = (string_findRegExp: #thisBlock, -find='{{(?:\\w+\\:\\s*|\\s*)([\\s\\S]+?)}}')->last;
+				#blockData->trim;
+				#splitResults->(insert: #blockName = #blockData);
+			/iterate;
+
+			return: #splitResults;
+
+		/if;
+	else;
+		($fw_debug >= fw_kChatty) ? $fw_tagTracer->(add:'fwpCnfg_splitBlocks', -status = 'input was empty');
+	/if;
+/define_tag;
+?>

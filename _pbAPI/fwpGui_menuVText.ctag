@@ -1,0 +1,185 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGui_menuVText.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpGui_vtextmenu }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpGui_vtextmenu }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+
+	{desc=			Creates a vertical text menu from either
+					a structured config file (mnuText_), or an array which
+					is structured identical to the config file format. }
+
+	{maintvsrn=		1.2 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added process to menuItemTitle to allow for MVS,
+	 				changed internal vars names for better readability }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvrsn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpGui_vtextmenu', -priority='replace',
+	-optional='menu',
+	-optional='left',
+	-optional='fill',
+	-optional='paramsGet',
+	-optional='paramsFile',
+	-optional='paramsFldrs';
+
+	$fw_debugTimers ? $fw_timer->(start:'menuTagVtext');
+
+	local:
+		'menuConfigSource'	= @local:'menu',
+		'menuBorderLeft'	= @local:'left',
+		'menuFill'			= @local:'fill',
+		'paramsViaGet'		= local:'paramsGet',
+		'paramsViaFile'		= local:'paramsFile',
+		'paramsViaFldrs'	= local:'paramsFldrs',
+		'linkPath'			= string,
+		'linkFile'			= string,
+		'thisParam'			= string,
+		'menuConfigData'	= string,
+		'menuConfigLine'	= string,
+		'menuMarkup'		= string,
+		'menuItemIndx'		= 0,
+		'currentPage' 		= ((response_filepath)->split:'/')->last,
+		'currentPath' 		= (response_filepath) - #currentPage;
+
+	!(#menuFill)
+		? #menuFill = '&nbsp;';
+
+	#paramsViaGet
+		? #paramsViaGet = (fwpCnfg_splitComma: #paramsViaGet);
+
+	#currentPage >> fw_kURLparamsChar
+		? #currentPage = ((response_filepath)->split: fw_kURLparamsChar)->last;
+
+	if: #currentPath >> '/-/';
+		#currentPath = #currentPath->(split:'/-/')->get:1;
+		#currentPath += '/';
+	/if;
+
+//	if menuConfigSource is a string then it`s a file name to be loaded
+
+	if: (#menuConfigSource->type == 'string') || (#menuConfigSource->type == 'bytes');
+
+		#menuConfigData = (fwpCnfg_loadLines: ('mnuText_' + #menuConfigSource + fw_kCnfgExt));
+
+//	if menuConfigSource is already an array then we have direct config info
+
+	else: #menuConfigSource->type == 'array';
+
+		#menuConfigData = #menuConfigSource;
+
+	/if;
+
+
+//	start building the menu
+
+	iterate: #menuConfigData, #menuConfigLine;
+
+		if: 
+			(#menuConfigLine->(beginswith:'#') == true) || 
+			(#menuConfigLine == '');
+
+		else;
+
+			local:'menuConfigItems' = #menuConfigLine->split:'```';
+			local:
+				'menuItemLink'		= #menuConfigItems->get:1,
+				'menuItemTitle'		= #menuConfigItems->get:2,
+				'menuItemIndent'	= #menuConfigItems->get:3,
+				'menuItemMatchBy'	= #menuConfigItems->get:4;
+
+			local:'menuURLItems'	= (#menuItemLink->(split:'/'));
+			local:'menuLinkPage'	= (#menuURLItems->last);
+			local:'menuLinkPath'	= (#menuItemLink);
+			#menuLinkPath->(removeTrailing:#menuLinkPage);
+
+			(#menuMarkup) += (#menuFill * integer:#menuItemIndent);
+			(#menuMarkup) += (#menuBorderLeft);
+
+			if: #paramsViaGet->type == 'array';
+
+				(#menuItemLink) += '?';
+				iterate: #paramsViaGet, #thisParam;
+					if: #thisParam >> '=';
+						(#menuItemLink) += ((#thisParam->split:'=')->get:1) + '=' + ((#thisParam->split:'=')->get:2) + '&amp;';
+					else;
+						(#menuItemLink) += #thisParam + '=' + (var:#thisParam) + '&amp;';
+					/if;
+				/iterate;
+				#menuItemLink->(removeTrailing:'&amp;');
+
+			else: #paramsViaFile;
+
+				#linkFile = (#menuItemLink->split:'/')->last;
+				#linkPath = #menuItemLink - #linkFile;
+				(#menuItemLink) = (fwpPage_urlParamsFile: -folder=#linkPath, -page=#linkFile, -vars=#paramsViaFile);
+
+			else: #paramsViaFldrs;
+
+				#linkFile = (#menuItemLink->split:'/')->last;
+				#linkPath = #menuItemLink - #linkFile;
+				(#menuItemLink) = (fwpPage_urlParamsFldrs: -folder=#linkPath, -page=#linkFile, -vars=#paramsViaFldrs);
+
+			/if;
+
+			if: 
+				((#menuItemMatchBy == 'path') && (#currentPath->beginswith:#menuLinkPath)) ||
+				((#menuItemMatchBy == 'page') && (#currentPage == #menuLinkPage));
+
+				#menuMarkup += '<span class="fwptxtmenuhilite"><a class="fwptxtmenuhilitelink" href="';
+				#menuMarkup += #menuItemLink;
+				#menuMarkup += '">';
+				#menuItemTitle->beginsWith:'['
+					? #menuMarkup += (process:#menuItemTitle)
+					| #menuMarkup += #menuItemTitle;
+				#menuMarkup += '</a></span><br />';
+
+			else;
+
+				#menuMarkup += '<a href="';
+				#menuMarkup += #menuItemLink;
+				#menuMarkup += '">';
+				#menuItemTitle->beginsWith:'['
+					? #menuMarkup += (process:#menuItemTitle)
+					| #menuMarkup += #menuItemTitle;
+				#menuMarkup += '</a><br />';
+
+			/if;
+		/if;
+
+	/iterate;
+
+	$fw_debugTimers ? $fw_timer->(stop:'menuTagVtext');
+
+	return: @#menuMarkup;
+
+/define_tag;
+?>

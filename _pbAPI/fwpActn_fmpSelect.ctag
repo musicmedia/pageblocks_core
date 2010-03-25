@@ -1,0 +1,375 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_fmpSelect.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_fmpSelect }
+	{rsrcHTTP=		www.pageblocks.org }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+	
+	{desc=			This routine builds a FileMaker Search statement based 
+					upon the inputs supplied. Default values are created for 
+					various cases. }
+	
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvsrn=		1.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//............................................................................
+
+define_tag:'fwpActn_fmpSelect',
+	-priority='replace',
+	-optional='inlineName',
+	-optional='db',
+	-optional='tbl',
+	-optional='keyfld',
+	-optional='keyval',
+	-optional='inputs',
+	-optional='select',
+	-optional='where',
+	-optional='orderby',
+	-optional='sort',
+	-optional='skip',
+	-optional='limit',
+	-optional='makevars';
+
+$fw_debugTimers ? $fw_timer->(start:'fmpTagSelect');
+
+	local:
+		'fw_actnInlineNm'	= @(local:'inlineName'),
+		'fw_actnDb'			= @(local:'db'),
+		'fw_actnTbl'		= @(local:'tbl'),
+		'fw_actnKeyFld'		= @(local:'keyfld'),
+		'fw_actnKeyVal'		= (local:'keyval'),
+		'fw_actnInputs'		= (local:'inputs'),
+		'fw_actnSlct'		= (local:'select'),
+		'fw_actnWhere'		= (local:'where'),
+		'fw_actnOrderby'	= @(local:'orderby'),
+		'fw_actnSort'		= @(local:'sort'),
+		'fw_actnSkip'		= @(local:'skip'),
+		'fw_actnLimit'		= (local:'limit'),
+		'fw_actnMkVars'		= @(local:'makevars');
+
+//	normalize comma list and split it 
+
+	if:	#fw_actnInputs;
+		#fw_actnInputs = (fwpCnfg_splitComma:#fw_actnInputs);
+	/if;
+
+//	local variables generated within this include file 
+//	fw_fmpActn contains the constructed fmp statement string 
+
+	local:
+		'fw_tableConfig'	= (fwp_tableConfig: #fw_actnDb),
+		'fw_fmpFoundCount'	= (string),
+		'fw_fmpActionPairs'	= (array),
+		'fw_thisItem'		= (string),
+		'fw_indx'			= 0;
+
+	var:
+		'recordsArray'				= (array),
+		'foundcount'				= (string),
+		'showFirst'					= (string),
+		'showLast'					= (string),
+		'fwpActn_selectObj'			= (map);
+
+	$fwpActn_selectObj->(insert:'inlinename' = (string));
+	$fwpActn_selectObj->(insert:'select' = (string));
+	$fwpActn_selectObj->(insert:'inputs' = (string));
+	$fwpActn_selectObj->(insert:'whereIn' = (string));
+	$fwpActn_selectObj->(insert:'whereOut' = (string));
+	$fwpActn_selectObj->(insert:'actnPairs' = (array));
+	$fwpActn_selectObj->(insert:'foundcount' = (string));
+	$fwpActn_selectObj->(insert:'showfirst' = (string));
+	$fwpActn_selectObj->(insert:'showlast' = (string));
+
+//	............................................................................
+
+//	if an FWPro list sort string was passed, parse it
+//	a primary sort and 2 levels of sub sorts are supported
+//	should rewrite this to be unlimited
+
+	if: local:'fw_actnSort';
+	
+		local:'fw_sortFld'	= ((local:'fw_actnSort')->split:'```')->get:1;
+		local:'fw_sortOrdr'	= ((local:'fw_actnSort')->split:'```')->get:2;
+		local:'fw_sortDesc'	= ((local:'fw_actnSort')->split:'```')->get:3;
+
+		if: ((local:'fw_actnSort')->split:'```')->size > 3;
+			local:'fw_sortsub1Fld'	= ((local:'fw_actnSort')->split:'```')->get:4;
+			local:'fw_sortsub1Ordr'	= ((local:'fw_actnSort')->split:'```')->get:5;
+			local:'fw_sortsub1Desc'	= ((local:'fw_actnSort')->split:'```')->get:6;
+		else;
+			local:'fw_sortsub1Fld'	= (string);
+			local:'fw_sortsub1Ordr'	= (string);
+			local:'fw_sortsub1Desc'	= (string);
+		/if;
+	
+		if: ((local:'fw_actnSort')->split:'```')->size > 6;
+			local:'fw_sortsub2Fld'	= ((local:'fw_actnSort')->split:'```')->get:7;
+			local:'fw_sortsub2Ordr'	= ((local:'fw_actnSort')->split:'```')->get:8;
+			local:'fw_sortsub2Desc'	= ((local:'fw_actnSort')->split:'```')->get:9;
+		else;
+			local:'fw_sortsub2Fld'	= (string);
+			local:'fw_sortsub2Ordr'	= (string);
+			local:'fw_sortsub2Desc'	= (string);
+		/if;
+
+//	modify the default sort definition if needed
+//	if we`re coming back here from one of the list sort buttons
+//	then there will already be a #sort from that form
+
+		if: ((var:'fw_sortInvert') == 'Y') && (#fw_sortOrdr == 'ascending');
+			#fw_sortOrdr = 'descending';
+			#fw_actnSort = #fw_sortFld + '```' + #fw_sortOrdr + '```' + #fw_sortDesc;
+		else: ((var:'fw_sortInvert') == 'Y') && (#fw_sortOrdr == 'descending');
+			#fw_sortOrdr = 'ascending';
+			#fw_actnSort = #fw_sortFld + '```' + #fw_sortOrdr + '```' + #fw_sortDesc;
+		/if;
+	/if;
+
+//	............................................................................
+
+
+//	set some basic defaults if certain parameters are not defined
+
+	if: !(local:'fw_actnSlct');
+		local:'fw_actnSlct'='*';
+	/if;
+	if: !(local:'fw_actnInlineNm');
+		local:'fw_actnInlineNm'='';
+	/if;
+	if: !(local:'fw_actnKeyFld');
+		local:'fw_actnKeyFld'='rcrdNo';
+	/if;
+	if: !(local:'fw_actnKeyVal') && !(local:'fw_actnWhere');
+		local:'fw_actnKeyVal'='*';
+	/if;
+	if: !(local:'fw_actnSort');
+		local:'fw_actnSort'=(string);
+	/if;
+	if: !(local:'fw_actnSkip');
+		local:'fw_actnSkip'=0;
+	/if;
+	if: !(local:'fw_actnLimit');
+		local:'fw_actnLimit'=$fw_listRcrdsMax;
+	else: (local:'fw_actnLimit') == '*'; 
+		local:'fw_actnLimit'='all';
+	/if;
+
+	$fwpActn_selectObj->(insert:'inlinename' = #fw_actnInlineNm);
+	$fwpActn_selectObj->(insert:'inputs' = #fw_actnInputs);
+
+//	---------------------------------------------------------------------------
+//	build WHERE pairs
+
+//	actnWhere has four possible sources:
+//	first, it might be empty which defaults to all rcrds, so we do nothing (submit no field pairs)
+//	second, it might contain the literal `*` or `all` to mean all rcrds, so we do nothing (submit no field pairs)
+//	third, if it is the literal word `form`, we want to create pairs based on a submitted form (using a dbTbl config file)
+//	fourth, it has been supplied to the tag as an array of pairs, so we use it as a literal value
+
+	$fwpActn_selectObj->(insert:'whereIn' = #fw_actnWhere);
+
+	if: (#fw_actnWhere->type) == 'array';
+
+		#fw_fmpActionPairs = #fw_actnWhere;
+
+	else: (#fw_actnWhere == '*') || (#fw_actnWhere == 'all');
+	
+		//	do nothing
+		//	it will be handled below
+
+	else: #fw_actnWhere == 'form';
+
+//	build based on form submissions
+//	loop through the specified -inputs form
+//	and see if a particular field is in the table definition and supplied as a var via the form
+
+		iterate: #fw_actnInputs, local:'thisInput';
+
+			if: var:(#thisInput);
+
+				#fw_indx = (#fw_tableConfig->'inputNames')->(findPosition:#thisInput)->last;
+
+				//	modify pair array based on search operator
+				//	test for eq, otherwise do not specify, which defaults to usual Lasso/FMP `bw`
+
+				if: (var_defined: (#thisInput + 'Op'));
+					#fw_fmpActionPairs->(insert: (pair: '-operator' = var:(#thisInput + 'Op')));
+				/if;
+
+				if: ((var:(#thisInput + 'Op')) == 'eq');
+					#fw_fmpActionPairs->(insert: (pair: ((#fw_tableConfig->'fieldNames')->get:#fw_indx) = ('=' + (var:(#fw_tableConfig->'inputNames')->get:#fw_indx))));
+				else;
+					#fw_fmpActionPairs->(insert: (pair: ((#fw_tableConfig->'fieldNames')->get:#fw_indx) = (var:(#fw_tableConfig->'inputNames')->get:#fw_indx)));
+				/if;
+
+			/if;
+		/iterate;
+		
+	else: #fw_actnKeyFld && #fw_actnKeyVal;
+
+//	find one record
+
+		#fw_fmpActionPairs->(insert: (pair: #fw_actnKeyFld = #fw_actnKeyVal));
+
+	/if;
+
+	$fwpActn_selectObj->(insert:'whereOut' = #fw_fmpActionPairs);
+	var:'api_fmpSelect_pairs' = #fw_fmpActionPairs;
+
+
+//	---------------------------------------------------------------------------
+//	build Filter pairs
+
+//	build the search statement
+
+//if: $fw_gSubdomains;
+//	#fw_fmpActionPairs->(insert:  (pair:'rcrdSubHost' = ('==' + $fw_requestPage->'subhost')));
+// /if;
+
+
+//	---------------------------------------------------------------------------
+//	build ORDER BY pairs
+
+//	fw_actnOrderBy means a hand coded x=y pair was submitted
+//	fw_actnSort means an FWPro x```y```z list sort string was submitted
+
+	if: local:'fw_actnOrderby';
+		#fw_actnOrderby->(replace:', ', ',');
+		#fw_actnOrderby = #fw_actnOrderby->split:',';
+
+		iterate: #fw_actnOrderby, local:'thisPair';
+			#fw_fmpActionPairs->(insert:  (pair:'-sortfield' = (#thisPair->split:'=')->get:1));
+			#fw_fmpActionPairs->(insert:  (pair:'-sortorder' = (#thisPair->split:'=')->get:2));
+		/iterate;
+
+	else: local:'fw_actnSort';
+	
+		#fw_fmpActionPairs->(insert:  (pair:'-sortfield' = #fw_sortFld));
+		#fw_fmpActionPairs->(insert:  (pair:'-sortorder' = #fw_sortOrdr));
+
+		if: (local:'fw_sortsub1Ordr');
+			#fw_fmpActionPairs->(insert:  (pair:'-sortfield' = #fw_sortsub1Fld));
+			#fw_fmpActionPairs->(insert:  (pair:'-sortorder' = #fw_sortsub1Ordr));
+		/if;
+		if: (local:'fw_sortsub2Ordr');
+			#fw_fmpActionPairs->(insert:  (pair:'-sortfield' = #fw_sortsub2Fld));
+			#fw_fmpActionPairs->(insert:  (pair:'-sortorder' = #fw_sortsub2Ordr));
+		/if;
+	/if;
+
+
+//	---------------------------------------------------------------------------
+//	build RETURN FIELD pairs
+
+	if: #fw_actnSlct == '*';
+		//	no need to add -returnfield entries
+		//	but we need array for -mkvars later anyway
+		#fw_actnSlct = #fw_tableConfig->'fieldNames';
+
+	else;
+		#fw_actnSlct->(replace: ' ', '');
+		#fw_actnSlct = #fw_actnSlct->(split:',');
+
+		local:'thisField' = string;
+		iterate: #fw_actnSlct, #thisField;
+			#fw_fmpActionPairs->(insert: (pair: '-returnField' = #thisField));
+		/iterate;
+
+	/if;
+
+	$fwpActn_selectObj->(insert:'select' = #fw_actnSlct);
+	$fwpActn_selectObj->(insert:'actnPairs' = #fw_fmpActionPairs);
+
+	var:'api_fmpSelect_pairs' = #fw_fmpActionPairs;
+
+//	---------------------------------------------------------------------------
+//	perform the main database select
+//	and store as a named inline
+
+	$fw_debugTimers ? $fw_timer->(start:'fmpQrySelect');
+
+	inline: 
+		(#fw_fmpActionPairs),
+		-search,
+		-inlinename=#fw_actnInlineNm,
+		-username=$fw_gQueryUser,
+		-password=$fw_gQueryPswd,
+		-database=#fw_actnDb,
+		-layout=#fw_actnTbl,
+		-skiprecords=#fw_actnSkip,
+		-maxrecords=#fw_actnLimit;
+	
+		$fw_debugTimers ? $fw_timer->(stop:'fmpQrySelect');
+
+		$recordsArray = @records_array;
+
+		//	the var versions of foundcount, showfirst, showlast are kept for backwards compatibility
+
+		$foundCount=(found_count);
+		$fwpActn_selectObj->(insert:'foundCount' = found_count);
+
+		if: $foundcount;
+			$showFirst=(shown_first);
+			$showLast=(shown_last);
+//			$showFirst=(integer:(local:'fw_actnSkip')) + 1;
+//			$showLast=(integer:(local:'fw_actnSkip')) + (found_count);
+			$fwpActn_selectObj->(insert:'showFirst' = shown_first);
+			$fwpActn_selectObj->(insert:'showLast' = shown_last);
+		else;
+			$showFirst=0;
+			$showLast=0;
+			$fwpActn_selectObj->(insert:'showFirst' = 0);
+			$fwpActn_selectObj->(insert:'showLast' = 0);
+		/if;
+
+
+//	convert single record selects to vars
+
+		if: (found_count == 1) && #fw_actnMkVars;
+			iterate: #fw_actnSlct, #fw_thisItem;
+				#fw_indx = ((#fw_tableConfig->'fieldNames')->findindex:#fw_thisItem)->last;
+				if: #fw_indx;
+					var:((#fw_tableConfig->'inputNames')->get:#fw_indx) = field:((#fw_tableConfig->'fieldNames')->get:#fw_indx);
+				/if;
+			/iterate;
+		/if;
+	
+//	error trapping switches
+
+		if: $foundcount == 0;
+			if: (error_currenterror: -errorcode) == -1728;
+				if: !(var:'fw_errQuiet5100');
+					$fw_error->(insert: '5100' = 'No matching records (x)');
+				/if;
+			else;
+				$fw_error->(insert: '5028' = ('Failed search due to Lasso error ' + (error_currentError: -errorCode)));
+			/if;
+		/if;
+	/inline;
+
+$fw_debugTimers ? $fw_timer->(stop:'fmpTagSelect');
+
+/define_tag;
+?>

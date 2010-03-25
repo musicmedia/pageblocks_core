@@ -1,0 +1,92 @@
+﻿<?LassoScript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2006 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		validator_appSite.ctyp }
+	{rsrcType=		type }
+	{rsrcName=		validator_appSite }
+	{rsrcHTTP=		www.pageblocks.org/refc/validator_appSite }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.1 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+	
+	{desc=			This file tests custom validation codes and adds
+					to the main input validation error message array.
+					This file is a template for the developer to
+					follow to write app-specific code. }
+	
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+	define_type('validator_appSite'); 
+	
+		define_tag('-flnm',
+			-required	= 'inputName',
+			-required	= 'inputValue',
+			-optional	= 'inputParam', 
+			-description= 'For file names. Allows only small letters from English alfabet, numbers and - and _'
+		);
+		
+			local('inputIsValid'	= false); 
+		
+			if(string_findregexp(#inputValue, -find='[^abcdefghijklmnopqrstuvwxyz0-9\\_\\-]*')->size == 0);
+				#inputIsValid = true;
+			/if;
+		
+			return(#inputIsValid); 
+		
+		/define_tag; 
+		
+		define_tag('-extns',
+			-required	= 'inputName',
+			-required	= 'inputValue',
+			-optional	= 'inputParam', 
+			-description= 'For European text with numbers and a selection of symbols'
+		);
+		
+			local('inputIsValid'	= false); 
+
+			if(string_findregexp(#inputValue, -find='[^a-zA-Z\\x{00C0}-\\x{00FF}0-9\\\'\\"\\.\\,\\-\\_\\;\\:\\?\\!\\=\\%\\&\\(\\)\\/\\{\\}\\r\\n\\t ]*')->size == 0); 
+				#inputIsValid = true;
+			/if; 
+		
+			return(#inputIsValid); 
+		
+		/define_tag; 
+
+		define_tag('-extn',
+			-required	= 'inputName',
+			-required	= 'inputValue',
+			-optional	= 'inputParam', 
+			-description= 'For European names and titles etc, with numbers and only hyphen, point, question mark single quote, ampersand and colon'
+		);
+		
+			local('inputIsValid'	= false); 
+
+			if(string_findregexp(#inputValue, -find='[^a-zA-Z\\x{00C0}-\\x{00FF}0-9\\\'\\.\\-\\&\\:\\? ]*')->size == 0); 
+				#inputIsValid = true;
+			/if; 
+		
+			return(#inputIsValid); 
+		
+		/define_tag; 
+		
+
+	
+	/define_type;
+
+?>

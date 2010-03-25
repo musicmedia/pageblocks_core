@@ -1,0 +1,68 @@
+/*
+	#################################################
+	#												#
+	#	** language dependend rules **				#
+	#	www.coco.dk admin system					#
+	#	this code is intellectual proporty of		#
+	#	musicmedia.dk, please proceed with caution!	#
+	#												#
+	#################################################
+*/
+
+/*	--------------------------------------------- */
+
+input.update {
+	background: url(/site/controls/btnSave_dan.gif) no-repeat left top; 
+}
+
+input.update:hover {
+	background: url(/site/controls/btnSave-o_dan.gif) no-repeat left top; 
+}
+
+input.search {
+	background: url(/site/controls/btnSearch_dan.gif) no-repeat left top; 
+}
+
+input.search:hover {
+	background: url(/site/controls/btnSearch-o_dan.gif) no-repeat left top; 
+}
+
+input.search-w {
+	background: url(/site/controls/btnWSearch_dan.gif) no-repeat left top; 
+}
+
+input.search-w:hover {
+	background: url(/site/controls/btnWSearch-o_dan.gif) no-repeat left top; 
+}
+
+input.continue-w {
+	background: url(/site/controls/btnWContinue-a_dan.gif) no-repeat left top;
+}
+
+input.continue-w:hover {
+	background: url(/site/controls/btnWContinue-o_dan.gif) no-repeat left top;
+}
+
+input.save-w {
+	background: url(/site/controls/btnWSave-a_dan.gif) no-repeat left top;
+}
+
+input.save-w:hover {
+	background: url(/site/controls/btnWSave-o_dan.gif) no-repeat left top;
+}
+
+input.add-w {
+	background: url(/site/controls/btnWAdd-a_dan.gif) no-repeat left top;
+}
+
+input.add-w:hover {
+	background: url(/site/controls/btnWAdd-o_dan.gif) no-repeat left top;
+}
+
+input.delete-w {
+	background: url(/site/controls/btnWDelete-a_dan.gif) no-repeat left top;
+}
+
+input.delete-w:hover {
+	background: url(/site/controls/btnWDelete-o_dan.gif) no-repeat left top;
+}

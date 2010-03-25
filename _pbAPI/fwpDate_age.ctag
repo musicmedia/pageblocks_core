@@ -1,0 +1,57 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpDate_age.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpDate_age }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpDate_age }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Returns an age based on supplied date (or today)
+	 				up to a limit of 105 years old as that is 
+	 				about the limit of an integer in seconds }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.7 }
+	{maintdate=		2007-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated for changes to date handling introduced in 8.5.2
+					and generally cleaned up and simplified }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpDate_age', 
+	-priority = 'replace',
+	-required = 'birthdate',
+	-optional = 'asOfDate';
+	
+	local:'asOfDate'  = local:'asOfDate';
+	
+	(#asOfDate == '') || (#asOfDate >> '0000')
+		? #asOfDate = date;
+
+	(#birthDate != '') && (#birthDate !>> '0000') 
+	&& (#asOfDate != '') && (#asOfDate !>> '0000')
+	&& (valid_date: #birthdate) && (valid_date: #asOfDate)
+		? return: math_floor: ((date:#birthDate)->(difference: (date:#asOfDate), -second)) / (3600 * 24 * 365.25);
+
+/define_tag;
+?>

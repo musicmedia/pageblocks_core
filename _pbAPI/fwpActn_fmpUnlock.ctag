@@ -1,0 +1,110 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpActn_fmpUnlock.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpActn_fmpUnlock }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpActn_fmpUnlock }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This routine is used to force a record to unlock. It is 
+					typically employed in places where a user is likely to 
+					fail to use the "Cancel" button and jump to another page. 
+					If this routine is placed on that page, it will load the 
+					lockID and unlock the record. (This is most effective 
+					on the List page). This will not catch the case of a user 
+					using the browser back button to return to a page with
+					this tag. }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpActn_fmpUnlock', -priority='replace';
+
+	$fw_debugTimers ? $fw_timer->(start:'fmpTagUnlock');
+
+//	fw_sqlActn	- contains the constructed SQL statement string 
+//	the cookie	- contains dbName:tblName:lokID
+
+	local:
+		'fw_cookieNm'		= ($fw_gAppPrefix + '_lokInfo');
+
+	if: (cookie:#fw_cookieNm) != '';
+
+		local:
+			'fw_sqlActn'	= (string),
+			'fw_lokInfo'	= (cookie:#fw_cookieNm);
+
+		#fw_lokInfo 		= (decrypt_blowfish: #fw_lokInfo, -seed=$fw_gQueryPswd);
+
+		local:
+			'fw_lokDb'		= (#fw_lokInfo->split:':')->get:1,
+			'fw_lokTbl'		= (#fw_lokInfo->split:':')->get:2,
+			'fw_lokConn'	= (#fw_lokInfo->split:':')->get:3,
+			'fw_lokID'		= (#fw_lokInfo->split:':')->get:4;
+
+		if: #fw_lokConn == 'fmp';
+
+			inline: 
+				-update,
+				-username=$fw_gQueryUser,
+				-password=$fw_gQueryPswd,
+				-database=#fw_lokDb,
+				-layout='fwproRcrdFields',
+				-keyvalue=#fw_lokID,
+				'rcrdLock'='',
+				'rcrdLockTime'='',
+				'rcrdLockOwnr'='',
+				'rcrdLockID'='';
+			/inline;
+	
+		else;
+		
+			#fw_sqlActn=
+				'UPDATE ' + #fw_lokDb + '.' + #fw_lokTbl + ' SET ' + 
+				'rcrdLock=\'\', ' + 
+				'rcrdLockTime=\'\', ' + 
+				'rcrdLockOwnr=\'\', ' + 
+				'rcrdLockID=\'\' ' + 
+				'WHERE rcrdLockID=\'' + #fw_lokID + '\'';
+	
+			inline:
+				-username=$fw_gQueryUser,
+				-password=$fw_gQueryPswd,
+				-database=#fw_lokDb,
+				-sql=#fw_sqlActn;
+			/inline;
+
+		/if;
+
+		cookie_set:(#fw_cookieNm)='', -path='/';
+
+	/if;
+
+	$fw_debugTimers ? $fw_timer->(stop:'fmpTagUnlock');
+
+/define_tag;
+?>

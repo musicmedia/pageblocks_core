@@ -1,0 +1,10 @@
+<?lassoscript
+
+if: true;
+	var:'formIsValid' = $fw_validator->(validate:
+		-usingPostForm,
+		-inputs 	= 'testOne, testTwo',
+		-valCodes 	= (map: 'testOne' = (array:'a','-custom=Params','label=One'), 'testTwo' = (array:'an','x','label=TWO')));
+/if;
+
+?>

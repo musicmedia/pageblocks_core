@@ -1,0 +1,70 @@
+﻿[output_none]
+# PageBlocks authPswd_{name}.cnfg
+# version:  3.0
+# released: 2006-01-16
+# fwp_user configuration
+# updated to match the new fwp_user type
+# changed all occurrances of UsrPass to UsrPswd to match
+# consistency changes made for the new fwp_user code
+# added fw_kUsrPswdPromptDays
+
+# as of this release
+# password validation may be handed off to AutoValidate
+# or up to the programmer to implement using sample code
+
+# minimum password string length (integer)
+# 6 is ok, 8 is most secure
+
+fw_kUsrPswdMinLen=8
+
+# password must include charset (0|1)
+# most secure is one of each
+# recommended to at least require upper, lower, number
+
+fw_kUsrPswdUpper=1
+fw_kUsrPswdLower=1
+fw_kUsrPswdDigit=1
+fw_kUsrPswdSymbol=0
+
+# client_ip must match field usersHosts (0|1)
+# suitable only for users with fixed IP addresses
+
+fw_kUsrHostMatch=0
+
+# number of passwords to keep in history
+# new passwords cannot equal any in history
+# 0 means unused option
+
+fw_kUsrPswdHistory=0
+
+# frequency password must be changed (integer days)
+# 0 means unused option
+# most secure is 90 days or less
+
+fw_kUsrPswdDays=0
+
+# number of days before expiration 
+# to prompt user for new password
+
+fw_kUsrPswdPromptDays=14
+
+# admin supplied password must be changed on first use (0|1)
+
+fw_kUsrPswdOnce=0
+
+# max failed attempts before lockout (1-9)
+# 3 to 5 recommended
+# 0 means unused option
+
+fw_kUsrAttemptsMax=3
+
+# minutes to pass before lockout expires
+# (integer minutes) or -1 to require admin reset
+# 5 to 15 recommended
+# -1 requires admin reset but is not recommended
+# for most apps as it can lead to DOS attacks
+# 0 means unused option
+
+fw_kUsrLockMinTime=5
+
+[/output_none]

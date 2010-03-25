@@ -1,0 +1,63 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGIS_geocoderCoords.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpGIS_geocoderCoords }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpGIS_geocoderCoords }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Returns the lat/long coordinates of a USA address.
+	 				Requires the address include street, city, state, zip 
+	 				where zip is optional. Use comma delimiters. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.1.5 }
+	{maintdate=		2007-03-17 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+
+define_tag:	'fwpGIS_geocoderCoords',
+	-required = 'address';
+
+	local:
+		'serviceURL'	= 'http://rpc.geocoder.us/service/csv',
+		'GETParams' 	= (array: 'address' = #address),
+		'GISResults'	= string,
+		'GISCoords'		= (map: 'latitude' = 0, 'longitude' = 0);
+	
+	#GISResults = (include_url: #serviceURL, -getParams = #GETParams);
+	
+	if: #GISResults !>> 'sorry';
+
+//	allow for multiple results, and auto select the first one
+
+		#GISResults = #GISResults->(split:'\n');
+		#GISResults = #GISResults->first;
+		#GISResults = #GISResults->(split:',');
+
+		#GISCoords->(find:'latitude') = decimal:(#GISResults->get:1);
+		#GISCoords->(find:'longitude') = decimal:(#GISResults->get:2);
+
+	/if;
+
+	return: #GISCoords;
+
+/define_tag;
+
+?>

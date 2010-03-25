@@ -1,0 +1,1478 @@
+﻿# valueLists_languages english
+
+# these codes are from ISO 639-2: http://www.loc.gov/standards/iso639-2/langhome.html
+
+# for more guidance also refer to: 
+#	http://www.w3.org/International/articles/language-tags/Overview.en.php
+# 	http://joeclark.org/book/sashay/serialization/AppendixB.html
+
+# in case of localisation save a copy of this file with the language
+# code needed and translate the strings
+
+
+{{demoLanguagesLongShort:
+English, US___ en-us
+Jibberish___ jbrsh
+}}
+
+{{demoLanguagesShortLong:
+en-us___ English, US
+jbrsh___ Jibberish
+}}
+
+{{languagesLongShort:
+Abkhazian___ abk
+Achinese___ ace
+Acoli___ ach
+Adangme___ ada
+Adyghe___ ady
+Afar___ aar
+Afrihili___ afh
+Afrikaans___ afr
+Afro-Asiatic___ afa
+Ainu___ ain
+Akan___ aka
+Akkadian___ akk
+Albanian___ alb
+Aleut___ ale
+Algonquian___ alg
+Altaic___ tut
+Amharic___ amh
+Angika___ anp
+Apache___ apa
+Arabic___ ara
+Aragonese___ arg
+Aramaic___ arc
+Arapaho___ arp
+Arawak___ arw
+Armenian___ arm
+Aromanian___ rup
+Artificial___ art
+Assamese___ asm
+Asturian___ ast
+Athapascan___ ath
+Australian___ aus
+Austronesian___ map
+Avaric___ ava
+Avestan___ ave
+Awadhi___ awa
+Aymara___ aym
+Azerbaijani___ aze
+Balinese___ ban
+Baltic___ bat
+Baluchi___ bal
+Bambara___ bam
+Bamileke___ bai
+Banda___ bad
+Bantu___ bnt
+Basa___ bas
+Bashkir___ bak
+Basque___ baq
+Batak___ btk
+Beja___ bej
+Belarusian___ bel
+Bemba___ bem
+Bengali___ ben
+Berber___ ber
+Bhojpuri___ bho
+Bihari___ bih
+Bikol___ bik
+Bini___ bin
+Bislama___ bis
+Blin___ byn
+Bokmål, Norwegian___ nob
+Bosnian___ bos
+Braj___ bra
+Breton___ bre
+Buginese___ bug
+Bulgarian___ bul
+Buriat___ bua
+Burmese___ bur
+Caddo___ cad
+Catalan___ cat
+Caucasian___ cau
+Cebuano___ ceb
+Celtic___ cel
+Central American Indian___ cai
+Central Khmer___ khm
+Chagatai___ chg
+Chamic___ cmc
+Chamorro___ cha
+Chechen___ che
+Cherokee___ chr
+Cheyenne___ chy
+Chibcha___ chb
+Chichewa___ nya
+Chinese___ chi
+Chinook jargon___ chn
+Chipewyan___ chp
+Choctaw___ cho
+Church Slavic___ chu
+Chuukese___ chk
+Chuvash___ chv
+Classical Newari___ nwc
+Coptic___ cop
+Cornish___ cor
+Corsican___ cos
+Cree___ cre
+Creek___ mus
+Creoles &amp; pidgins, English___ cpe
+Creoles &amp; pidgins, French___ cpf
+Creoles &amp; pidgins, Portuguese___ cpp
+Creoles &amp; pidgins___ crp
+Crimean Tatar___ crh
+Croatian___ scr
+Cushitic___ cus
+Czech___ cze
+Dakota___ dak
+Danish___ dan
+Dargwa___ dar
+Delaware___ del
+Dinka___ din
+Divehi___ div
+Dogri___ doi
+Dogrib___ dgr
+Dravidian___ dra
+Duala___ dua
+Dutch, Middle___ dum
+Dutch___ dut
+Dyula___ dyu
+Dzongkha___ dzo
+Eastern Frisian___ frs
+Efik___ efi
+Egyptian, Ancient___ egy
+Ekajuk___ eka
+Elamite___ elx
+English___ eng
+English, US___ en-us
+English, UK___ en-uk
+English, Middle___ enm
+English, Old___ ang
+Erzya___ myv
+Esperanto___ epo
+Estonian___ est
+Ewe___ ewe
+Ewondo___ ewo
+Fang___ fan
+Fanti___ fat
+Faroese___ fao
+Fijian___ fij
+Filipino___ fil
+Finnish___ fin
+Finno-Ugrian___ fiu
+Fon___ fon
+French, Middle___ frm
+French, Old___ fro
+French___ fre
+Friulian___ fur
+Fulah___ ful
+Ga___ gaa
+Gaelic___ gla
+Galibi Carib___ car
+Galician___ glg
+Ganda___ lug
+Gayo___ gay
+Gbaya___ gba
+Geez___ gez
+Georgian___ geo
+German, Middle High___ gmh
+German, Old High___ goh
+German___ ger
+Germanic___ gem
+Gilbertese___ gil
+Gondi___ gon
+Gorontalo___ gor
+Gothic___ got
+Grebo___ grb
+Greek, Ancient___ grc
+Greek, Modern___ gre
+Guarani___ grn
+Gujarati___ guj
+Gwichin___ gwi
+Haida___ hai
+Haitian___ hat
+Hausa___ hau
+Hawaiian___ haw
+Hebrew___ heb
+Herero___ her
+Hiligaynon___ hil
+Himachali___ him
+Hindi___ hin
+Hiri Motu___ hmo
+Hittite___ hit
+Hmong___ hmn
+Hungarian___ hun
+Hupa___ hup
+Iban___ iba
+Icelandic___ ice
+Ido___ ido
+Igbo___ ibo
+Ijo___ ijo
+Iloko___ ilo
+Inari Sami___ smn
+Indic___ inc
+Indo-European___ ine
+Indonesian___ ind
+Ingush___ inh
+Interlingua___ ina
+Interlingue___ ile
+Inuktitut___ iku
+Inupiaq___ ipk
+Iranian___ ira
+Irish, Middle___ mga
+Irish, Old___ sga
+Irish___ gle
+Iroquoian___ iro
+Italian___ ita
+Japanese___ jpn
+Javanese___ jav
+Judeo-Arabic___ jrb
+Judeo-Persian___ jpr
+Kabardian___ kbd
+Kabyle___ kab
+Kachin___ kac
+Kalaallisut___ kal
+Kalmyk___ xal
+Kamba___ kam
+Kannada___ kan
+Kanuri___ kau
+Kara-Kalpak___ kaa
+Karachay-Balkar___ krc
+Karelian___ krl
+Karen___ kar
+Kashmiri___ kas
+Kashubian___ csb
+Kawi___ kaw
+Kazakh___ kaz
+Khasi___ kha
+Khoisan___ khi
+Khotanese___ kho
+Kikuyu___ kik
+Kimbundu___ kmb
+Kinyarwanda___ kin
+Kirghiz___ kir
+Klingon___ tlh
+Komi___ kom
+Kongo___ kon
+Konkani___ kok
+Korean___ kor
+Kosraean___ kos
+Kpelle___ kpe
+Kru___ kro
+Kuanyama___ kua
+Kumyk___ kum
+Kurdish___ kur
+Kurukh___ kru
+Kutenai___ kut
+Ladino___ lad
+Lahnda___ lah
+Lamba___ lam
+Land Dayak___ day
+Lao___ lao
+Latin___ lat
+Latvian___ lav
+Lezghian___ lez
+Limburgan___ lim
+Lingala___ lin
+Lithuanian___ lit
+Lojban___ jbo
+Low German___ nds
+Lower Sorbian___ dsb
+Lozi___ loz
+Luba-Katanga___ lub
+Luba-Lulua___ lua
+Luiseno___ lui
+Lule Sami___ smj
+Lunda___ lun
+Luo___ luo
+Lushai___ lus
+Luxembourgish___ ltz
+Macedonian___ mac
+Madurese___ mad
+Magahi___ mag
+Maithili___ mai
+Makasar___ mak
+Malagasy___ mlg
+Malay___ may
+Malayalam___ mal
+Maltese___ mlt
+Manchu___ mnc
+Mandar___ mdr
+Mandingo___ man
+Manipuri___ mni
+Manobo___ mno
+Manx___ glv
+Maori___ mao
+Mapudungun___ arn
+Marathi___ mar
+Mari___ chm
+Marshallese___ mah
+Marwari___ mwr
+Masai___ mas
+Mayan___ myn
+Mende___ men
+Mikmaq___ mic
+Minangkabau___ min
+Mirandese___ mwl
+Miscellaneous___ mis
+Mohawk___ moh
+Moksha___ mdf
+Moldavian___ mol
+Mon-Khmer___ mkh
+Mongo___ lol
+Mongolian___ mon
+Mossi___ mos
+Multiple___ mul
+Munda___ mun
+Nahuatl___ nah
+Nauru___ nau
+Navajo___ nav
+Ndebele, North___ nde
+Ndebele, South___ nbl
+Ndonga___ ndo
+Neapolitan___ nap
+Nepal Bhasa___ new
+Nepali___ nep
+Nias___ nia
+Niger-Kordofanian___ nic
+Nilo-Saharan___ ssa
+Niuean___ niu
+Nogai___ nog
+Norse, Old___ non
+North American Indian___ nai
+Northern Frisian___ frr
+Northern Sami___ sme
+Norwegian Nynorsk___ nno
+Norwegian___ nor
+Nubian___ nub
+Nyamwezi___ nym
+Nyankole___ nyn
+Nyoro___ nyo
+Nzima___ nzi
+Occitan___ oci
+Ojibwa___ oji
+Oriya___ ori
+Oromo___ orm
+Osage___ osa
+Ossetian___ oss
+Otomian___ oto
+Pahlavi___ pal
+Palauan___ pau
+Pali___ pli
+Pampanga___ pam
+Pangasinan___ pag
+Panjabi___ pan
+Papiamento___ pap
+Papuan___ paa
+Pedi___ nso
+Persian, Old___ peo
+Persian___ per
+Philippine___ phi
+Phoenician___ phn
+Pohnpeian___ pon
+Polish___ pol
+Portuguese___ por
+Prakrit___ pra
+Provençal, Old___ pro
+Pushto___ pus
+Quechua___ que
+Rajasthani___ raj
+Rapanui___ rap
+Rarotongan___ rar
+Romance___ roa
+Romanian___ rum
+Romansh___ roh
+Romany___ rom
+Rundi___ run
+Russian___ rus
+Salishan___ sal
+Samaritan Aramaic___ sam
+Sami___ smi
+Samoan___ smo
+Sandawe___ sad
+Sango___ sag
+Sanskrit___ san
+Santali___ sat
+Sardinian___ srd
+Sasak___ sas
+Scots___ sco
+Selkup___ sel
+Semitic___ sem
+Serbian___ scc
+Serer___ srr
+Shan___ shn
+Shona___ sna
+Sichuan Yi___ iii
+Sicilian___ scn
+Sidamo___ sid
+Sign___ sgn
+Siksika___ bla
+Sindhi___ snd
+Sinhala___ sin
+Sino-Tibetan___ sit
+Siouan___ sio
+Skolt Sami___ sms
+Slave, Athapascan___ den
+Slavic___ sla
+Slovak___ slo
+Slovenian___ slv
+Sogdian___ sog
+Somali___ som
+Songhai___ son
+Soninke___ snk
+Sorbian___ wen
+Sotho, Southern___ sot
+South American Indian___ sai
+Southern Altai___ alt
+Southern Sami___ sma
+Spanish___ spa
+Sranan Tongo___ srn
+Sukuma___ suk
+Sumerian___ sux
+Sundanese___ sun
+Susu___ sus
+Swahili___ swa
+Swati___ ssw
+Swedish___ swe
+Swiss German___ gsw
+Syriac___ syr
+Tagalog___ tgl
+Tahitian___ tah
+Tai___ tai
+Tajik___ tgk
+Tamashek___ tmh
+Tamil___ tam
+Tatar___ tat
+Telugu___ tel
+Tereno___ ter
+Tetum___ tet
+Thai___ tha
+Tibetan___ tib
+Tigre___ tig
+Tigrinya___ tir
+Timne___ tem
+Tiv___ tiv
+Tlingit___ tli
+Tok Pisin___ tpi
+Tokelau___ tkl
+Tonga Islands___ ton
+Tonga Nyasa___ tog
+Tsimshian___ tsi
+Tsonga___ tso
+Tswana___ tsn
+Tumbuka___ tum
+Tupi___ tup
+Turkish, Ottoman___ ota
+Turkish___ tur
+Turkmen___ tuk
+Tuvalu___ tvl
+Tuvinian___ tyv
+Twi___ twi
+Udmurt___ udm
+Ugaritic___ uga
+Uighur___ uig
+Ukrainian___ ukr
+Umbundu___ umb
+Undetermined___ und
+Upper Sorbian___ hsb
+Urdu___ urd
+Uzbek___ uzb
+Vai___ vai
+Venda___ ven
+Vietnamese___ vie
+Volapük___ vol
+Votic___ vot
+Wakashan___ wak
+Walamo___ wal
+Walloon___ wln
+Waray___ war
+Washo___ was
+Welsh___ wel
+Western Frisian___ fry
+Wolof___ wol
+Xhosa___ xho
+Yakut___ sah
+Yao___ yao
+Yapese___ yap
+Yiddish___ yid
+Yoruba___ yor
+Yupik___ ypk
+Zande___ znd
+Zapotec___ zap
+Zenaga___ zen
+Zhuang___ zha
+Zulu___ zul
+Zuni___ zun
+}}
+
+
+{{languagesLong:
+Abkhazian
+Achinese
+Acoli
+Adangme
+Adyghe
+Afar
+Afrihili
+Afrikaans
+Afro-Asiatic
+Ainu
+Akan
+Akkadian
+Albanian
+Aleut
+Algonquian
+Altaic
+Amharic
+Angika
+Apache
+Arabic
+Aragonese
+Aramaic
+Arapaho
+Arawak
+Armenian
+Aromanian
+Artificial
+Assamese
+Asturian
+Athapascan
+Australian
+Austronesian
+Avaric
+Avestan
+Awadhi
+Aymara
+Azerbaijani
+Balinese
+Baltic
+Baluchi
+Bambara
+Bamileke
+Banda
+Bantu
+Basa
+Bashkir
+Basque
+Batak
+Beja
+Belarusian
+Bemba
+Bengali
+Berber
+Bhojpuri
+Bihari
+Bikol
+Bini
+Bislama
+Blin
+Bokmål, Norwegian
+Bosnian
+Braj
+Breton
+Buginese
+Bulgarian
+Buriat
+Burmese
+Caddo
+Catalan
+Caucasian
+Cebuano
+Celtic
+Central American Indian
+Central Khmer
+Chagatai
+Chamic
+Chamorro
+Chechen
+Cherokee
+Cheyenne
+Chibcha
+Chichewa
+Chinese
+Chinook jargon
+Chipewyan
+Choctaw
+Church Slavic
+Chuukese
+Chuvash
+Classical Newari
+Coptic
+Cornish
+Corsican
+Cree
+Creek
+Creoles &amp; pidgins
+Creoles &amp; pidgins, English
+Creoles &amp; pidgins, French
+Creoles &amp; pidgins, Portuguese
+Crimean Tatar
+Croatian
+Cushitic
+Czech
+Dakota
+Danish
+Dargwa
+Delaware
+Dinka
+Divehi
+Dogri
+Dogrib
+Dravidian
+Duala
+Dutch
+Dutch, Middle
+Dyula
+Dzongkha
+Eastern Frisian
+Efik
+Egyptian, Ancient
+Ekajuk
+Elamite
+English
+English, US
+English, UK
+English, Middle
+English, Old
+Erzya
+Esperanto
+Estonian
+Ewe
+Ewondo
+Fang
+Fanti
+Faroese
+Fijian
+Filipino
+Finnish
+Finno-Ugrian
+Fon
+French
+French, Middle
+French, Old
+Friulian
+Fulah
+Ga
+Gaelic
+Galibi Carib
+Galician
+Ganda
+Gayo
+Gbaya
+Geez
+Georgian
+German
+German, Middle High
+German, Old High
+Germanic
+Gilbertese
+Gondi
+Gorontalo
+Gothic
+Grebo
+Greek, Ancient
+Greek, Modern
+Guarani
+Gujarati
+Gwichin
+Haida
+Haitian
+Hausa
+Hawaiian
+Hebrew
+Herero
+Hiligaynon
+Himachali
+Hindi
+Hiri Motu
+Hittite
+Hmong
+Hungarian
+Hupa
+Iban
+Icelandic
+Ido
+Igbo
+Ijo
+Iloko
+Inari Sami
+Indic
+Indo-European
+Indonesian
+Ingush
+Interlingua
+Interlingue
+Inuktitut
+Inupiaq
+Iranian
+Irish
+Irish, Middle
+Irish, Old
+Iroquoian
+Italian
+Japanese
+Javanese
+Judeo-Arabic
+Judeo-Persian
+Kabardian
+Kabyle
+Kachin
+Kalaallisut
+Kalmyk
+Kamba
+Kannada
+Kanuri
+Kara-Kalpak
+Karachay-Balkar
+Karelian
+Karen
+Kashmiri
+Kashubian
+Kawi
+Kazakh
+Khasi
+Khoisan
+Khotanese
+Kikuyu
+Kimbundu
+Kinyarwanda
+Kirghiz
+Klingon
+Komi
+Kongo
+Konkani
+Korean
+Kosraean
+Kpelle
+Kru
+Kuanyama
+Kumyk
+Kurdish
+Kurukh
+Kutenai
+Ladino
+Lahnda
+Lamba
+Land Dayak
+Lao
+Latin
+Latvian
+Lezghian
+Limburgan
+Lingala
+Lithuanian
+Lojban
+Low German
+Lower Sorbian
+Lozi
+Luba-Katanga
+Luba-Lulua
+Luiseno
+Lule Sami
+Lunda
+Luo
+Lushai
+Luxembourgish
+Macedonian
+Madurese
+Magahi
+Maithili
+Makasar
+Malagasy
+Malay
+Malayalam
+Maltese
+Manchu
+Mandar
+Mandingo
+Manipuri
+Manobo
+Manx
+Maori
+Mapudungun
+Marathi
+Mari
+Marshallese
+Marwari
+Masai
+Mayan
+Mende
+Mikmaq
+Minangkabau
+Mirandese
+Miscellaneous
+Mohawk
+Moksha
+Moldavian
+Mon-Khmer
+Mongo
+Mongolian
+Mossi
+Multiple
+Munda
+Nahuatl
+Nauru
+Navajo
+Ndebele, North
+Ndebele, South
+Ndonga
+Neapolitan
+Nepal Bhasa
+Nepali
+Nias
+Niger-Kordofanian
+Nilo-Saharan
+Niuean
+Nogai
+Norse, Old
+North American Indian
+Northern Frisian
+Northern Sami
+Norwegian
+Norwegian Nynorsk
+Nubian
+Nyamwezi
+Nyankole
+Nyoro
+Nzima
+Occitan
+Ojibwa
+Old English
+Oriya
+Oromo
+Osage
+Ossetian
+Otomian
+Pahlavi
+Palauan
+Pali
+Pampanga
+Pangasinan
+Panjabi
+Papiamento
+Papuan
+Pedi
+Persian
+Persian, Old
+Philippine
+Phoenician
+Pohnpeian
+Polish
+Portuguese
+Prakrit
+Provençal, Old
+Pushto
+Quechua
+Rajasthani
+Rapanui
+Rarotongan
+Romance
+Romanian
+Romansh
+Romany
+Rundi
+Russian
+Salishan
+Samaritan Aramaic
+Sami
+Samoan
+Sandawe
+Sango
+Sanskrit
+Santali
+Sardinian
+Sasak
+Scots
+Selkup
+Semitic
+Serbian
+Serer
+Shan
+Shona
+Sichuan Yi
+Sicilian
+Sidamo
+Sign
+Siksika
+Sindhi
+Sinhala
+Sino-Tibetan
+Siouan
+Skolt Sami
+Slave, Athapascan
+Slavic
+Slovak
+Slovenian
+Sogdian
+Somali
+Songhai
+Soninke
+Sorbian
+Sotho, Southern
+South American Indian
+Southern Altai
+Southern Sami
+Spanish
+Sranan Tongo
+Sukuma
+Sumerian
+Sundanese
+Susu
+Swahili
+Swati
+Swedish
+Swiss German
+Syriac
+Tagalog
+Tahitian
+Tai
+Tajik
+Tamashek
+Tamil
+Tatar
+Telugu
+Tereno
+Tetum
+Thai
+Tibetan
+Tigre
+Tigrinya
+Timne
+Tiv
+Tlingit
+Tok Pisin
+Tokelau
+Tonga Islands
+Tonga Nyasa
+Tsimshian
+Tsonga
+Tswana
+Tumbuka
+Tupi
+Turkish
+Turkish, Ottoman
+Turkmen
+Tuvalu
+Tuvinian
+Twi
+Udmurt
+Ugaritic
+Uighur
+Ukrainian
+Umbundu
+Undetermined
+Upper Sorbian
+Urdu
+Uzbek
+Vai
+Venda
+Vietnamese
+Volapük
+Votic
+Wakashan
+Walamo
+Walloon
+Waray
+Washo
+Welsh
+Western Frisian
+Wolof
+Xhosa
+Yakut
+Yao
+Yapese
+Yiddish
+Yoruba
+Yupik
+Zande
+Zapotec
+Zenaga
+Zhuang
+Zulu
+Zuni
+}}
+
+{{languagesShortLong:
+aar___ Afar
+abk___ Abkhazian
+ace___ Achinese
+ach___ Acoli
+ada___ Adangme
+ady___ Adyghe
+afa___ Afro-Asiatic
+afh___ Afrihili
+afr___ Afrikaans
+ain___ Ainu
+aka___ Akan
+akk___ Akkadian
+alb___ Albanian
+ale___ Aleut
+alg___ Algonquian
+alt___ Southern Altai
+amh___ Amharic
+ang___ English, Old
+anp___ Angika
+apa___ Apache
+ara___ Arabic
+arc___ Aramaic
+arg___ Aragonese
+arm___ Armenian
+arn___ Mapudungun
+arp___ Arapaho
+art___ Artificial
+arw___ Arawak
+asm___ Assamese
+ast___ Asturian
+ath___ Athapascan
+aus___ Australian
+ava___ Avaric
+ave___ Avestan
+awa___ Awadhi
+aym___ Aymara
+aze___ Azerbaijani
+bad___ Banda
+bai___ Bamileke
+bak___ Bashkir
+bal___ Baluchi
+bam___ Bambara
+ban___ Balinese
+baq___ Basque
+bas___ Basa
+bat___ Baltic
+bej___ Beja
+bel___ Belarusian
+bem___ Bemba
+ben___ Bengali
+ber___ Berber
+bho___ Bhojpuri
+bih___ Bihari
+bik___ Bikol
+bin___ Bini
+bis___ Bislama
+bla___ Siksika
+bnt___ Bantu
+bos___ Bosnian
+bra___ Braj
+bre___ Breton
+btk___ Batak
+bua___ Buriat
+bug___ Buginese
+bul___ Bulgarian
+bur___ Burmese
+byn___ Blin
+cad___ Caddo
+cai___ Central American Indian
+car___ Galibi Carib
+cat___ Catalan
+cau___ Caucasian
+ceb___ Cebuano
+cel___ Celtic
+cha___ Chamorro
+chb___ Chibcha
+che___ Chechen
+chg___ Chagatai
+chi___ Chinese
+chk___ Chuukese
+chm___ Mari
+chn___ Chinook jargon
+cho___ Choctaw
+chp___ Chipewyan
+chr___ Cherokee
+chu___ Church Slavic
+chv___ Chuvash
+chy___ Cheyenne
+cmc___ Chamic
+cop___ Coptic
+cor___ Cornish
+cos___ Corsican
+cpe___ Creoles &amp; pidgins, English
+cpf___ Creoles &amp; pidgins, French
+cpp___ Creoles &amp; pidgins, Portuguese
+cre___ Cree
+crh___ Crimean Tatar
+crp___ Creoles &amp; pidgins
+csb___ Kashubian
+cus___ Cushitic
+cze___ Czech
+dak___ Dakota
+dan___ Danish
+dar___ Dargwa
+day___ Land Dayak
+del___ Delaware
+den___ Slave, Athapascan
+dgr___ Dogrib
+din___ Dinka
+div___ Divehi
+doi___ Dogri
+dra___ Dravidian
+dsb___ Lower Sorbian
+dua___ Duala
+dum___ Dutch, Middle
+dut___ Dutch
+dyu___ Dyula
+dzo___ Dzongkha
+efi___ Efik
+egy___ Egyptian, Ancient
+eka___ Ekajuk
+elx___ Elamite
+en-uk___ English, UK
+en-us___ English, US
+eng___ English
+enm___ English, Middle
+epo___ Esperanto
+est___ Estonian
+ewe___ Ewe
+ewo___ Ewondo
+fan___ Fang
+fao___ Faroese
+fat___ Fanti
+fij___ Fijian
+fil___ Filipino
+fin___ Finnish
+fiu___ Finno-Ugrian
+fon___ Fon
+fre___ French
+frm___ French, Middle
+fro___ French, Old
+frr___ Northern Frisian
+frs___ Eastern Frisian
+fry___ Western Frisian
+ful___ Fulah
+fur___ Friulian
+gaa___ Ga
+gay___ Gayo
+gba___ Gbaya
+gem___ Germanic
+geo___ Georgian
+ger___ German
+gez___ Geez
+gil___ Gilbertese
+gla___ Gaelic
+gle___ Irish
+glg___ Galician
+glv___ Manx
+gmh___ German, Middle High
+goh___ German, Old High
+gon___ Gondi
+gor___ Gorontalo
+got___ Gothic
+grb___ Grebo
+grc___ Greek, Ancient
+gre___ Greek, Modern
+grn___ Guarani
+gsw___ Swiss German
+guj___ Gujarati
+gwi___ Gwichin
+hai___ Haida
+hat___ Haitian
+hau___ Hausa
+haw___ Hawaiian
+heb___ Hebrew
+her___ Herero
+hil___ Hiligaynon
+him___ Himachali
+hin___ Hindi
+hit___ Hittite
+hmn___ Hmong
+hmo___ Hiri Motu
+hsb___ Upper Sorbian
+hun___ Hungarian
+hup___ Hupa
+iba___ Iban
+ibo___ Igbo
+ice___ Icelandic
+ido___ Ido
+iii___ Sichuan Yi
+ijo___ Ijo
+iku___ Inuktitut
+ile___ Interlingue
+ilo___ Iloko
+ina___ Interlingua
+inc___ Indic
+ind___ Indonesian
+ine___ Indo-European
+inh___ Ingush
+ipk___ Inupiaq
+ira___ Iranian
+iro___ Iroquoian
+ita___ Italian
+jav___ Javanese
+jbo___ Lojban
+jpn___ Japanese
+jpr___ Judeo-Persian
+jrb___ Judeo-Arabic
+kaa___ Kara-Kalpak
+kab___ Kabyle
+kac___ Kachin
+kal___ Kalaallisut
+kam___ Kamba
+kan___ Kannada
+kar___ Karen
+kas___ Kashmiri
+kau___ Kanuri
+kaw___ Kawi
+kaz___ Kazakh
+kbd___ Kabardian
+kha___ Khasi
+khi___ Khoisan
+khm___ Central Khmer
+kho___ Khotanese
+kik___ Kikuyu
+kin___ Kinyarwanda
+kir___ Kirghiz
+kmb___ Kimbundu
+kok___ Konkani
+kom___ Komi
+kon___ Kongo
+kor___ Korean
+kos___ Kosraean
+kpe___ Kpelle
+krc___ Karachay-Balkar
+krl___ Karelian
+kro___ Kru
+kru___ Kurukh
+kua___ Kuanyama
+kum___ Kumyk
+kur___ Kurdish
+kut___ Kutenai
+lad___ Ladino
+lah___ Lahnda
+lam___ Lamba
+lao___ Lao
+lat___ Latin
+lav___ Latvian
+lez___ Lezghian
+lim___ Limburgan
+lin___ Lingala
+lit___ Lithuanian
+lol___ Mongo
+loz___ Lozi
+ltz___ Luxembourgish
+lua___ Luba-Lulua
+lub___ Luba-Katanga
+lug___ Ganda
+lui___ Luiseno
+lun___ Lunda
+luo___ Luo
+lus___ Lushai
+mac___ Macedonian
+mad___ Madurese
+mag___ Magahi
+mah___ Marshallese
+mai___ Maithili
+mak___ Makasar
+mal___ Malayalam
+man___ Mandingo
+mao___ Maori
+map___ Austronesian
+mar___ Marathi
+mas___ Masai
+may___ Malay
+mdf___ Moksha
+mdr___ Mandar
+men___ Mende
+mga___ Irish, Middle
+mic___ Mikmaq
+min___ Minangkabau
+mis___ Miscellaneous
+mkh___ Mon-Khmer
+mlg___ Malagasy
+mlt___ Maltese
+mnc___ Manchu
+mni___ Manipuri
+mno___ Manobo
+moh___ Mohawk
+mol___ Moldavian
+mon___ Mongolian
+mos___ Mossi
+mul___ Multiple
+mun___ Munda
+mus___ Creek
+mwl___ Mirandese
+mwr___ Marwari
+myn___ Mayan
+myv___ Erzya
+nah___ Nahuatl
+nai___ North American Indian
+nap___ Neapolitan
+nau___ Nauru
+nav___ Navajo
+nbl___ Ndebele, South
+nde___ Ndebele, North
+ndo___ Ndonga
+nds___ Low German
+nep___ Nepali
+new___ Nepal Bhasa
+nia___ Nias
+nic___ Niger-Kordofanian
+niu___ Niuean
+nno___ Norwegian Nynorsk
+nob___ Bokmål, Norwegian
+nog___ Nogai
+non___ Norse, Old
+nor___ Norwegian
+nso___ Pedi
+nub___ Nubian
+nwc___ Classical Newari
+nya___ Chichewa
+nym___ Nyamwezi
+nyn___ Nyankole
+nyo___ Nyoro
+nzi___ Nzima
+oci___ Occitan
+oji___ Ojibwa
+ori___ Oriya
+orm___ Oromo
+osa___ Osage
+oss___ Ossetian
+ota___ Turkish, Ottoman
+oto___ Otomian
+paa___ Papuan
+pag___ Pangasinan
+pal___ Pahlavi
+pam___ Pampanga
+pan___ Panjabi
+pap___ Papiamento
+pau___ Palauan
+peo___ Persian, Old
+per___ Persian
+phi___ Philippine
+phn___ Phoenician
+pli___ Pali
+pol___ Polish
+pon___ Pohnpeian
+por___ Portuguese
+pra___ Prakrit
+pro___ Provençal, Old
+pus___ Pushto
+que___ Quechua
+raj___ Rajasthani
+rap___ Rapanui
+rar___ Rarotongan
+roa___ Romance
+roh___ Romansh
+rom___ Romany
+rum___ Romanian
+run___ Rundi
+rup___ Aromanian
+rus___ Russian
+sad___ Sandawe
+sag___ Sango
+sah___ Yakut
+sai___ South American Indian
+sal___ Salishan
+sam___ Samaritan Aramaic
+san___ Sanskrit
+sas___ Sasak
+sat___ Santali
+scc___ Serbian
+scn___ Sicilian
+sco___ Scots
+scr___ Croatian
+sel___ Selkup
+sem___ Semitic
+sga___ Irish, Old
+sgn___ Sign
+shn___ Shan
+sid___ Sidamo
+sin___ Sinhala
+sio___ Siouan
+sit___ Sino-Tibetan
+sla___ Slavic
+slo___ Slovak
+slv___ Slovenian
+sma___ Southern Sami
+sme___ Northern Sami
+smi___ Sami
+smj___ Lule Sami
+smn___ Inari Sami
+smo___ Samoan
+sms___ Skolt Sami
+sna___ Shona
+snd___ Sindhi
+snk___ Soninke
+sog___ Sogdian
+som___ Somali
+son___ Songhai
+sot___ Sotho, Southern
+spa___ Spanish
+srd___ Sardinian
+srn___ Sranan Tongo
+srr___ Serer
+ssa___ Nilo-Saharan
+ssw___ Swati
+suk___ Sukuma
+sun___ Sundanese
+sus___ Susu
+sux___ Sumerian
+swa___ Swahili
+swe___ Swedish
+syr___ Syriac
+tah___ Tahitian
+tai___ Tai
+tam___ Tamil
+tat___ Tatar
+tel___ Telugu
+tem___ Timne
+ter___ Tereno
+tet___ Tetum
+tgk___ Tajik
+tgl___ Tagalog
+tha___ Thai
+tib___ Tibetan
+tig___ Tigre
+tir___ Tigrinya
+tiv___ Tiv
+tkl___ Tokelau
+tlh___ Klingon
+tli___ Tlingit
+tmh___ Tamashek
+tog___ Tonga Nyasa
+ton___ Tonga Islands
+tpi___ Tok Pisin
+tsi___ Tsimshian
+tsn___ Tswana
+tso___ Tsonga
+tuk___ Turkmen
+tum___ Tumbuka
+tup___ Tupi
+tur___ Turkish
+tut___ Altaic
+tvl___ Tuvalu
+twi___ Twi
+tyv___ Tuvinian
+udm___ Udmurt
+uga___ Ugaritic
+uig___ Uighur
+ukr___ Ukrainian
+umb___ Umbundu
+und___ Undetermined
+urd___ Urdu
+uzb___ Uzbek
+vai___ Vai
+ven___ Venda
+vie___ Vietnamese
+vol___ Volapük
+vot___ Votic
+wak___ Wakashan
+wal___ Walamo
+war___ Waray
+was___ Washo
+wel___ Welsh
+wen___ Sorbian
+wln___ Walloon
+wol___ Wolof
+xal___ Kalmyk
+xho___ Xhosa
+yao___ Yao
+yap___ Yapese
+yid___ Yiddish
+yor___ Yoruba
+ypk___ Yupik
+zap___ Zapotec
+zen___ Zenaga
+zha___ Zhuang
+znd___ Zande
+zul___ Zulu
+zun___ Zuni
+}}

@@ -1,0 +1,56 @@
+﻿<?lassoscript 
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_pageNotFound.lgc }
+	{rsrcType=		include }
+	{rsrcName=		fwpPage_pageNotFound.lgc }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpPage_pageNotFound }
+	
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+	
+	{desc=			This file generates a generic error display for
+					a page URL that doesn't exist, and updates the HTTP response }
+	
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2007-06-15 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpPage_pageNotFound',
+	-optional = 'pgTitle';
+
+	$fw_pgTitle			= '[Page Not Found]';
+	$fw_pgTemplate		= 'filenotfound';
+	$fw_pgAuthRequired	= false;
+
+	(local:'pgTitle') ? $fw_pgTitle = #pgTitle;
+
+	$fw_error->(removeCode:'6404');
+	$fw_error->(insert:'6404'='page does not exist');
+
+//	the page was never found, 
+//	so update the header in case we
+//	changed it in error.lasso
+
+	$__http_header__ = (string_replace: 
+		$__http_header__, 
+		-find='200 OK',
+		-replace='404 NOT FOUND');
+
+/define_tag;
+?>
+

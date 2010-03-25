@@ -1,0 +1,144 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpCnfg_makeVars.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpCnfg_makeVars }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpCnfg_makeVars }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Converts a comma delimited list of var names or an array 
+					of strings in the format of {varName}={value} into variables. }
+
+	{maintvsrn=		1.3.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated debug and error handling systems,
+	 				changed some internal vars for better readability }
+
+	{maintvsrn=		1.2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-30}
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added tagTrace }
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.0.0 b5 }
+	{maintdate=		2006-01-27 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added === and -despace options, changed some syntax
+					for efficiency }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpCnfg_makeVars', -priority='replace',
+	-required='varlist';
+
+//	-makeLocals | -asLocal | -intoLocals (-locals deprecated)
+
+	($fw_debug >= fw_kVerbose) ? $fw_tagTracer->(add:'fwpCnfg_makeVars');
+
+	local:
+		'varPairs'		= local:'varList',
+		'makeLocals'	= false,
+		'pairDelimiter'	= false,
+		'thisPair'		= string,
+		'thisVar'		= string,
+		'thisVarName'	= string,
+		'thisVarValue'	= string;
+
+	(params->find:'-makeLocals') || (params->find:'-asLocals') || (params->find:'-intoLocals') || (params->find:'-locals')
+		? #makeLocals = true;
+
+	if: ((#varPairs->type == 'string') && (#varPairs >> '='))
+		||
+		((#varPairs->type == 'array') && ((#varPairs->get:1) >> '='));
+
+
+//-----------------------------------------------------------------------------
+//	pairs
+//
+//
+
+//	make an array if the data is not an array already
+
+		if: #varPairs->type != 'array';
+			(#varPairs >> ',')
+				? #varPairs = fwpCnfg_splitComma:#varPairs
+				| #varPairs = fwpCnfg_splitLines:#varPairs;
+			#varPairs = fwpCnfg_deComment:#varPairs;
+		/if;
+
+//	loop through each pair and set each name value pair to a var or local
+//	yes, the iterate loop is duplicated, but this duplication prevents
+//	having to run an IF in every loop to test for the var type to create
+//	so it is faster
+//	=== is allowed for consistency with other config formats
+
+		((#varPairs->get:1) >> '===')
+			? (#pairDelimiter = '===')
+			| (#pairDelimiter = '=');
+
+		if: #makeLocals;
+			iterate: #varPairs, #thisPair;
+				#thisVarName	= (#thisPair->(split:#pairDelimiter))->get:1;
+				#thisVarValue	= (#thisPair->(split:#pairDelimiter))->get:2;
+				#thisVarName->trim;
+				#thisVarValue->trim;
+				(local:#thisVarName) = #thisVarValue;
+			/iterate;
+		else;
+			iterate: #varPairs, #thisPair;
+				#thisVarName	= (#thisPair->(split:#pairDelimiter))->get:1;
+				#thisVarValue	= (#thisPair->(split:#pairDelimiter))->get:2;
+				#thisVarName->trim;
+				#thisVarValue->trim;
+				(var:#thisVarName) = #thisVarValue;
+			/iterate;
+		/if;
+
+	else;
+
+//-----------------------------------------------------------------------------
+//	varlist
+//
+//
+		if: #varPairs && (#varPairs->type == 'string');
+			#varPairs = (fwpCnfg_splitComma: #varPairs);
+		/if;
+
+		if: #makeLocals;
+			iterate: #varPairs, #thisVar;
+				#thisVar->trim;
+				(local:#thisVar) = string;
+			/iterate;
+		else;
+			iterate: #varPairs, #thisVar;
+				#thisVar->trim;
+				(var:#thisVar) = string;
+			/iterate;
+		/if;
+
+	/if;
+
+/define_tag;
+?>

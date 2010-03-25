@@ -1,0 +1,34 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		_fwpAPI_initDate.lgc }
+	{rsrcType=		file }
+	{rsrcName=		_fwpAPI_initDate }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/_fwpAPI_initDate }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			Initializes the global vars and resources for
+					the fwpDate framework. }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+
+$fw_gInstalledFrameWorks->(insert:'fwpDate' = '1.0.0');
+
+?>

@@ -1,0 +1,44 @@
+﻿[output_none]
+#! dbTbl5
+
+# version:  2006-08-01
+
+{{serverType___		[$fw_gDbServerTypes->find:'site'] }}
+{{databaseName___	[$fw_gDatabases->find:'site'] }}
+{{tableName___		[$fw_gTables->find:'vlists'] }}
+{{keyfield___		rcrdNo }}
+{{lockField___		rcrdLockID }}
+{{tableModel___
+
+#inputName		fieldName			dataType	validation codes
+#------------	-----------------	---------	-------------------------------------------
+m_rNo			rcrdNo				integer
+m_rNewDate		rcrdCreated			string
+m_rNewBy		rcrdCreatedBy		string
+m_rModDate		rcrdModified		string
+m_rModBy		rcrdModifiedBy		string
+m_rStat			rcrdStatus			string
+m_rLokid		rcrdLockID			string
+m_rLoktm		rcrdLockTime		string
+m_rLokown		rcrdLockOwnr		string
+
+m_vlScope		listScope			string		isRequired
+m_vlName		listName			string		isRequired
+m_vlLang		listLanguage		string		isRequired
+m_vlLabel		listLabel			string		isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlValue		listValue			string		isRequired
+m_vlOrder		listOrder			integer		haslabel=[$fw_appStrings->m_vlOrder]
+
+# the following definitions are needed in order to do validation without
+# database action on pages with more than one language per page
+m_vlLabel_1		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlLabel_2		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlLabel_3		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlLabel_4		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlLabel_5		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlLabel_6		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlLabel_7		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlLabel_8		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+m_vlLabel_9		-					-			isRequired, hasMaxLength=40, isExtendedSymbols, haslabel=[$fw_appStrings->m_vlLabel]
+}}
+[/output_none]

@@ -1,0 +1,54 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpStr_markWebLinks.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpStr_markWebLinks }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpStr_markWebLinks }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			Takes a body of text and an array of pairs, and searches
+					the text for keywords supplied by the pairs and converts
+					them into links. The pairs are in the format of 
+					keyword = linkURL. }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpStr_markWebLinks',  -priority='replace',
+	-required = 'inText',
+	-required = 'withLinks', -type = 'array';
+
+	local:'thisLink' = pair;
+
+	iterate: #hrefLinks, #thisLink;
+
+		#text =(string_replaceRegExp:
+			#text,
+			-find='\\b(' + (#thisLink->first) + ')\\b',
+			-replace='<a href="' + (#thisLink->second) + '">\\1</a>',
+			-ignoreCase);
+
+	/iterate;
+
+	return: @#text;
+
+/define_tag;
+?>

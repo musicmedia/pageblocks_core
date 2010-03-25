@@ -1,0 +1,843 @@
+﻿[output_none]
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+//
+//	{fileName=		lang_errCore_da.cnfg }
+//	{rsrcType=		config }
+//	{rsrcName=		lang_errCore }
+//	{rsrcHTTP=		www.pageblocks.org/refc/lang_errCore }
+//	
+//	{lassoVrsnMin=	8.1.0 }
+//	{lassoVrsnMax=	8.5.3 }
+//
+//	{author=		Greg Willits }
+//	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+//	{authorHTTP=	www.pageblocks.org }
+//
+//	{desc=			Language configuration file for core error codes }
+//
+//	{maintvsrn=		1.2.3 }
+//	{maintrelease=	5.2.4 }
+//	{maintdate=		2007-07-21 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	improved messages for 5016 }
+//
+//	{maintvsrn=		1.2.2 }
+//	{maintrelease=	5.2.0 }
+//	{maintdate=		2007-06-09 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	improved messages for 5120 and 5121 }
+//
+//	{maintvsrn=		1.2.1 }
+//	{maintrelease=	5.1.6 }
+//	{maintdate=		2007-05-14 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	replaced instances of fw_myURL with fw_requestPage }
+//
+//	{maintvsrn=		1.2 }
+//	{maintrelease=	5.1.5 }
+//	{maintdate=		2007-02-18 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	added 5026 }
+//
+//	{maintvsrn=		1.1 }
+//	{maintrelease=	5.1.0 }
+//	{maintdate=		2006-09-05 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	added 5053 }
+//
+//	{maintvsrn=		1.0 }
+//	{maintrelease=	5.1.0 }
+//	{maintdate=		2006-06-09 }
+//	{maintauthor=	Greg Willits }
+//	{maintnotes=	initial release }
+//
+//.............................................................................
+//	Preferred Language Codes which will used as the PageBlocks standard
+//	ISO 639 which can be found here:
+//	http://www.oasis-open.org/cover/iso639a.html
+//
+//	The W3C preference appears to be moving to this list
+//	http://www.iana.org/assignments/language-subtag-registry
+//.............................................................................
+
+
+//=============================================================================
+//	Error Message Language Configuration
+//	- the file name defines the language
+//	- all reusable messages must be defined before they are mentioned by insert___
+//-----------------------------------------------------------------------------
+// 	note that each line will be trimmed,
+//	and all whitespace after ___ will be trimmed,
+//	so use space entity if you want to split the 
+//	msg up into rows of short lengths in source code
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+//
+//:	reusable message elements
+//
+//
+//
+
+{{showPrevPageLink:
+msg___	<p><a href="javascript:window.history.go(-1);">Tilbage til forrige side</a></p>
+}}
+
+{{closeWindowLink:
+msg___	<p><a href="#" onclick="window.close();">Luk vindue</a>.</p>
+}}
+
+{{showLoginLink:
+media_all:
+	msg___	[if: $fw_loginPagePath]<p><a href="[var:'fw_loginPagePath']">Tilbage til login-siden</a></p>[/if]
+/media;
+media_pda:
+	msg___	[if: $fw_loginPagePath]<p><a href="[var:'fw_loginPagePath']">Prøv igen!</a></p>[/if]
+/media;
+}}
+
+{{showContactInfo:
+msg___	<p>Hvis fejlen gentager sig så send venligst en mail til support/webmaster
+msg___	&nbsp;<a href="mailto:[var:'fw_helpAccountsEmail']?subject=Fejl på website&body=[var:'fw_errMailMsg']">
+msg___	[var:'fw_helpAccountsEmail']</a> og beskriv hvad du gjorde med websitet lige før du fik
+msg___	&nbsp;fejlmeddelelsen ovenfor. Vi skal se på problemet hurtigst muligt og
+msg___	&nbsp;undskylder ulejligheden mange gange!</p>
+}}
+
+{{showYourSessionFailed:
+msg___	<p>Din bruger-session blev ikke nulstillet korrekt</p>
+}}
+
+{{showErrorOnPage:
+msg___	<p>(Fejlen [#thisErrCode] opstod på side [$fw_requestPage->'file'])</p>
+}}
+
+{{showErrorOnPageWithData:
+msg___	<p>(Fejlen [#thisErrCode] opstod på side [$fw_requestPage->'file']</p>
+msg___	<p>[#thisErrData])</p>
+}}
+
+
+{{showLoginNotRecognized:
+msg___	<h3 class="errorttl">Fejl i brugernavn/adgangskode</h3>
+msg___	<p>Det indtastede blev ikke genkendt, prøv venligst igen!</p>
+}}
+
+{{internalProgramError:
+msg___		<h3 class="errorttl">Intern systemfejl</h3>
+msg___		<p>Der er opstået en fejl, som kan få denne side til at opføre sig atypisk. Der er blevet afsendt en automatisk fejlmelding, vi undskylder ulejligheden mange gange</p>
+}}
+
+//=============================================================================
+//
+//	codes 5000 through 5199 are reserved for the pageblocks framework visitor messages
+//
+//
+
+{{5000:
+constant___	fw_kErrFatalError
+errLevel___	5
+logIt___	Y
+msg___		<h2>Intern systemfejl</h2>
+msg___		<p>Der opstod en kritisk fejl i systemets interne rutiner.</p>
+msg___		<p>Du kan muligvis bruger browserens tilbage-knap og forsætte med at benytte websitet, men hvis du var logget in som bruger er det bedst du forsøger at logge ud og derpå ind igen.</p>
+msg___		<p>Hvis fejlen gentager sig efter du har logget ud og ind igen, bedes du tage kontakt med support/webmaster og rapportere problemet. Vi undskylder ulejligheden mange gange!</p>
+}}
+
+{{5001:
+constant___	fw_kErrUnexpectedError
+errLevel___	5
+logIt___	Y
+msg___		<h2>Uventet fejl</h2>
+msg___		<p>Der opstod en uventet fejl. (Log ID: [#thisErrData])</p>
+msg___		<p>For at hjælpe med at finde årsagen til fejlen beder vi dig sende en email til vor support via
+msg___		&nbsp;<a href="mailto:[var:'fw_errorsEmail']?subject=Website Error ([$fw_errLogID]&body=[var:'fw_errMailMsg']">
+msg___		[var:'fw_errorsEmail']</a> og oplyse så meget som muligt om hvad du gjorde lige inden fejlen opstod.</p>
+msg___		<p>Fejlen skal blive undersøgt hurtigst muligt, og vi undskylder mange gange for ulejligheden!</p>
+}}
+
+{{5002:
+constant___	fw_kErrUnknownError
+errLevel___	5
+logIt___	Y
+msg___		<h3>Fejlkode [#thisErrCode] rapporteret</h3>
+msg___		<p>Der opstod en fejl, men en beskrivelse kunne ikke findes.</p>
+msg___		<p>Forvirret? Det er forståeligt... Måske skulle du kontakte udvikleren og spørge hvad der foregår!</p>
+insert___	showPrevPageLink
+}}
+
+{{5003:
+constant___	fw_kErrDependencyFailed
+errLevel___	5
+logIt___	Y
+msg___		<h3>Et tag eller en type blev ikke fundet</h3>
+msg___		<p>En handling der skal bruge et tag (funktion) eller en type (class) fra [#thisErrData] mislykkedes</p>
+}}
+
+//-----------------------------------------------------------------------------
+
+{{5010:
+constant___	fw_kErrUserNotRecognized
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010a:
+constant___	fw_kErrUserPasswordIncorrect
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010b:
+constant___	fw_kErrUserNoNameOrPswd
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010e:
+constant___	fw_kErrUserNotOneRecord
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010c:
+constant___	fw_kErrUserAuthSessIDNotFound
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010d:
+constant___	fw_kErrUserAuthSessIDMissing
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010g:
+constant___	fw_kErrUserVarsSessIDNotFound
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5010h:
+constant___	fw_kErrUserVarsSessIDMissing
+errLevel___	4
+logIt___	Y
+insert___	showLoginNotRecognized
+insert___	showLoginLink
+}}
+
+{{5011:
+	constant___	fw_kErrUserAccessRestricted
+	errLevel___	4
+	logIt___	Y
+
+	media_all:
+		msg___		<h3 class="errorttl">Adgang ikke tilladt</h3>
+		insert___	showPrevPageLink
+		msg___		<p>Adgang ikke tilladt eller din bruger-session er udløbet</p>
+		msg___		<p>Hvis du mener du skulle have adgang til [$fw_requestPage->'page'] så kontakt venligst systemets administator</p>
+		insert___ 	showLoginLink
+	/media;
+	
+	media_pda:
+
+		variant_default:
+			msg___		<h3 class="errorttl">Adgang ikke tilladt</h3>
+			insert___	showPrevPageLink
+			msg___		<p>Ingen adgang eller session udløbet</p>
+			insert___ 	showLoginLink
+		/variant;
+
+		variant_extra:
+			msg___		<h3 class="errorttl">Extra View Title</h3>
+			msg___		<p>Extra view message is here</p>
+		/variant;
+
+	/media;
+	
+	media_wml:
+		msg___		<h3 class="errorttl">Stop</h3>
+		msg___		<p>Ingen adgang eller session udløbet</p>
+		insert___	showPrevPageLink
+		insert___ 	showLoginLink
+	/media;
+}}
+
+{{5012:
+constant___	fw_kErrUserSessionExpired
+msg___		<h3 class="errorttl">Login-session udløbet</h3>
+msg___		<p>Din bruger-session er udløbet. Log venligst ind igen.</p>
+msg___		<p>Hvis du i en periode på [$fw_sessionTimeout] minutter eller mere ikke har navigeret i adminsystemet, betragter serveren af sikkerhedsgrunde forbindelsen som inaktiv og annullerer din bruger-session. Du skal blot logge ind igen og skulle derefter kunne arbejde videre</p>
+insert___	showLoginLink
+}}
+
+{{5013:
+constant___	fw_kErrUserSessionExpiredB
+msg___		<h3 class="errorttl">Login-session udløbet</h3>
+msg___		<p>Din bruger-session er udløbet. Log venligst ind igen.</p>
+msg___		<p>Hvis du i en periode på [$fw_sessionTimeout] minutter eller mere ikke har navigeret i adminsystemet, betragter serveren af sikkerhedsgrunde forbindelsen som inaktiv og annullerer din bruger-session. Du skal blot logge ind igen og skulle derefter kunne arbejde videre</p>
+insert___	showLoginLink
+}}
+
+{{5014:
+constant___	fw_kErrPasswordNeedsUpdated
+msg___		<h3 class="errorttl">Ny adgangskode skal udskiftes</h3>
+msg___		<p>Din adgangskode var kun til brug en enkelt gang. Dan venligst en ny adgangskode og brug den fremover</p>
+}}
+
+{{5015:
+constant___	fw_kErrPasswordExpired
+msg___		<h3 class="errorttl">Din adgangskode er udløbet</h3>
+msg___		<p>Af sikkerhedshensyn er adgangskoder kun gyldige i et vist tidsrum.</p>
+msg___		<p>Kontakt venligst webmaster for at få en ny adgangskode</p>
+}}
+
+{{5016:
+constant___	fw_kErrAccountIsLocked
+msg___		<h3 class="errorttl">Din brugerkonto er midlertidigt låst</h3>
+msg___		<p>Forsøg på at logge ind mislykkedes flere gange i træk.</p>
+msg___		<p>Når dette sker låses brugerkontoen af sikkerhedshensyn for at modvirke uønskede forsøg på indbrud</p>
+msg___		[if: (#thisErrData) == (-1)]
+msg___		<p>Kontakt venligst webmaster for at få din brugerkonto låst op igen</p>
+msg___		[else]
+msg___		<p>Vent mindst [#thisErrData] minutter og prøv derpå at logge på igen</p>
+msg___		[/if]
+}}
+
+{{5017:
+constant___	fw_kErrIPNotAllowed
+msg___		<h3 class="errorttl">Adgang fra denne IP-adresse ikke tilladt</h3>
+msg___		<p>Den IP-adresse din computer benytter findes ikke på listen over tilladte adresser for din brugerkonto.</p>
+msg___		<p>Af sikkerhedsårsager er din adgangskode kun gyldig, når den benyttes i forbindelse med bestemte IP-adresser.</p>
+msg___		<p>Kontakt venligst webmaster for at få justeret din brugerkonto, hvis din IP-adresse er blevet ændret</p>
+}}
+
+
+{{5090:
+constant___	fw_kErrDatabaseNotAvailable
+errLevel___	4
+logIt___	Y
+msg___		<h3 class="errorttl">Data utilgængelige</h3>
+msg___		<p> Der opstod en fejl på grund af utilgængelige data på serveren. Problemet er muligvis forbigående, prøv venligst igen om et par minutter</p>
+}}
+
+
+{{5100:
+constant___	fw_kErrNoRecordsFound
+msg___		[if: !(var:'fw_errQuiet5100')]
+msg___		<h3 class="errorttl">Søgningen gav ikke noget resultat</h3>
+msg___		<p>Der blev ikke fundet noget på basis af de indgivne søgekriterier.</p>
+msg___		<p>Klik <a href="javascript:window.history.go(-1);">her for at gå tilbage til forrige sige</a><br>
+msg___		[/if]
+}}
+
+{{5110:
+constant___	fw_kErrRecordAlreadyExists
+msg___		[if: !(var:'fw_errQuiet5110')]
+msg___		<h3 class="errorttl">Den record er allerede blevet tilføjet.</h3>
+msg___		<p>Den record du arbejder med synes allerede at være blevet tilføjet. Gå tilbage til listen/oversigten og vælg recorden igen for at redigere den</p>
+msg___		[/if]
+}}
+
+{{5111:
+constant___	fw_kErrRecordIsBusy
+msg___		[if: !(var:'fw_errQuiet5111')]
+msg___		<h3 class="errorttl">Recorden er optaget</h3>
+msg___		<p>Den record du kaldte redigeres i øjeblikket. Den vil være til rådighed igen om højst [var:'fw_rcrdLockDelay'] minutter</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5112:
+constant___	fw_kErrRecordLockExpired
+msg___		[if: !(var:'fw_errQuiet5112')]
+msg___		<h3 class="errorttl">Record lås udløbet</h3>
+msg___		<p>Dine ændringer i datakortet skulle have været gemt indenfor [var:'fw_rcrdLockDelay'] minutter fra du startede på dem. Du bliver nødt til at vælge datakortet igen fra listen/oversigten og foretage dine ændringer endnu engang</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5113:
+constant___	fw_kErrRecordLockLost
+msg___		<h3 class="errorttl">Record lås annulleret</h3>
+msg___		<p>Din sessions adgang til at redigere denne record blev annulleret, sandsynligvis på grund af en systemprocess på serveren</p>
+msg___		<p>Log ind igen. Hvis du får en record optaget meddelelse har serveren sandsynligvis overtaget adgangen til recorden for at udføre vedligeholdelse. Log ind igen lidt senere</p>
+insert___	showLoginLink
+}}
+
+{{5120:
+constant___	fw_kErrUploadTypeNotAllowed
+msg___		[if: !(var:'fw_errQuiet5120')]
+msg___		<h3 class="errorttl">Upload mislykkedes</h3>
+msg___		<p>Filen "[#thisErrData]" blev ikke uploadet, fordi den tilsyneladende er af en forkert filtype</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5121:
+constant___	fw_kErrUploadSizeTooBig
+msg___		[if: !(var:'fw_errQuiet5121')]
+msg___		<h3 class="errorttl">Upload mislykkedes</h3>
+msg___		<p>Filen "[#thisErrData]" blev ikke uploadet, fordi det er større en max tilladte filstørrelse på [$fw_uploadSizeMax] bytes</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5122:
+constant___	fw_kErrUploadFolderNotAvailable
+errLevel___	4
+msg___		<h3 class="errorttl">Upload mislykkedes</h3>
+msg___		<p>Filen "[#thisErrData]" blev ikke uploadet på grund af et problem på serveren, hvorved filen ikke kunne gemmes</p>
+insert___	showPrevPageLink
+}}
+
+{{5123:
+constant___	fw_kErrUploadNoFileUploaded
+msg___		[if: !(var:'fw_errQuiet5122')]
+msg___		<h3 class="errorttl">Ingen fil valgt</h3>
+msg___		<p>Der var tilsyneladende ikke valgt en fil til upload.</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+{{5129:
+constant___	fw_kErrFileNotDeleted
+msg___		[if: !(var:'fw_errQuiet5129')]
+msg___		<h3 class="errorttl">Filen blev ikke slettet</h3>
+msg___		<p>Filen blev ikke slettet på grund af en fejl - [#thisErrData]</p>
+insert___	showPrevPageLink
+msg___		[/if]
+}}
+
+
+
+//=============================================================================
+//
+//	codes 5200 through 5599 are reserved for API debugging
+//
+//
+
+// 5200-5219 = general purpose messages
+// 5220-5239 = 
+// 5240-5259 = fwpCnfg APIs
+// 5260-5279 = fwpEDP APIs
+// 5280-5299 = 
+
+// 5300-5319 = 
+// 5320-5339 = 
+// 5340-5359 = 
+// 5360-5379 = 
+// 5380-5399 = 
+
+// 5400-5419 = 
+// 5420-5439 = 
+// 5440-5459 = fwpAuth APIs
+// 5460-5479 = 
+// 5480-5499 = 
+
+// 5500-5519 = fwpActn APIs
+// 5520-5539 = 
+// 5540-5559 = 
+// 5560-5579 = 
+// 5580-5599 = 
+
+
+//	this one is technically useless, but it explains what error 5200 is, which is hard coded in the error manager
+{{5200:
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorttl">/LassoStartup/_strings/ Ikke tilgængelige</h3>
+msg___		<p>Check Lasso ServerAdmin for tilladte stier og Lasso SiteAdmin for tilladte stier samt filtilladelser. Check installationsvejledning for yderligere information</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5201:
+constant___	fw_kErrDeveloperAPIError
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorttl">Fejl i brug af PageBlocks API</h3>
+msg___		<p>Check tagTracer for #ERROR efter <span class="bold">[#thisErrData]</span> eller check Lasso Admin Error Log</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5202:
+constant___	fw_kErrFileNotFound
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorttl">Fil blev ikke fundet</h3>
+msg___		<p>Filen "[#thisErrData]" blev ikke fundet eller der var ikke tilladelser nok til at læse den</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5203:
+constant___	fw_kErrFileReadFailed
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorttl">Fejl ved læsning af fil</h3>
+msg___		<p>Indlæsning af filen "[(#thisErrData->split:'```')->get:1]" resulterede i fejlen: [(#thisErrData->split:'```')->get:2]</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5204:
+constant___	fw_kErrInitTagNotFound
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorttl">Init mislykkedes</h3>
+msg___		<p>Init ctag for [#thisErrData] blev ikke fundet</p>
+msg___		[else]
+msg___		[/if]
+}}
+
+
+
+
+//-----------------------------------------------------------------------------
+//:	file access errors
+
+
+{{5419:
+constant___	fw_kErrPageContentNotFound
+msg___		<h4>Sidens indhold blev ikke fundet</h4>
+msg___		<p>Denne side kan ikke tilgåes direkte. Siden skal bruge yderligere information i webadressen for at definere indholdet og skal normalt nås ved klik på link andetsteds fra i websitet</p>
+}}
+
+
+//-----------------------------------------------------------------------------
+//:	fwpCnfg errors
+
+
+{{5240:
+constant___	fw_kErrDeCommentTypeWrong
+msg___		<h4>fwpCnfg_deComment</h4>
+msg___		<p>Forventede input af typen array men fandt [#thisErrData]</p>
+}}
+
+{{5241:
+constant___	fw_kErrSplitBlocksTypeWrong
+msg___		<h4>fwpCnfg_splitBlocks</h4>
+msg___		<p>Forventede input af typen string eller bytes array men fandt [#thisErrData]</p>
+}}
+
+{{5242:
+constant___	fw_kErrSplitCommaTypeWrong
+msg___		<h4>fwpCnfg_splitComma</h4>
+msg___		<p>Forventede input af typen string eller bytes array men fandt [#thisErrData]</p>
+}}
+
+{{5243:
+constant___	fw_kErrSplitLinesTypeWrong
+msg___		<h4>fwpCnfg_splitLines</h4>
+msg___		<p>Forventede input af typen string eller bytes array men fandt [#thisErrData]</p>
+}}
+
+{{5244:
+constant___	fw_kErrSplitPairsTypeWrong
+msg___		<h4>fwpCnfg_splitPairs</h4>
+msg___		<p>Forventede input af typen string eller bytes array men fandt [#thisErrData]</p>
+}}
+
+{{5245:
+constant___	fw_kErrSplitTabsTypeWrong
+msg___		<h4>fwpCnfg_splitTabs</h4>
+msg___		<p>Forventede input af typen string eller bytes array men fandt [#thisErrData]</p>
+}}
+
+{{5246:
+constant___	fw_kErrSplitBlockLinesTypeWrong
+msg___		<h4>fwpCnfg_splitBlockLines</h4>
+msg___		<p>Forventede input af typen string eller bytes array men fandt [#thisErrData]</p>
+}}
+
+
+//-----------------------------------------------------------------------------
+//:	EDP errors
+
+
+{{5460:
+constant___	fw_kErrEdpcFileNotFound
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorttl">EDP Controller Class blev ikke fundet</h3>
+msg___		<p>EDP Class "[#thisErrData]" blev ikke fundet eller kan ikke tilgås</p>
+msg___		<p>Check at filnavnet er korrect og at navnet i define_type tag er det samme som filnavnet</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+{{5461:
+constant___	fw_kErrEdpmFileNotFound
+errLevel___	4
+logIt___	Y
+msg___		[if: $fw_debug]
+msg___		<h3 class="errorttl">EDP Model Class blev ikke fundet</h3>
+msg___		<p>EDP Class "[#thisErrData]" blev ikke fundet eller kan ikke tilgås</p>
+msg___		<p>Check at filnavnet er korrect og at navnet i define_type tag er det samme som filnavnet</p>
+msg___		[else]
+insert___	internalProgramError
+msg___		[/if]
+}}
+
+
+
+
+//-----------------------------------------------------------------------------
+//:	user auth errors
+
+
+{{5440:
+constant___	fw_kErrUserSelectionFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>User Selection i fwp_user->authenticate mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5441:
+constant___	fw_kErrUserAttemptsUpdateFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>User Update af 'attempts' i fwp_user->authenticate mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5442:
+constant___	fw_kErrSessionInitFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Start af session i fwp_user->authenticate mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5443:
+constant___	fw_kErrSessionAuthorizeFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Godkendelse af session i fwp_user->authorize mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5444:
+constant___	fw_kErrSessionRefreshFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Opdatering af session i fwp_user->restoreUser mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5445:
+constant___	fw_kErrSessionVarsNotRestored
+errLevel___	4
+logIt___	Y
+msg___		<h4>Gendannelse af session i fwp_user->restoreVarsKeepers mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5446:
+constant___	fw_kErrSessionAuthorizeFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Godkendelse af session i fwp_user->restoreUser mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5447:
+constant___	fw_kErrSessionStoreVarsFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->storeVars mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5448:
+constant___	fw_kErrSessionStoreKeepersFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->storeKeepers mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5449:
+constant___	fw_kErrSessionClearVarsFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->clearVars mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5450:
+constant___	fw_kErrSessionClearKeepersFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->clearKeepers mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+{{5451:
+constant___	fw_kErrSessionAuthorizeRefreshFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Opdatering af session i fwp_user->authorize mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+
+{{5452:
+constant___	fw_kErrSessionKillFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>fwp_user->killSession mislykkedes</h4>
+msg___		<p>Seneste session blev ikke nulstillet</p>
+insert___	showErrorOnPageWithData
+}}
+
+
+
+//-----------------------------------------------------------------------------
+//:	database errors
+
+
+{{5500:
+constant___	fw_kErrRecordNumberNotFound
+errLevel___	4
+logIt___	Y
+msg___		<h4>Ups. Recorden blev ikke fundet, og det skulle den have været</h4>
+}}
+
+{{5501:
+errLevel___	4
+logIt___	Y
+constant___	fw_kErrRecordNumberEmpty
+msg___		<h4>Redigering af record mislykkedes</h4>
+insert___	showErrorOnPage
+}}
+
+{{5502:
+constant___	fw_kErrRecordUpdateFailed
+logIt___	Y
+errLevel___	4
+msg___		<h4>Opdatering (Gem) af record mislykkedes</h4>
+insert___	showErrorOnPage
+}}
+
+{{5503:
+constant___	fw_kErrRecordAddFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Tilføjelse af record mislykkedes</h4>
+insert___	showErrorOnPage
+}}
+
+{{5504:
+constant___	fw_kErrRecordDeleteFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Sletning af record mislykkedes</h4>
+insert___	showErrorOnPage
+}}
+
+{{5505:
+constant___	fw_kErrQuerySyntaxError
+errLevel___	4
+logIt___	Y
+msg___		<h4>Forespørgsel til database mislykkedes</h4>
+insert___	showErrorOnPage
+}}
+
+{{5506:
+constant___	fw_kErrRecordSearchFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Forespørgsel på record mislykkedes</h4>
+msg___		<p>[if: #thisErrData >> '-9961'](Systemet manglede de nødvendige tilladelser i Lasso Admin)
+msg___		[else][#thisErrData][/if]</p>
+}}
+
+{{5507:
+constant___	fw_kErrRecordLockFailed
+errLevel___	4
+logIt___	Y
+msg___		<h4>Record Lock mislykkedes</h4>
+insert___	showErrorOnPageWithData
+}}
+
+
+
+
+//=============================================================================
+//
+//	codes 5600 through 5999 are available for Applications
+//	put application specific error in a separate file named strings_appErrors_{{languageCode}}.cnfg
+//
+//
+
+
+
+//=============================================================================
+//
+//	codes 6000 through 6999 are for reserved for trapping HTTP errors
+//
+//
+
+
+{{6401:
+constant___	fw_kErrHTTPAccessDenied
+msg___		<h3 class="errorttl">Adgang afvist</h3>
+msg___		<p>Den indtastede adgangskode blev ikke genkendt</p>
+insert___	showPrevPageLink
+}}
+
+{{6403:
+constant___	fw_kErrHTTPFolderNotAllowed
+msg___		<h3 class="errorttl">Mappe-adgang afvist</h3>
+msg___		<p>Den forespurgte mappe har enten ingen åbningsside, tillader ikke indholdsliste, eller den findes slet ikke</p>
+insert___	showPrevPageLink
+}}
+
+{{6404:
+constant___	fw_kErrHTTPFileNotFound
+msg___		<h3 class="errorttl">Side/arkiv blev ikke fundet</h3>
+msg___		<p>Den/det forespurgte side/arkiv ([response_filepath]) er enten blevet flyttet, blevet omdøbt eller findes slet ikke</p>
+insert___	showPrevPageLink
+}}
+
+{{6500:
+constant___	fw_kErrHTTPServerError
+msg___		<h3 class="errorttl">Fejl på webserver</h3>
+msg___		<p>Webserveren kunne ikke gennemføre den senest forespurgte handling på grund af en uventet fejl. Der er muligvis tale om en programmeringsfejl</p>
+insert___	showPrevPageLink
+insert___	showContactInfo
+}}
+[/output_none]

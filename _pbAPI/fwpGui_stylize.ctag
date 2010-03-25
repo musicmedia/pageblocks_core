@@ -1,0 +1,194 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpGui_stylize.ctag }
+	{rsrcType=		tag }
+	{rsrcName=		fwpGui_stylize }
+	{rsrcHTTP=		www.pageblocks.org/refc/fwpGui_stylize }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.pageblocks.org }
+
+	{desc=			This file processes formatting encoded fields to display 
+					stylized text inspired by Angie Ahl's tags and regEx. 
+					Many Thanks to Angie for sharing! Thanks to Bil Corry for 
+					some improvement suggestions.
+
+	{maintvsrn=		1.1 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	converted timers to fwp_timer ctype }
+
+	{maintvsrn=		1.0.2 }
+	{maintrelease=	5.0.3 }
+	{maintdate=		2006-04-29 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	added terminal= }
+
+	{maintvsrn=		1.0.1 }
+	{maintrelease=	5.0.0 b12 }
+	{maintdate=		2006-03-17 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	changed use of nobr tag to css span }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+define_tag:'fwpGui_stylize', -priority='replace';
+
+	$fw_debugTimers ? $fw_timer->(start:'guiTagStylize');
+	
+	local: 
+		'input'		= (params->get:1),
+		'preblocks'	= array,
+		'thisblock'	= string,
+		'prestart'	= integer;
+
+// 	don`t bother if there is no data
+//	or if we`re allowing HTML mode
+
+#input->trim;
+
+if: #input == '';
+else:(#input->beginswith:'<!--HTML-->' && (params->find:'-html')->size > 0);
+
+	return: @#input;
+
+else;
+
+//	counteract the injection prevention of the database API
+//	by reverting < and > back to normal text, otherwise we get double encoding
+
+	#input=(string_replace: #input, -find='&lt;', -replace='<');
+	#input=(string_replace: #input, -find='&gt;', -replace='>');
+
+	local:'stext'=encode_html:#input;
+
+//..................................................................................
+//
+//	Convert basic strings and tags
+
+//	allow escaped { and } characters
+
+	#stext=(string_replace: #stext, -find='\\{', -replace='&#123;');
+	#stext=(string_replace: #stext, -find='\\}', -replace='&#125;');
+
+	#stext += '\r\r';
+	#stext=(string_replace: #stext, -find='\r\n', -replace='\r');
+	#stext=(string_replace: #stext, -find='\n', -replace='\r');
+	#stext=(string_replace: #stext, -find='{-}', -replace='&nbsp;');
+	#stext=(string_replaceRegExp: #stext, -find='\\{line}', -replace='<hr>');
+
+//..................................................................................
+//
+//	Semi-Recursive loop to convert all style tags
+
+
+	while: ((string_findRegExp: #stext, -find='\\{\\w+=[^{}]+\\}')->size) > 0;
+
+//	the order of these does matter
+//	we have to take care of words before letters, 
+//	or letters will dig into words starting with that letter
+//	I tried requiring a trailing space, but it just isn`t practical
+
+		#stext=(string_replaceRegExp: #stext, -find='\\{cntr=([^{}]+)\\}', 				-replace='<p style="text-align: center">\\1</p>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{img=([^{}]+)\\}', 				-replace='<img alt="" src="\\1" />');
+		#stext=(string_replaceRegExp: #stext, -find='\\{imgleft=([^{}]+)\\}', 			-replace='<img style="float: left" alt="" src="\\1" />');
+		#stext=(string_replaceRegExp: #stext, -find='\\{imgright=([^{}]+)\\}', 			-replace='<img style="float: right" alt="" src="\\1" />');
+		#stext=(string_replaceRegExp: #stext, -find='\\{link=([^{}]+):::([^{}]+)\\}', 	-replace='<a href="\\2">\\1</a>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{email=([^{}]+)\\}', 			-replace='<a href="mailto:\\1">\\1</a>');
+
+		#stext=(string_replaceRegExp: #stext, -find='\r*\\{caption=([^{}]+)\\}', 	-replace='<p class="caption">\\1</p>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{nowrap=([^{}]+)\\}', 		-replace='<span class="nobr">\\1</span>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{nobr=([^{}]+)\\}', 			-replace='<span class="nobr">\\1</span>');
+
+		#stext=(string_replaceRegExp: #stext, -find='\\{code=([^{}]+)\\}', 			-replace='<pre class="code">\\1</pre>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{srccode=([^{}]+)\\}', 		-replace='<pre class="sourcecode">\\1</pre>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{terminal=([^{}]+)\\}', 		-replace='<pre class="terminal">\\1</pre>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{mono=([^{}]+)\\}', 			-replace='<span class="mono">\\1</span>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{altmono=([^{}]+)\\}', 		-replace='<span class="mono altmono">\\1</span>');
+
+		#stext=(string_replaceRegExp: #stext, -find='\\{file=([^{}]+)\\}', 			-replace='<span class="filename">\\1</span>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{indent=([^{}]+)\\}', 		-replace='<blockquote>\\1</blockquote>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{bullets=([^{}]+)\\}', 		-replace='\r<ul>\\1</ul>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{numbers=([^{}]+)\\}', 		-replace='\r<ol>\\1</ol>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{list=([^{}]+)\\}', 			-replace='\t<li>\\1</li>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{pub=([^{}]+)\\}',	 		-replace='<cite class="pub">\\1</cite>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{artcl=([^{}]+)\\}',	 		-replace='<cite class="artcl">\\1</cite>');
+
+		#stext=(string_replaceRegExp: #stext, -find='\\{em=([^{}]+)\\}', 			-replace='<em>\\1</em>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{sh=([^{}]+)\\}', 			-replace='<h3>\\1</h3>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{sm=([^{}]+)\\}', 			-replace='<small>\\1</small>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{h=([^{}]+)\\}', 			-replace='<h2>\\1</h2>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{b=([^{}]+)\\}', 			-replace='<strong>\\1</strong>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{u=([^{}]+)\\}', 			-replace='<u>\\1</u>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{i=([^{}]+)\\}', 			-replace='<i>\\1</i>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{s=([^{}]+)\\}', 			-replace='<span class="strikethru">\\1</span>');
+
+		#stext=(string_replaceRegExp: #stext, -find='\\{\\^([^{}]+)\\}', 			-replace='<span class="super">\\1</span>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{\\_([^{}]+)\\}', 			-replace='<span class="sub">\\1</span>');
+
+		#stext=(string_replaceRegExp: #stext, -find='\\{spr=([^{}]+)\\}', 			-replace='<span class="super">\\1</span>');
+		#stext=(string_replaceRegExp: #stext, -find='\\{sub=([^{}]+)\\}', 			-replace='<span class="sub">\\1</span>');
+
+	/while;
+
+//	convert lines to <p>
+//	remove <p> from <h_>
+//	use \r to make semi-pretty HTML source
+//	fine tune tag pairs for universal and case specific improvements
+
+//	find pre blocks to preserve them
+
+	#preblocks=(string_findRegExp: #stext, -find='<pre[\\s\\S]+?</pre>');
+
+	#stext=(string_replaceRegExp: #stext, -find='<pre[\\s\\S]+?</pre>', -replace='[[PREBLOCK]]');
+
+	#stext=(string_replaceRegExp: #stext, -find='\r*(.+?)\r\r', 						-replace='\t<p>\\1</p>');
+	#stext=(string_replaceRegExp: #stext, -find='<p><h(\\d*)>(.+?\\s*?)</h(\\d*)></p>', 	-replace='<h\\1>\\2</h\\3>');
+	#stext=(string_replaceRegExp: #stext, -find='\r',			 						-replace='<br />');
+
+	#stext=(string_replaceRegExp: #stext, -find='</li><br />',			 				-replace='</li>\r');
+	#stext=(string_replaceRegExp: #stext, -find='(<[uo]l>)<br />',		 				-replace='\\1\r');
+	#stext=(string_replaceRegExp: #stext, -find='<br />(<[uo]l>)',			 			-replace='\r\\1');
+	#stext=(string_replaceRegExp: #stext, -find='(</[uo]l>)</p>',			 			-replace='\\1\r');
+	#stext=(string_replaceRegExp: #stext, -find='<p>(<[uo]l>)',				 			-replace='\r\\1');
+
+// restore <pre> blocks
+
+	iterate: #preblocks, #thisblock;
+		#prestart = #stext->find:'[[PREBLOCK]]';
+		#stext->(merge: #prestart, #thisblock);
+		#stext->(replace: '</pre>[[PREBLOCK]]', '</pre>');
+	/iterate;
+
+	#stext=(string_replaceRegExp: #stext, -find='</pre><br />',			 				-replace='</pre>');
+	#stext=(string_replaceRegExp: #stext, -find='</pre></p>',			 				-replace='</pre>');
+	#stext=(string_replaceRegExp: #stext, -find='<p><pre',				 				-replace='<pre');
+	#stext=(string_replaceRegExp: #stext, -find='<br />\\s*<pre',			 			-replace='</p><pre');
+
+	#stext=(string_replace: #stext, -find='&#123;', -replace='{');
+	#stext=(string_replace: #stext, -find='&#125;', -replace='}');
+
+	$fw_debugTimers ? $fw_timer->(stop:'guiTagStylize');
+
+	return:@#stext;
+/if;
+/define_tag;
+?>

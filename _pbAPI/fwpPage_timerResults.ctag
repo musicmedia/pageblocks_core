@@ -1,0 +1,133 @@
+﻿<?lassoscript
+
+//............................................................................
+//
+//	pageblocks (c) 2002-2007  http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpPage_timerResults.lgc }
+	{rsrcType=		include }
+	{rsrcName=		fwpPage_timerResults }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwpPage_timerResults }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	www.fwpro.com }
+
+	{desc=			Builds a display of the various collections of
+					timing done throughout a page }
+
+	{maintvsrn=		2.0.1 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-15 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	updated CSS }
+
+	{maintvsrn=		2.0 }
+	{maintrelease=	5.1.0 }
+	{maintdate=		2006-05-26 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	rewritten to use fw_timer object }
+
+	{maintvsrn=		1.0 }
+	{maintrelease=	5.0.0 }
+	{maintdate=		2006-01-16 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+
+*/
+//.............................................................................
+
+//	show some page performance timers
+
+define_tag:'fwpPage_timerResults';
+
+local:'fw_resultCode' = string;
+
+var:'fw_pageassyms'	= $fw_timer->(eventTotal:'pageTotal');
+
+#fw_resultCode += '<div id="debugTimers"> \r'; 
+
+#fw_resultCode += '<div class="timerSet">'; 
+#fw_resultCode += string:($fw_pageassyms); 
+#fw_resultCode += '</div> \r';
+
+if: $fw_debugTimers && ($fw_debugIPFilter >> $fw_client->'ip');
+
+	var:'fw_timerDurations'		= $fw_timer->durations;
+
+	local:
+		'fw_timeAuth' 			= integer,
+		'fw_timeAuthSession' 	= integer,
+		'fw_timeSiteOther' 		= integer,
+		'fw_timePageOther'		= integer;
+
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userXtraCreate'));
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userTagAuth'));
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userTagStoreUser'));
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userTagRestoreUser'));
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userTagAthz'));
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userTagKill'));
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userTagLoadProf'));
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userTagLoadPrivs'));
+	#fw_timeAuth += ($fw_timer->(eventTotal:'userTagLoadFltrs'));
+	
+	#fw_timeAuthSession += ($fw_timer->(eventTotal:'userTagRestoreVars'));
+	#fw_timeAuthSession += ($fw_timer->(eventTotal:'userTagStoreVars'));
+	#fw_timeAuthSession += ($fw_timer->(eventTotal:'userTagClearVars'));
+	#fw_timeAuthSession += ($fw_timer->(eventTotal:'userTagStoreKeepers'));
+	#fw_timeAuthSession += ($fw_timer->(eventTotal:'userTagClearKeepers'));
+
+	#fw_timeSiteOther 	= ($fw_timer->(eventTotal:'initConfigAll')) 
+						- ($fw_timer->(eventTotal:'initConvertForm')) 
+						- ($fw_timer->(eventTotal:'initLoadConfig')) 
+						- #fw_timeAuth 
+						- #fw_timeAuthSession 
+						- ($fw_timer->(eventTotal:'initRollover'));
+	
+	#fw_timePageOther 	= $fw_pageassyms 
+						- ($fw_timer->(eventTotal:'initConfigAll')) 
+						- ($fw_timer->(eventTotal:'pageTagBlockLgc')) 
+						- ($fw_timer->(eventTotal:'pageTagBlockDsp'));
+	
+	#fw_resultCode += '<div class="timerSet">'; 
+	#fw_resultCode += 'site ' + 		string:($fw_timer->(eventTotal:'initConfigAll'));
+	#fw_resultCode += ' /// form ' + 	string:($fw_timer->(eventTotal:'initConvertForm'));
+	#fw_resultCode += ' / cnfgs ' + 	string:($fw_timer->(eventTotal:'initLoadConfig'));
+	#fw_resultCode += ' / auth ' + 		string:(#fw_timeAuth);
+	#fw_resultCode += ' / sess ' + 		string:(#fw_timeAuthSession);
+	#fw_resultCode += ' / rovr ' + 		string:($fw_timer->(eventTotal:'initRollover'));
+	#fw_resultCode += ' / othr ' + 		string:(#fw_timeSiteOther);
+	#fw_resultCode += '</div>';
+
+	#fw_resultCode += '<div class="timerSet">'; 
+	#fw_resultCode += 'page ' + 		string:($fw_pageassyms - $fw_timer->(eventTotal:'initConfigAll'));
+	#fw_resultCode += ' /// lgc ' + 	string:($fw_timer->(eventTotal:'pageTagBlockLgc'));
+	#fw_resultCode += ' / dsp ' + 		string:($fw_timer->(eventTotal:'pageTagBlockDsp'));
+	#fw_resultCode += ' / othr ' + 		string:(#fw_timePageOther);
+	#fw_resultCode += '</div>';
+
+	#fw_resultCode += '<div class="timerSet">'; 
+	#fw_resultCode += ' misc = sql ' + 	string:(($fw_timer->(groupTotal:'sql')) - ($fw_timer->(groupTotal:'userQry')));
+	#fw_resultCode += ' / fmp ' + 		string:($fw_timer->(groupTotal:'fmp'));
+	#fw_resultCode += ' / str ' + 		string:($fw_timer->(groupTotal:'appStrings'));
+	#fw_resultCode += ' / actn ' + 		string:(($fw_timer->(groupTotal:'sqlQry')) - ($fw_timer->(groupTotal:'userQry')));
+	#fw_resultCode += ' / vlist ' + 	string:($fw_timer->(groupTotal:'vlist'));
+	#fw_resultCode += ' / mnu ' + 		string:($fw_timer->(groupTotal:'menu'));
+	#fw_resultCode += ' / styl ' + 		string:($fw_timer->(eventTotal:'guiTagStylize'));
+	#fw_resultCode += ' / list ' + 		string:($fw_timer->(groupTotal:'guiTagListRcrds'));
+	#fw_resultCode += ' / <strong>othr ' + string:(#fw_timeSiteOther + #fw_timePageOther) + '</strong>';
+	#fw_resultCode += '</div>';
+/if;
+
+#fw_resultCode += '</div> \r';
+
+return: @#fw_resultCode;
+
+/define_tag;
+?>

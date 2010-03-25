@@ -1,0 +1,280 @@
+﻿<?lassoscript
+//............................................................................
+//
+//	pageblocks: (c) 2002-2007 http://www.pageblocks.org/
+//
+//............................................................................
+/*
+
+	{fileName=		fwpDbm_schema.ctyp }
+	{rsrcType=		file }
+	{rsrcName=		fwp_dbmSchema }
+	{rsrcHTTP=		http://www.pageblocks.org/refc/fwp_dbmSchema }
+
+	{lassoVrsnMin=	8.1.0 }
+	{lassoVrsnMax=	8.5.3 }
+
+	{author=		Greg Willits }
+	{authorEmail=	subscribe to pbTalk at www.pageblocks.org/talk/ }
+	{authorHTTP=	http://www.pageblocks.org/ }
+
+	{desc=			acquires and draws tables schemas }
+
+	{maintvsrn=		1.0.0 }
+	{maintrelease=	5.2.0 }
+	{maintdate=		2007-06-09 }
+	{maintauthor=	Greg Willits }
+	{maintnotes=	initial release }
+*/
+//............................................................................
+
+define_type:'fwp_dbmSchema';
+
+	local:
+		'dbName' 		= string,
+		'tableNames' 	= array,
+
+		'tableType'		= string,
+		'charSet'		= string,
+		'primaryKey'	= string,
+		'uniqueKey'		= string,
+		'indices'		= string,
+		'fieldRows'		= array;
+
+//==============================================================================
+//	->onCreate
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'onCreate',
+	-required = 'dbName';
+	(self->'dbName') = #dbName;
+/define_tag;
+
+
+//==============================================================================
+//	->drawSchemaFor
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'drawSchemasFor',
+	-autooutput,
+	-required = 'tableNames';
+
+	(self->'tableNames') = #tableNames;
+
+	local:'thisTable' = string;
+
+	iterate: (self->'tableNames'), #thisTable;
+		self->(loadSchemaFor: #thisTable);
+		self->(drawCurrentTableSchema: #thisTable);
+	/iterate;
+
+/define_tag;
+
+
+//==============================================================================
+//	->loadSchemaFor
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'loadSchemaFor',
+	-required = 'tableName';
+
+	local:
+		'rawSchema'	= string,
+		'fieldRows'	= array,
+		'thisField' = string,
+		'fieldName' = string,
+		'fieldInfo'	= string,
+		'fieldNull' = string,
+		'fieldDflt' = string;
+		
+	(self->'fieldRows') = array;
+
+	inline: 
+		-username	= $fw_gQueryUser,
+		-password	= $fw_gQueryPswd,
+		-database	= (self->'dbName'), 
+		-sql		= 'SHOW CREATE TABLE `' + (encode_sql:#tableName) + '`';
+
+		#rawSchema = field:(field_names->second);
+		#fieldRows = #rawSchema->(split:'\n');
+
+//	acquire non-field information
+
+		(self->'tableType')	 = (string_findRegExp: #rawSchema, -find='ENGINE=(\\w+)', -ignorecase)->last;
+		(self->'charSet')	 = (string_findRegExp: #rawSchema, -find='CHARSET=(\\w+)', -ignorecase)->last;
+		(self->'primaryKey') = (string_findRegExp: #rawSchema, -find='PRIMARY KEY\\s+\\(`(\\w+)`\\)', -ignorecase)->last;
+
+//	---------------------------------------
+//	grab unique keys 
+//	more than one is possible
+
+		(self->'uniqueKey') = (string_findRegExp: #rawSchema, -find='UNIQUE KEY\\s+`\\w+`\\s+\\(([`\\w\\d\\s,]+)\\)', -ignorecase);
+
+		if: (self->'uniqueKey')->size > 0;
+
+//	now remove odd elements of array which Lasso gives us, but we don`t want
+
+			loop: -from=(self->'uniqueKey')->size, -to=1, -loopincrement=(-1);
+				if: loop_count%2 != 0;
+					(self->'uniqueKey')->(remove:loop_count);
+				/if;
+			/loop;
+
+//	now remove all ` and ( and ) and space characters 
+
+			(self->'uniqueKey') = (self->'uniqueKey')->(join:',');
+			(self->'uniqueKey')->(replace:'`', '');
+			(self->'uniqueKey')->(replace:'(', '');
+			(self->'uniqueKey')->(replace:')', '');
+			(self->'uniqueKey')->(replace:',', ', ');
+		else;
+			(self->'uniqueKey') = string;
+		/if;
+
+//	---------------------------------------
+//	grab index fields
+//	more than one is possible
+
+// replace these phrases to eliminate these keys from showing up in the indices array
+
+		#rawSchema->(replace:'PRIMARY KEY', 'PK');
+		#rawSchema->(replace:'UNIQUE KEY', 'UK');
+
+		(self->'indices') = (string_findRegExp: #rawSchema, -find='KEY\\s+`\\w+`\\s+\\(([`\\w\\d\\s,]+)\\)', -ignorecase);
+
+		if: (self->'indices')->size > 0;
+
+//	now remove odd elements of array which Lasso gives us, but we don`t want
+
+			loop: -from=(self->'indices')->size, -to=1, -loopincrement=(-1);
+				if: loop_count%2 != 0;
+					(self->'indices')->(remove:loop_count);
+				/if;
+			/loop;
+
+//	now remove all ` and ( and ) and space characters 
+
+			(self->'indices') = (self->'indices')->(join:',');
+			(self->'indices')->(replace:'`', '');
+			(self->'indices')->(replace:'(', '');
+			(self->'indices')->(replace:')', '');
+			(self->'indices')->(replace:',', ', ');
+		else;
+			(self->'indices') = string;
+		/if;
+
+//	---------------------------------------
+//	finally grab all field definition info
+
+		iterate: #fieldRows, #thisField;
+
+			#thisField->trim;
+			
+			if: #thisField->(beginswith:'`');
+				#fieldName = (string_findRegExp: #thisField, -find='`(\\w+)`', -ignoreCase)->last;
+				#fieldNull = (string_findRegExp: #thisField, -find='(NULL|NOT NULL)', -ignoreCase)->last;
+				#fieldDflt = (string_findRegExp: #thisField, -find='default \\\'([a-zA-Z0-9.]+)\\\'', -ignoreCase)->last;
+			
+				#fieldInfo = (string_replaceRegExp: 
+					#thisField, 
+					-find ='`(\\w+)`', 
+					-replace = '',
+					-ignoreCase);
+
+				#fieldInfo = (string_replaceRegExp: 
+					#fieldInfo, 
+					-find = '(NULL|NOT NULL)', 
+					-replace = '',
+					-ignoreCase);
+			
+				#fieldInfo = (string_replaceRegExp: 
+					#fieldInfo, 
+					-find = 'default \'' + #fieldDflt + '\'', 
+					-replace = '',
+					-ignoreCase);
+			
+				#fieldInfo->trim;
+				#fieldInfo->(removetrailing:',');
+			
+				(self->'fieldRows')->(insert: (map:
+					'name' = #fieldName,
+					'info' = #fieldInfo,
+					'null' = #fieldNull,
+					'dflt' = #fieldDflt));
+					
+			/if;
+		/iterate;
+	/inline;
+/define_tag;
+
+
+//==============================================================================
+//	->drawCurrentTableSchema
+//	
+//
+//------------------------------------------------------------------------------
+
+define_tag:'drawCurrentTableSchema',
+	-autooutput,
+	-required = 'thisTable';
+
+	'<h3 class="dbmResults">'; #thisTable; '</h3>';
+	
+	'<div class="dbmTableSpecs"> \r';
+	'<table> \r';
+	'<tr> \r';
+		'<td class="label" width="100">Table Type</td> \r';
+		'<td>'; (self->'tableType'); '</td> \r';
+	'</tr> \r';
+	'<tr> \r';
+		'<td class="label" width="100">Character Set</td> \r';
+		'<td>'; (self->'charSet'); '</td> \r';
+	'</tr> \r';
+	'<tr> \r';
+		'<td class="label" width="100">Primary Key</td> \r';
+		'<td>';(self->'primaryKey'); '</td> \r';
+	'</tr> \r';
+	'<tr> \r';
+		'<td class="label" width="100">Unique Key</td>';
+		'<td>';(self->'uniqueKey'); '</td> \r';
+	'</tr> \r';
+	'<tr> \r';
+		'<td class="label" width="100">Indexed Fields</td> \r';
+		'<td>';(self->'indices'); '</td> \r';
+	'</tr> \r';
+	'</table> \r';
+	'</div> \r';
+	
+	'<div class="dbmFieldSpecs"> \r';
+	'<table> \r';
+	'<tr class="hdr"> \r';
+		'<td width="120">Field Name</td> \r';
+		'<td width="200">Field Info</td> \r';
+		'<td width="100">Null</td> \r';
+		'<td>Default</td> \r';
+	'</tr> \r';
+
+	var('thisField'	= string);
+	iterate(self->('fieldRows'), $thisField);
+		'<tr class="'; loop_count%2 ? 'altrowA' | 'altrowB'; '"> \r';
+			'<td width="200">' + $thisField->(find('name')) + '</td> \r' +
+			'<td width="300">' + $thisField->(find('info')) + '</th></td> \r' +
+			'<td width="100">' + $thisField->(find('null')) + '</th></td> \r' +
+			'<td>' +			 $thisField->(find('dflt')) + '</th></td> \r' +
+		'</tr> \r';
+	/iterate;
+
+	'</table> \r';
+	'</div> \r';
+
+/define_tag;
+
+/define_type;
+?>
+
