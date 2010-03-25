@@ -13,7 +13,8 @@
 	// thanks to Jason Huck for this tag
 	fwpInit_loadAPI('/_pbAPI/');
 
-	var('fw_pageMethod'		= 'pageConfig',
+	var(
+		'fw_pageMethod'		= 'pageConfig',
 		'fw_indexRedirect'	= string,
 		'fw_indexPath' 		= response_filepath
 	);
