@@ -3568,17 +3568,17 @@ define_tag:'duplicate',
 		'fw_cnfrmFldsActn'		= string;
 
 	#fw_actnFields = (self->'fw_tableModel')->find:'fieldNames';
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdNo'))->last);
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdCreated'))->last);
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdCreatedBy'))->last);
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdModified'))->last);
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdModifiedBy'))->last);
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdStatus'))->last);
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdLockID'))->last);
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdLockTime'))->last);
-	#fw_actnFields->(remove: (#fw_actnFields->(findIndex:'rcrdLockOwnr'))->last);
+	#fw_actnFields->remove(#fw_actnFields->findposition('rcrdNo')->get(1));
+	#fw_actnFields->remove(#fw_actnFields->findposition('rcrdCreated')->get(1));
+	#fw_actnFields->remove(#fw_actnFields->findposition('rcrdCreatedBy')->get(1));
+	#fw_actnFields->remove(#fw_actnFields->findposition('rcrdModified')->get(1));
+	#fw_actnFields->remove(#fw_actnFields->findposition('rcrdModifiedBy')->get(1));
+	#fw_actnFields->findposition('rcrdStatus') ? #fw_actnFields->remove(#fw_actnFields->findposition('rcrdStatus')->get(1));
+	#fw_actnFields->findposition('rcrdLockID') ? #fw_actnFields->remove(#fw_actnFields->findposition('rcrdLockID')->get(1));
+	#fw_actnFields->findposition('rcrdLockTime') ? #fw_actnFields->remove(#fw_actnFields->findposition('rcrdLockTime')->get(1));
+	#fw_actnFields->findposition('rcrdLockOwnr') ? #fw_actnFields->remove(#fw_actnFields->findposition('rcrdLockOwnr')->get(1));
 
-	#fw_actnInputs = #fw_actnFields->(join:',');
+	#fw_actnInputs = #fw_actnFields->join(',');
 
 	if: $fw_gUsePbUserAuth && ((var:$fw_userVarName)->'loginValid') == 'Y';
 		#fw_usrName = (var:$fw_userVarName)->(getProfile:'userName');
